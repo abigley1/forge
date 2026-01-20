@@ -1,0 +1,3264 @@
+{
+  "version": "1.0.0",
+  "status": "active",
+  "lastUpdated": "2026-01-20T00:00:00Z",
+  "projectName": "Forge",
+  "description": "A personal project brainstorming, planning, and tracking tool for complex hardware and engineering projects.",
+  "metadata": {
+    "source": "SPRINT_PLAN.md",
+    "generatedFrom": "sprint-plan",
+    "availableTools": {
+      "testing": ["playwright", "vitest", "react-testing-library"],
+      "backend": ["supabase"],
+      "codeAnalysis": ["serena", "pr-review-toolkit"],
+      "design": [
+        "frontend-design",
+        "rams",
+        "ui-skills",
+        "web-interface-guidelines"
+      ]
+    }
+  },
+  "objectives": [
+    {
+      "id": "obj-0",
+      "sprint": 0,
+      "title": "Project Infrastructure & Tooling",
+      "description": "Establish development environment with CI/CD, testing, and core tooling",
+      "demoGoal": "Running dev server with base layout, all CI checks passing"
+    },
+    {
+      "id": "obj-1",
+      "sprint": 1,
+      "title": "Data Model & File System Foundation",
+      "description": "Define TypeScript types, implement file parsing/serialization, create file system abstraction",
+      "demoGoal": "Load sample project folder, display parsed nodes as JSON in UI"
+    },
+    {
+      "id": "obj-2",
+      "sprint": 2,
+      "title": "Node CRUD & Basic Editor",
+      "description": "Create, read, update, delete nodes through UI with markdown editing",
+      "demoGoal": "Create a new Task node, edit content, see it persist and reload"
+    },
+    {
+      "id": "obj-3",
+      "sprint": 3,
+      "title": "Outline View & Navigation",
+      "description": "Hierarchical outline view with filtering, sorting, and keyboard navigation",
+      "demoGoal": "Browse project in outline, filter by type/tag, collapse/expand sections"
+    },
+    {
+      "id": "obj-4",
+      "sprint": 4,
+      "title": "Wiki-Links & Backlinks",
+      "description": "Full wiki-link support with autocomplete, navigation, and backlinks",
+      "demoGoal": "Type [[, see suggestions, click link to navigate, view backlinks panel"
+    },
+    {
+      "id": "obj-5",
+      "sprint": 5,
+      "title": "Graph View Foundation",
+      "description": "Interactive graph visualization with nodes and edges",
+      "demoGoal": "View project as graph, pan/zoom, click nodes, see link connections"
+    },
+    {
+      "id": "obj-6",
+      "sprint": 6,
+      "title": "DAG Dependencies & Critical Path",
+      "description": "Full dependency tracking with blocking logic and critical path highlighting",
+      "demoGoal": "Create task dependencies, see blocked status propagate, highlight critical path"
+    },
+    {
+      "id": "obj-7",
+      "sprint": 7,
+      "title": "Decision Node Tools",
+      "description": "Full decision workflow with comparison tables, scoring, and implications",
+      "demoGoal": "Create decision, add options, score criteria, select winner, see implications"
+    },
+    {
+      "id": "obj-8",
+      "sprint": 8,
+      "title": "Import & Export",
+      "description": "Full import/export for Markdown, JSON, and CSV formats",
+      "demoGoal": "Export project as JSON, re-import, export components as CSV BOM"
+    },
+    {
+      "id": "obj-9",
+      "sprint": 9,
+      "title": "Command Palette & Search",
+      "description": "Command palette for quick actions and global full-text search",
+      "demoGoal": "Press Cmd+K, search for node, execute action, navigate instantly"
+    },
+    {
+      "id": "obj-10",
+      "sprint": 10,
+      "title": "Polish & Accessibility Audit",
+      "description": "Production-ready UI with full WCAG 2.1 compliance",
+      "demoGoal": "Pass accessibility audit, demonstrate with screen reader"
+    },
+    {
+      "id": "obj-11",
+      "sprint": 11,
+      "title": "Workspace Management & Git Integration",
+      "description": "Multi-project workspace and optional git integration",
+      "demoGoal": "Switch between projects, see git status, auto-commit on save"
+    }
+  ],
+  "features": [
+    {
+      "id": "feat-0.1",
+      "sprint": 0,
+      "title": "React + TypeScript Project Setup",
+      "description": "Vite + React 18 + TypeScript with strict mode and path aliases"
+    },
+    {
+      "id": "feat-0.2",
+      "sprint": 0,
+      "title": "Tailwind CSS Configuration",
+      "description": "Tailwind v3+ with animations and utility functions"
+    },
+    {
+      "id": "feat-0.3",
+      "sprint": 0,
+      "title": "Testing Infrastructure",
+      "description": "Vitest + RTL + coverage reporting"
+    },
+    {
+      "id": "feat-0.4",
+      "sprint": 0,
+      "title": "Linting & Formatting",
+      "description": "ESLint + Prettier with pre-commit hooks"
+    },
+    {
+      "id": "feat-0.5",
+      "sprint": 0,
+      "title": "CI Pipeline",
+      "description": "GitHub Actions for lint, type-check, test, build"
+    },
+    {
+      "id": "feat-0.6",
+      "sprint": 0,
+      "title": "Base Layout Shell",
+      "description": "AppShell with sidebar, main content, semantic landmarks"
+    },
+    {
+      "id": "feat-0.7",
+      "sprint": 0,
+      "title": "Base UI Integration",
+      "description": "Base UI components with styling wrapper"
+    },
+    {
+      "id": "feat-0.8",
+      "sprint": 0,
+      "title": "State Management",
+      "description": "Zustand store with devtools"
+    },
+    {
+      "id": "feat-0.9",
+      "sprint": 0,
+      "title": "Error Handling",
+      "description": "Error boundaries with fallback UI"
+    },
+    {
+      "id": "feat-0.10",
+      "sprint": 0,
+      "title": "Toast Notifications",
+      "description": "Toast system with variants and auto-dismiss"
+    },
+    {
+      "id": "feat-1.1",
+      "sprint": 1,
+      "title": "Node Type System",
+      "description": "TypeScript types for Decision, Component, Task, Note nodes"
+    },
+    {
+      "id": "feat-1.2",
+      "sprint": 1,
+      "title": "Project & Workspace Types",
+      "description": "Project and Workspace interfaces with metadata"
+    },
+    {
+      "id": "feat-1.3",
+      "sprint": 1,
+      "title": "YAML Frontmatter Parsing",
+      "description": "Parse and serialize YAML frontmatter with gray-matter"
+    },
+    {
+      "id": "feat-1.4",
+      "sprint": 1,
+      "title": "Runtime Validation",
+      "description": "Zod schemas for node type validation"
+    },
+    {
+      "id": "feat-1.5",
+      "sprint": 1,
+      "title": "File System Abstraction",
+      "description": "Adapter pattern for browser and memory file systems"
+    },
+    {
+      "id": "feat-1.6",
+      "sprint": 1,
+      "title": "Project Loading",
+      "description": "Load projects from directory structure"
+    },
+    {
+      "id": "feat-2.1",
+      "sprint": 2,
+      "title": "Nodes Store",
+      "description": "Zustand store for node CRUD operations"
+    },
+    {
+      "id": "feat-2.2",
+      "sprint": 2,
+      "title": "Undo/Redo System",
+      "description": "Action history with keyboard shortcuts"
+    },
+    {
+      "id": "feat-2.3",
+      "sprint": 2,
+      "title": "Sidebar Navigation",
+      "description": "Sidebar with project switcher, filters, tag cloud"
+    },
+    {
+      "id": "feat-2.4",
+      "sprint": 2,
+      "title": "Node List View",
+      "description": "Keyboard-navigable node list with icons and badges"
+    },
+    {
+      "id": "feat-2.5",
+      "sprint": 2,
+      "title": "Markdown Editor",
+      "description": "CodeMirror-based markdown editing with syntax highlighting"
+    },
+    {
+      "id": "feat-2.6",
+      "sprint": 2,
+      "title": "Node Detail Panel",
+      "description": "Slide-out panel for node editing"
+    },
+    {
+      "id": "feat-2.7",
+      "sprint": 2,
+      "title": "Node Creation Dialog",
+      "description": "Dialog for creating new nodes with type selection"
+    },
+    {
+      "id": "feat-2.8",
+      "sprint": 2,
+      "title": "Auto-Save",
+      "description": "Debounced auto-save with dirty tracking"
+    },
+    {
+      "id": "feat-3.1",
+      "sprint": 3,
+      "title": "Outline View",
+      "description": "Hierarchical collapsible outline by node type"
+    },
+    {
+      "id": "feat-3.2",
+      "sprint": 3,
+      "title": "Filtering System",
+      "description": "Filter by type, tag, status with URL sync"
+    },
+    {
+      "id": "feat-3.3",
+      "sprint": 3,
+      "title": "Sorting",
+      "description": "Sort by type, status, modified, title, created"
+    },
+    {
+      "id": "feat-3.4",
+      "sprint": 3,
+      "title": "Drag and Drop",
+      "description": "DnD Kit integration for custom ordering"
+    },
+    {
+      "id": "feat-3.5",
+      "sprint": 3,
+      "title": "URL-Based Navigation",
+      "description": "Deep linking with nuqs for node selection"
+    },
+    {
+      "id": "feat-4.1",
+      "sprint": 4,
+      "title": "Link Index",
+      "description": "Bidirectional link index for outgoing and backlinks"
+    },
+    {
+      "id": "feat-4.2",
+      "sprint": 4,
+      "title": "Wiki-Link Autocomplete",
+      "description": "CodeMirror autocomplete for [[ syntax"
+    },
+    {
+      "id": "feat-4.3",
+      "sprint": 4,
+      "title": "Clickable Links",
+      "description": "Navigate to linked nodes via Cmd+Click"
+    },
+    {
+      "id": "feat-4.4",
+      "sprint": 4,
+      "title": "Backlinks Panel",
+      "description": "Panel showing all nodes linking to current node"
+    },
+    {
+      "id": "feat-4.5",
+      "sprint": 4,
+      "title": "Link Validation",
+      "description": "Detect and style broken links"
+    },
+    {
+      "id": "feat-5.1",
+      "sprint": 5,
+      "title": "React Flow Integration",
+      "description": "Graph view container with controls"
+    },
+    {
+      "id": "feat-5.2",
+      "sprint": 5,
+      "title": "Custom Graph Nodes",
+      "description": "Styled nodes by type with badges"
+    },
+    {
+      "id": "feat-5.3",
+      "sprint": 5,
+      "title": "Graph Edges",
+      "description": "Custom edges for dependencies and references"
+    },
+    {
+      "id": "feat-5.4",
+      "sprint": 5,
+      "title": "Auto Layout",
+      "description": "elkjs-based hierarchical layout"
+    },
+    {
+      "id": "feat-5.5",
+      "sprint": 5,
+      "title": "Graph Navigation",
+      "description": "Pan, zoom, minimap, keyboard navigation"
+    },
+    {
+      "id": "feat-6.1",
+      "sprint": 6,
+      "title": "Dependency Graph",
+      "description": "DAG data structure with cycle detection"
+    },
+    {
+      "id": "feat-6.2",
+      "sprint": 6,
+      "title": "Blocked Status",
+      "description": "Automatic blocked status calculation"
+    },
+    {
+      "id": "feat-6.3",
+      "sprint": 6,
+      "title": "Critical Path",
+      "description": "Critical path calculation and visualization"
+    },
+    {
+      "id": "feat-6.4",
+      "sprint": 6,
+      "title": "Dependency Editor",
+      "description": "UI for managing node dependencies"
+    },
+    {
+      "id": "feat-6.5",
+      "sprint": 6,
+      "title": "Milestones",
+      "description": "Milestone field with grouping"
+    },
+    {
+      "id": "feat-7.1",
+      "sprint": 7,
+      "title": "Comparison Table",
+      "description": "Decision comparison with options and criteria"
+    },
+    {
+      "id": "feat-7.2",
+      "sprint": 7,
+      "title": "Weighted Scoring",
+      "description": "Score calculation with weight sliders"
+    },
+    {
+      "id": "feat-7.3",
+      "sprint": 7,
+      "title": "Option Selection",
+      "description": "Select decision winner with rationale"
+    },
+    {
+      "id": "feat-7.4",
+      "sprint": 7,
+      "title": "Templates",
+      "description": "Decision and node templates"
+    },
+    {
+      "id": "feat-8.1",
+      "sprint": 8,
+      "title": "JSON Export/Import",
+      "description": "Full project export and import"
+    },
+    {
+      "id": "feat-8.2",
+      "sprint": 8,
+      "title": "Markdown Export/Import",
+      "description": "Export to markdown file structure"
+    },
+    {
+      "id": "feat-8.3",
+      "sprint": 8,
+      "title": "CSV Export",
+      "description": "Components CSV and BOM export"
+    },
+    {
+      "id": "feat-8.4",
+      "sprint": 8,
+      "title": "Import UI",
+      "description": "Drag-drop and clipboard import"
+    },
+    {
+      "id": "feat-9.1",
+      "sprint": 9,
+      "title": "Command Palette",
+      "description": "Cmd+K command palette with fuzzy search"
+    },
+    {
+      "id": "feat-9.2",
+      "sprint": 9,
+      "title": "Full-Text Search",
+      "description": "Search across all node content"
+    },
+    {
+      "id": "feat-9.3",
+      "sprint": 9,
+      "title": "Command Registry",
+      "description": "Registered commands with shortcuts"
+    },
+    {
+      "id": "feat-10.1",
+      "sprint": 10,
+      "title": "Accessibility Audit",
+      "description": "WCAG 2.1 compliance verification"
+    },
+    {
+      "id": "feat-10.2",
+      "sprint": 10,
+      "title": "Dark Mode",
+      "description": "Dark theme with system preference"
+    },
+    {
+      "id": "feat-10.3",
+      "sprint": 10,
+      "title": "Reduced Motion",
+      "description": "Respect prefers-reduced-motion"
+    },
+    {
+      "id": "feat-10.4",
+      "sprint": 10,
+      "title": "Onboarding",
+      "description": "First-run experience and help"
+    },
+    {
+      "id": "feat-11.1",
+      "sprint": 11,
+      "title": "Workspace Management",
+      "description": "Multi-project workspace with switcher"
+    },
+    {
+      "id": "feat-11.2",
+      "sprint": 11,
+      "title": "Git Integration",
+      "description": "Git status and auto-commit"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "0.1.1",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Initialize Vite + React 18 + TypeScript project",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["npm run build succeeds with zero errors"]
+    },
+    {
+      "id": "0.1.2",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Configure tsconfig.json with strict mode enabled",
+      "type": "config",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "strict: true in tsconfig.json",
+        "noImplicitAny: true"
+      ]
+    },
+    {
+      "id": "0.1.3",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Set up path aliases (@/components, @/lib, @/types)",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": ["Imports using @ prefix resolve correctly"]
+    },
+    {
+      "id": "0.2.1",
+      "sprint": 0,
+      "feature": "feat-0.2",
+      "title": "Install and configure Tailwind CSS v3+",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["Tailwind classes apply correctly"]
+    },
+    {
+      "id": "0.2.2",
+      "sprint": 0,
+      "feature": "feat-0.2",
+      "title": "Set up tailwind.config.ts with content paths",
+      "type": "config",
+      "priority": "high",
+      "acceptanceCriteria": ["Content paths include all component files"]
+    },
+    {
+      "id": "0.2.3",
+      "sprint": 0,
+      "feature": "feat-0.2",
+      "title": "Install tailwindcss-animate for entrance animations",
+      "type": "setup",
+      "priority": "medium",
+      "acceptanceCriteria": ["Animation classes available"]
+    },
+    {
+      "id": "0.2.4",
+      "sprint": 0,
+      "feature": "feat-0.2",
+      "title": "Create cn() utility function (clsx + tailwind-merge)",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Unit test: cn() merges conflicting classes correctly"
+      ]
+    },
+    {
+      "id": "0.3.1",
+      "sprint": 0,
+      "feature": "feat-0.3",
+      "title": "Install Vitest + React Testing Library + jsdom",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["npm test command available"]
+    },
+    {
+      "id": "0.3.2",
+      "sprint": 0,
+      "feature": "feat-0.3",
+      "title": "Configure test setup file with RTL matchers",
+      "type": "config",
+      "priority": "high",
+      "acceptanceCriteria": ["RTL matchers available in tests"]
+    },
+    {
+      "id": "0.3.3",
+      "sprint": 0,
+      "feature": "feat-0.3",
+      "title": "Add coverage reporting (target: 80%+)",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": ["Coverage report generated on test run"]
+    },
+    {
+      "id": "0.3.4",
+      "sprint": 0,
+      "feature": "feat-0.3",
+      "title": "Create smoke test (App renders without crash)",
+      "type": "test",
+      "priority": "high",
+      "acceptanceCriteria": ["npm test passes with smoke test"]
+    },
+    {
+      "id": "0.4a.1",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Install ESLint with React and TypeScript plugins",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["npm run lint command available"]
+    },
+    {
+      "id": "0.4a.2",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Add eslint-plugin-jsx-a11y for accessibility linting",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["A11y rules active in ESLint"]
+    },
+    {
+      "id": "0.4a.3",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Configure rules for hooks, exhaustive deps",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": ["Hooks rules configured correctly"]
+    },
+    {
+      "id": "0.4b.1",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Install Prettier with Tailwind class sorting plugin",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["Tailwind classes auto-sorted on format"]
+    },
+    {
+      "id": "0.4b.2",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Set up Husky + lint-staged for pre-commit hooks",
+      "type": "setup",
+      "priority": "medium",
+      "acceptanceCriteria": ["Pre-commit hook runs lint and format"]
+    },
+    {
+      "id": "0.4b.3",
+      "sprint": 0,
+      "feature": "feat-0.4",
+      "title": "Configure format-on-save in VSCode settings",
+      "type": "config",
+      "priority": "low",
+      "acceptanceCriteria": [".vscode/settings.json configured"]
+    },
+    {
+      "id": "0.5.1",
+      "sprint": 0,
+      "feature": "feat-0.5",
+      "title": "Create GitHub Actions workflow (.github/workflows/ci.yml)",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["CI workflow file exists"]
+    },
+    {
+      "id": "0.5.2",
+      "sprint": 0,
+      "feature": "feat-0.5",
+      "title": "Run lint, type-check, test, build on every PR",
+      "type": "config",
+      "priority": "high",
+      "acceptanceCriteria": ["All CI steps run on PR"]
+    },
+    {
+      "id": "0.5.3",
+      "sprint": 0,
+      "feature": "feat-0.5",
+      "title": "Cache node_modules for faster CI runs",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": ["Cache configured in workflow"]
+    },
+    {
+      "id": "0.6.1",
+      "sprint": 0,
+      "feature": "feat-0.6",
+      "title": "Create <AppShell> with sidebar + main content areas",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design", "ui-skills"],
+      "acceptanceCriteria": ["AppShell renders with two-column layout"]
+    },
+    {
+      "id": "0.6.2",
+      "sprint": 0,
+      "feature": "feat-0.6",
+      "title": "Implement skip link to main content (a11y)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": [
+        "Skip link receives focus on Tab, activates with Enter"
+      ]
+    },
+    {
+      "id": "0.6.3",
+      "sprint": 0,
+      "feature": "feat-0.6",
+      "title": "Use h-dvh for full-height layout (not h-screen)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Layout uses dynamic viewport height"]
+    },
+    {
+      "id": "0.6.4",
+      "sprint": 0,
+      "feature": "feat-0.6",
+      "title": "Add semantic landmarks: <nav>, <main>, <aside>",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams", "web-interface-guidelines"],
+      "acceptanceCriteria": ["Semantic HTML elements used correctly"]
+    },
+    {
+      "id": "0.7.1",
+      "sprint": 0,
+      "feature": "feat-0.7",
+      "title": "Install @base-ui-components/react (pin specific version)",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["Base UI installed with pinned version"]
+    },
+    {
+      "id": "0.7.2",
+      "sprint": 0,
+      "feature": "feat-0.7",
+      "title": "Create styling wrapper for Base UI components",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["ui-skills"],
+      "acceptanceCriteria": ["Wrapper applies consistent styling"]
+    },
+    {
+      "id": "0.7.3",
+      "sprint": 0,
+      "feature": "feat-0.7",
+      "title": "Document usage patterns in code",
+      "type": "documentation",
+      "priority": "low",
+      "acceptanceCriteria": ["Usage examples in component files"]
+    },
+    {
+      "id": "0.7.4",
+      "sprint": 0,
+      "feature": "feat-0.7",
+      "title": "Test: Render a Base UI Dialog component",
+      "type": "test",
+      "priority": "medium",
+      "tools": ["playwright"],
+      "acceptanceCriteria": ["Dialog opens and closes correctly"]
+    },
+    {
+      "id": "0.8.1",
+      "sprint": 0,
+      "feature": "feat-0.8",
+      "title": "Install Zustand",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["Zustand package installed"]
+    },
+    {
+      "id": "0.8.2",
+      "sprint": 0,
+      "feature": "feat-0.8",
+      "title": "Create root store with devtools middleware",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Store initializes, devtools shows state"]
+    },
+    {
+      "id": "0.8.3",
+      "sprint": 0,
+      "feature": "feat-0.8",
+      "title": "Set up typed store patterns",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["TypeScript types for store state and actions"]
+    },
+    {
+      "id": "0.9.1",
+      "sprint": 0,
+      "feature": "feat-0.9",
+      "title": "Create <ErrorBoundary> with fallback UI",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Catches render errors, displays fallback"]
+    },
+    {
+      "id": "0.9.2",
+      "sprint": 0,
+      "feature": "feat-0.9",
+      "title": "Log errors to console",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Errors logged with stack trace"]
+    },
+    {
+      "id": "0.9.3",
+      "sprint": 0,
+      "feature": "feat-0.9",
+      "title": "Wrap major app sections (sidebar, main, editor)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Each section has error boundary"]
+    },
+    {
+      "id": "0.10.1",
+      "sprint": 0,
+      "feature": "feat-0.10",
+      "title": "Create <ToastProvider> context",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Toast context provides value"]
+    },
+    {
+      "id": "0.10.2",
+      "sprint": 0,
+      "feature": "feat-0.10",
+      "title": "Create useToast() hook",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Hook returns toast functions"]
+    },
+    {
+      "id": "0.10.3",
+      "sprint": 0,
+      "feature": "feat-0.10",
+      "title": "Support success, error, info, undo variants",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["All variants styled distinctly"]
+    },
+    {
+      "id": "0.10.4",
+      "sprint": 0,
+      "feature": "feat-0.10",
+      "title": "Auto-dismiss with configurable duration",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Toast auto-dismisses after timeout"]
+    },
+    {
+      "id": "0.11.1",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create .env.example with documented variables",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": [".env.example exists with comments"]
+    },
+    {
+      "id": "0.11.2",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Set up Vite env variable handling (import.meta.env)",
+      "type": "config",
+      "priority": "medium",
+      "acceptanceCriteria": ["Env variables accessible in code"]
+    },
+    {
+      "id": "0.11.3",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create config.ts for typed config access",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Config loads correctly in dev and build"]
+    },
+    {
+      "id": "0.12.1",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create debug() utility with namespaces",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["debug('fs'), debug('store') work"]
+    },
+    {
+      "id": "0.12.2",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Enable debug via localStorage.setItem('debug', '*')",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Logging toggleable via localStorage"]
+    },
+    {
+      "id": "0.13.1",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create z-index.ts with constant scale",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Z_DROPDOWN=10, Z_STICKY=20, Z_MODAL=30, Z_POPOVER=40, Z_TOAST=50"
+      ]
+    },
+    {
+      "id": "0.14.1",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create formatDate() using Intl.DateTimeFormat",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Formats dates correctly"]
+    },
+    {
+      "id": "0.14.2",
+      "sprint": 0,
+      "feature": "feat-0.1",
+      "title": "Create formatRelativeTime() for '2 hours ago'",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Relative time formatting works"]
+    },
+    {
+      "id": "1.1a.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create NodeType enum: decision, component, task, note",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Enum values accessible from @/types/nodes.ts"]
+    },
+    {
+      "id": "1.1b.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Define BaseNode interface with id, type, title, tags, dates, content",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type compiles correctly"]
+    },
+    {
+      "id": "1.1c.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Define DecisionNode type extending BaseNode",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "status, selected, options, criteria fields defined"
+      ]
+    },
+    {
+      "id": "1.1c.2",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create isDecisionNode() type guard",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type guard correctly identifies DecisionNode"]
+    },
+    {
+      "id": "1.1d.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Define ComponentNode type extending BaseNode",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "status, cost, supplier, partNumber, customFields defined"
+      ]
+    },
+    {
+      "id": "1.1d.2",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create isComponentNode() type guard",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type guard correctly identifies ComponentNode"]
+    },
+    {
+      "id": "1.1e.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Define TaskNode type extending BaseNode",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "status, priority, dependsOn, blocks, checklist defined"
+      ]
+    },
+    {
+      "id": "1.1e.2",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create isTaskNode() type guard",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type guard correctly identifies TaskNode"]
+    },
+    {
+      "id": "1.1f.1",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Define NoteNode type extending BaseNode",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Minimal additions to BaseNode"]
+    },
+    {
+      "id": "1.1f.2",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create isNoteNode() type guard",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type guard correctly identifies NoteNode"]
+    },
+    {
+      "id": "1.1f.3",
+      "sprint": 1,
+      "feature": "feat-1.1",
+      "title": "Create ForgeNode discriminated union type",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Union narrows correctly with type guards"]
+    },
+    {
+      "id": "1.2.1",
+      "sprint": 1,
+      "feature": "feat-1.2",
+      "title": "Define Project interface with id, name, path, nodes, metadata",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type compiles and instantiates correctly"]
+    },
+    {
+      "id": "1.2.2",
+      "sprint": 1,
+      "feature": "feat-1.2",
+      "title": "Define Workspace interface with projects, activeProjectId, config",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type compiles and instantiates correctly"]
+    },
+    {
+      "id": "1.2.3",
+      "sprint": 1,
+      "feature": "feat-1.2",
+      "title": "Define WorkspaceConfig interface",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Config type defined"]
+    },
+    {
+      "id": "1.3.1",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Install gray-matter with safe YAML config",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["gray-matter installed"]
+    },
+    {
+      "id": "1.3.2",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Create parseFrontmatter(content): FrontmatterResult",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Returns { data, content, error } shape"]
+    },
+    {
+      "id": "1.3.3",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Handle edge cases: no frontmatter, malformed YAML, empty file",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Graceful handling of all edge cases"]
+    },
+    {
+      "id": "1.3.4",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Test: Parse all four node type samples correctly",
+      "type": "test",
+      "priority": "high",
+      "acceptanceCriteria": ["Tests pass for each node type"]
+    },
+    {
+      "id": "1.4.1",
+      "sprint": 1,
+      "feature": "feat-1.4",
+      "title": "Install zod for runtime validation",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["zod package installed"]
+    },
+    {
+      "id": "1.4.2",
+      "sprint": 1,
+      "feature": "feat-1.4",
+      "title": "Create zod schema for each node type frontmatter",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Schemas defined for all four types"]
+    },
+    {
+      "id": "1.4.3",
+      "sprint": 1,
+      "feature": "feat-1.4",
+      "title": "Create validateNode(data): Result<ForgeNode, ValidationError>",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Returns detailed error messages for invalid data"]
+    },
+    {
+      "id": "1.5.1",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Create serializeFrontmatter(node): string",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Preserves field ordering (type first, then status)"
+      ]
+    },
+    {
+      "id": "1.5.2",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Test: Round-trip parse/serialize produces identical data",
+      "type": "test",
+      "priority": "high",
+      "acceptanceCriteria": ["Parse -> serialize -> parse equality"]
+    },
+    {
+      "id": "1.6.1",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Create parseMarkdownBody(content): MarkdownBody",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Extracts title from first # heading"]
+    },
+    {
+      "id": "1.7.1",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Create extractWikiLinks(markdown): string[]",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Regex: /\\[\\[([^\\]]+)\\]\\]/g"]
+    },
+    {
+      "id": "1.7.2",
+      "sprint": 1,
+      "feature": "feat-1.3",
+      "title": "Ignore links inside code blocks and inline code",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["False positives in code ignored"]
+    },
+    {
+      "id": "1.8.1",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Define FileSystemAdapter interface",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "readFile, writeFile, listDirectory, exists, mkdir, watch defined"
+      ]
+    },
+    {
+      "id": "1.8.2",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Create MemoryFileSystemAdapter for tests",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Memory adapter CRUD operations work"]
+    },
+    {
+      "id": "1.9a.1",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Create BrowserFileSystemAdapter using File System Access API",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Permission requests handled"]
+    },
+    {
+      "id": "1.9a.2",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Cache directory handles for performance",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Handles cached appropriately"]
+    },
+    {
+      "id": "1.9b.1",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Create fallback using <input type='file' webkitdirectory>",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Fallback works in Firefox/Safari"]
+    },
+    {
+      "id": "1.10.1",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Create loadProject(adapter, path): Promise<Project>",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Scans decisions/, components/, tasks/, notes/"]
+    },
+    {
+      "id": "1.10.2",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Build nodes Map with correct types",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Load mock project, verify node count and types"]
+    },
+    {
+      "id": "1.11.1",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Create saveNode(adapter, projectPath, node): Promise<void>",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Determines subdirectory from node type"]
+    },
+    {
+      "id": "1.11.2",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Generate filename via slugify",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Filenames are URL-safe slugs"]
+    },
+    {
+      "id": "1.12.1",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Add watch() method to adapter",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Detects external file changes"]
+    },
+    {
+      "id": "1.12.2",
+      "sprint": 1,
+      "feature": "feat-1.5",
+      "title": "Debounce rapid changes (100ms)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Rapid changes debounced"]
+    },
+    {
+      "id": "1.13.1",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Create fixtures/sample-project/ with all four node types",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "At least 2 nodes of each type with cross-node links"
+      ]
+    },
+    {
+      "id": "1.14.1",
+      "sprint": 1,
+      "feature": "feat-1.6",
+      "title": "Create <DebugProjectView> showing raw JSON",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": [
+        "Node count by type, parse errors, collapsible sections"
+      ]
+    },
+    {
+      "id": "2.1.1",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Create useNodesStore with nodes Map and activeNodeId",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["State holds nodes and active selection"]
+    },
+    {
+      "id": "2.1.2",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Add actions: addNode, updateNode, deleteNode, setActiveNode",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["All CRUD operations update state correctly"]
+    },
+    {
+      "id": "2.1.3",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Add selectors: getNodeById, getNodesByType, getAllNodes",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Selectors return correct data"]
+    },
+    {
+      "id": "2.2.1",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Create useProjectStore with project, isDirty, isLoading, error",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Load/save project updates store state"]
+    },
+    {
+      "id": "2.2.2",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Integrate project store with file system adapter",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Save/load through adapter"]
+    },
+    {
+      "id": "2.3.1",
+      "sprint": 2,
+      "feature": "feat-2.2",
+      "title": "Create undo stack with action history",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Actions recorded in stack"]
+    },
+    {
+      "id": "2.3.2",
+      "sprint": 2,
+      "feature": "feat-2.2",
+      "title": "Create Zustand middleware for action recording",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Middleware intercepts store actions"]
+    },
+    {
+      "id": "2.3.3",
+      "sprint": 2,
+      "feature": "feat-2.2",
+      "title": "Support undo for node create, update, delete",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Undo reverses last action, redo re-applies"]
+    },
+    {
+      "id": "2.3.4",
+      "sprint": 2,
+      "feature": "feat-2.2",
+      "title": "Implement Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z shortcuts",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Keyboard shortcuts trigger undo/redo"]
+    },
+    {
+      "id": "2.4.1",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Create generateNodeId(title, type): string",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Slugify title, ensure uniqueness with numeric suffix"
+      ]
+    },
+    {
+      "id": "2.5.1",
+      "sprint": 2,
+      "feature": "feat-2.3",
+      "title": "Create <Sidebar> component with sections",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design", "ui-skills"],
+      "acceptanceCriteria": [
+        "Project switcher, quick create, filters, tag cloud render"
+      ]
+    },
+    {
+      "id": "2.5.2",
+      "sprint": 2,
+      "feature": "feat-2.3",
+      "title": "Make sidebar collapsible on mobile",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["web-interface-guidelines"],
+      "acceptanceCriteria": ["Sidebar collapses at mobile breakpoint"]
+    },
+    {
+      "id": "2.6.1",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Create <NodeList> displaying nodes as list items",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Shows type icon, title, status badge"]
+    },
+    {
+      "id": "2.6.2",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Highlight active node in list",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Active node visually distinct"]
+    },
+    {
+      "id": "2.6.3",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Implement keyboard navigation (arrow keys, Enter)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Keyboard navigation works correctly"]
+    },
+    {
+      "id": "2.7.1",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Create <NodeTypeIcon type={NodeType}> component",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Correct lucide-react icon per type"]
+    },
+    {
+      "id": "2.7.2",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Include aria-hidden='true' on decorative icons",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Icons hidden from screen readers"]
+    },
+    {
+      "id": "2.8.1",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Create <StatusBadge status={string} type={NodeType}>",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Color + text for each status (not color-only)"]
+    },
+    {
+      "id": "2.9.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <NodeDetailPanel nodeId={string}>",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design", "ui-skills"],
+      "acceptanceCriteria": ["Slide-out panel or split view layout"]
+    },
+    {
+      "id": "2.9.2",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Add close button with keyboard support (Escape)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Escape key closes panel"]
+    },
+    {
+      "id": "2.9.3",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Add overscroll-behavior: contain to prevent scroll bleed",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Scroll contained to panel"]
+    },
+    {
+      "id": "2.9.4",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Implement focus trap when panel open",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Focus trapped, returns on close"]
+    },
+    {
+      "id": "2.10a.1",
+      "sprint": 2,
+      "feature": "feat-2.5",
+      "title": "Install CodeMirror packages (@codemirror/state, view, lang-markdown)",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["Packages installed"]
+    },
+    {
+      "id": "2.10a.2",
+      "sprint": 2,
+      "feature": "feat-2.5",
+      "title": "Install @uiw/react-codemirror for React bindings",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["React bindings available"]
+    },
+    {
+      "id": "2.10a.3",
+      "sprint": 2,
+      "feature": "feat-2.5",
+      "title": "Create <MarkdownEditor> wrapper component",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Editor renders, value changes trigger onChange"]
+    },
+    {
+      "id": "2.10b.1",
+      "sprint": 2,
+      "feature": "feat-2.5",
+      "title": "Add markdown language extension",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Markdown syntax highlighted"]
+    },
+    {
+      "id": "2.10b.2",
+      "sprint": 2,
+      "feature": "feat-2.5",
+      "title": "Configure theme to match app",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Editor theme consistent with app"]
+    },
+    {
+      "id": "2.11.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <NodeTitleEditor> with large heading input",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Auto-focus on new node, validate non-empty"]
+    },
+    {
+      "id": "2.12a.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <StatusSelect> using Base UI Select",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Options based on node type, keyboard accessible"]
+    },
+    {
+      "id": "2.12b.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <TagInput> with autocomplete from existing tags",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Add/remove tags, Enter to add, backspace to remove"
+      ]
+    },
+    {
+      "id": "2.12c.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <PrioritySelector> as segmented control",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["High/Medium/Low options, keyboard accessible"]
+    },
+    {
+      "id": "2.12d.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <FrontmatterEditor node={ForgeNode}>",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Renders appropriate fields based on node type"]
+    },
+    {
+      "id": "2.13.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Add Decision-specific fields (selected option, status)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Selection updates node correctly"]
+    },
+    {
+      "id": "2.14.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Add Component-specific fields (cost, supplier, part number)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["All fields persist correctly"]
+    },
+    {
+      "id": "2.14.2",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create custom fields key-value editor",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Custom fields editable"]
+    },
+    {
+      "id": "2.15.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Add Task-specific fields (priority, depends-on)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Dependencies save correctly"]
+    },
+    {
+      "id": "2.16.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Implement checklist parser for - [ ] and - [x] syntax",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Returns ChecklistItem[] array"]
+    },
+    {
+      "id": "2.17.1",
+      "sprint": 2,
+      "feature": "feat-2.6",
+      "title": "Create <ChecklistEditor> with toggleable items",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Space to toggle, Enter to add, backspace to delete"
+      ]
+    },
+    {
+      "id": "2.18.1",
+      "sprint": 2,
+      "feature": "feat-2.7",
+      "title": "Create <CreateNodeDialog> using Base UI Dialog",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design", "ui-skills"],
+      "acceptanceCriteria": ["Type selector, title input, template dropdown"]
+    },
+    {
+      "id": "2.19.1",
+      "sprint": 2,
+      "feature": "feat-2.3",
+      "title": "Add quick create buttons to sidebar",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["+ Decision, + Component, + Task, + Note buttons"]
+    },
+    {
+      "id": "2.19.2",
+      "sprint": 2,
+      "feature": "feat-2.7",
+      "title": "Implement Ctrl+Shift+N keyboard shortcut",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Shortcut opens create dialog"]
+    },
+    {
+      "id": "2.20.1",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Create <DeleteNodeDialog> using Base UI AlertDialog",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Shows title, type, warns about broken links"]
+    },
+    {
+      "id": "2.20.2",
+      "sprint": 2,
+      "feature": "feat-2.1",
+      "title": "Show undo toast after deletion",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Undo restores deleted node"]
+    },
+    {
+      "id": "2.21.1",
+      "sprint": 2,
+      "feature": "feat-2.8",
+      "title": "Track dirty state per node",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Dirty tracking works"]
+    },
+    {
+      "id": "2.21.2",
+      "sprint": 2,
+      "feature": "feat-2.8",
+      "title": "Implement debounced auto-save (2 second delay)",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Changes trigger single save after debounce"]
+    },
+    {
+      "id": "2.21.3",
+      "sprint": 2,
+      "feature": "feat-2.8",
+      "title": "Show 'Saving...' indicator during save",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Indicator visible during save"]
+    },
+    {
+      "id": "2.22.1",
+      "sprint": 2,
+      "feature": "feat-2.8",
+      "title": "Add beforeunload handler when dirty",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Warning appears when navigating with unsaved changes"
+      ]
+    },
+    {
+      "id": "2.23.1",
+      "sprint": 2,
+      "feature": "feat-2.4",
+      "title": "Create <EmptyState> component",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Single CTA, renders when nodes empty"]
+    },
+    {
+      "id": "3.1.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Create <OutlineView> as main view component",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Collapsible sections by node type"]
+    },
+    {
+      "id": "3.1.2",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Persist collapse state in localStorage",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["State persists across reloads"]
+    },
+    {
+      "id": "3.2.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Create groupNodesByType(nodes): Record<NodeType, ForgeNode[]>",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Groups correctly, handles empty groups"]
+    },
+    {
+      "id": "3.3.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Create <CollapsibleSection> using Base UI Collapsible",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Animate height, keyboard Enter/Space toggle"]
+    },
+    {
+      "id": "3.3.2",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Respect prefers-reduced-motion for animations",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Animations disabled when preference set"]
+    },
+    {
+      "id": "3.4.1",
+      "sprint": 3,
+      "feature": "feat-3.5",
+      "title": "Install nuqs v2+",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["nuqs package installed"]
+    },
+    {
+      "id": "3.4.2",
+      "sprint": 3,
+      "feature": "feat-3.5",
+      "title": "Configure NuqsAdapter at app root",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["URL params sync with state"]
+    },
+    {
+      "id": "3.5.1",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Create <TypeFilter> with toggle buttons per type",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Filter state stored in URL via nuqs"]
+    },
+    {
+      "id": "3.6.1",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Create <TagFilter> showing all unique tags",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Multi-select with AND logic, stored in URL"]
+    },
+    {
+      "id": "3.7.1",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Create <StatusFilter> for node statuses",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Checkboxes for each status, stored in URL"]
+    },
+    {
+      "id": "3.8.1",
+      "sprint": 3,
+      "feature": "feat-3.3",
+      "title": "Create <SortDropdown> with sort options",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Type, Status, Modified, Title, Created options"]
+    },
+    {
+      "id": "3.8.2",
+      "sprint": 3,
+      "feature": "feat-3.3",
+      "title": "Add ascending/descending toggle",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Direction toggle, stored in URL"]
+    },
+    {
+      "id": "3.9.1",
+      "sprint": 3,
+      "feature": "feat-3.3",
+      "title": "Create sortNodes(nodes, sortBy, direction): ForgeNode[]",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Stable sort for each option"]
+    },
+    {
+      "id": "3.10.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Implement keyboard navigation in outline",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Arrow up/down, Enter, Home/End, type-ahead"]
+    },
+    {
+      "id": "3.11.1",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Create <NodeSearchInput> with debounced input",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Filter by title, 150ms debounce, clear button"]
+    },
+    {
+      "id": "3.11.2",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Add aria-live announcement for result count",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Screen reader announces result count"]
+    },
+    {
+      "id": "3.12.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Implement quick status toggle on task nodes",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Click cycles: pending -> in_progress -> complete"]
+    },
+    {
+      "id": "3.13.1",
+      "sprint": 3,
+      "feature": "feat-3.2",
+      "title": "Create <TagCloud> showing tags with counts",
+      "type": "implementation",
+      "priority": "low",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Click tag adds to filter, visual weight by frequency"
+      ]
+    },
+    {
+      "id": "3.14a.1",
+      "sprint": 3,
+      "feature": "feat-3.4",
+      "title": "Install @dnd-kit/core and @dnd-kit/sortable",
+      "type": "setup",
+      "priority": "medium",
+      "acceptanceCriteria": ["DnD Kit packages installed"]
+    },
+    {
+      "id": "3.14a.2",
+      "sprint": 3,
+      "feature": "feat-3.4",
+      "title": "Create DnD context provider",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Provider mounts without error"]
+    },
+    {
+      "id": "3.14b.1",
+      "sprint": 3,
+      "feature": "feat-3.4",
+      "title": "Make node list items draggable",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Visual feedback during drag"]
+    },
+    {
+      "id": "3.14c.1",
+      "sprint": 3,
+      "feature": "feat-3.4",
+      "title": "Save custom order to project metadata",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Custom order persists after reload"]
+    },
+    {
+      "id": "3.15.1",
+      "sprint": 3,
+      "feature": "feat-3.5",
+      "title": "Create <Breadcrumbs> showing navigation path",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Project > Node Type > Node, clickable segments"]
+    },
+    {
+      "id": "3.16.1",
+      "sprint": 3,
+      "feature": "feat-3.5",
+      "title": "Sync active node ID to URL (?node=id)",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Deep-linking support, browser back/forward works"]
+    },
+    {
+      "id": "3.17.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Create <ViewToggle> button group (Outline/Graph)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Toggle switches view, Ctrl+1/Ctrl+2 shortcuts"]
+    },
+    {
+      "id": "3.18.1",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Install @tanstack/react-virtual",
+      "type": "setup",
+      "priority": "medium",
+      "acceptanceCriteria": ["Virtual list package installed"]
+    },
+    {
+      "id": "3.18.2",
+      "sprint": 3,
+      "feature": "feat-3.1",
+      "title": "Apply virtualization to NodeList for >50 items",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["200+ nodes render without frame drops"]
+    },
+    {
+      "id": "4.1.1",
+      "sprint": 4,
+      "feature": "feat-4.1",
+      "title": "Create buildLinkIndex(nodes): LinkIndex",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Returns outgoing and incoming Maps"]
+    },
+    {
+      "id": "4.2.1",
+      "sprint": 4,
+      "feature": "feat-4.1",
+      "title": "Add linkIndex to nodes store",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Index rebuilds on node changes"]
+    },
+    {
+      "id": "4.3.1",
+      "sprint": 4,
+      "feature": "feat-4.2",
+      "title": "Create CodeMirror autocomplete source for wiki-links",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Filter nodes by typed text after [["]
+    },
+    {
+      "id": "4.4.1",
+      "sprint": 4,
+      "feature": "feat-4.2",
+      "title": "Integrate autocomplete into editor",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Trigger on [[, insert on Enter, dismiss on Escape"
+      ]
+    },
+    {
+      "id": "4.5.1",
+      "sprint": 4,
+      "feature": "feat-4.3",
+      "title": "Add CodeMirror decoration for [[links]]",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Underline, pointer cursor styling"]
+    },
+    {
+      "id": "4.5.2",
+      "sprint": 4,
+      "feature": "feat-4.3",
+      "title": "Implement Cmd/Ctrl+Click navigation",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Click navigates to linked node"]
+    },
+    {
+      "id": "4.6.1",
+      "sprint": 4,
+      "feature": "feat-4.3",
+      "title": "Create wiki-link preview tooltip on hover",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Shows title, type badge, first 100 chars"]
+    },
+    {
+      "id": "4.7.1",
+      "sprint": 4,
+      "feature": "feat-4.4",
+      "title": "Create <BacklinksPanel nodeId={string}>",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Lists linking nodes with context snippet"]
+    },
+    {
+      "id": "4.8.1",
+      "sprint": 4,
+      "feature": "feat-4.5",
+      "title": "Detect broken links (to non-existent nodes)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Broken links styled: red, dashed underline"]
+    },
+    {
+      "id": "4.8.2",
+      "sprint": 4,
+      "feature": "feat-4.5",
+      "title": "Show warning count badge in editor toolbar",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Badge shows broken link count"]
+    },
+    {
+      "id": "4.9.1",
+      "sprint": 4,
+      "feature": "feat-4.3",
+      "title": "Create 'Create Linked Node' action for non-existent links",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Click creates node with title, prompts for type"]
+    },
+    {
+      "id": "4.10.1",
+      "sprint": 4,
+      "feature": "feat-4.5",
+      "title": "Implement link renaming when node title changes",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Dialog offers to update all references"]
+    },
+    {
+      "id": "4.11.1",
+      "sprint": 4,
+      "feature": "feat-4.2",
+      "title": "Implement auto-link suggestions for node title mentions",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Subtle underline, click converts to [[link]]"]
+    },
+    {
+      "id": "4.12.1",
+      "sprint": 4,
+      "feature": "feat-4.4",
+      "title": "Create <RelatedNodes nodeId={string}>",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Shows outgoing + incoming links grouped"]
+    },
+    {
+      "id": "4.13.1",
+      "sprint": 4,
+      "feature": "feat-4.2",
+      "title": "Add aria-live announcements for link actions",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Announce link inserted, navigating, result count"]
+    },
+    {
+      "id": "5.1.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Install reactflow",
+      "type": "setup",
+      "priority": "high",
+      "acceptanceCriteria": ["reactflow package installed"]
+    },
+    {
+      "id": "5.1.2",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Create <GraphView> container component",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Renders empty graph with controls"]
+    },
+    {
+      "id": "5.2.1",
+      "sprint": 5,
+      "feature": "feat-5.2",
+      "title": "Create <GraphNode> as custom React Flow node",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Displays title, type icon, status badge, 44x44px min"
+      ]
+    },
+    {
+      "id": "5.3.1",
+      "sprint": 5,
+      "feature": "feat-5.2",
+      "title": "Implement node type styling with colors",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Different colors per type using Tailwind tokens"]
+    },
+    {
+      "id": "5.4.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Create nodesToGraphData(nodes, linkIndex): { nodes, edges }",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Returns React Flow arrays with positions"]
+    },
+    {
+      "id": "5.5a.1",
+      "sprint": 5,
+      "feature": "feat-5.3",
+      "title": "Create custom edge for dependencies (solid line, arrow)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Dependency edge styled correctly"]
+    },
+    {
+      "id": "5.5a.2",
+      "sprint": 5,
+      "feature": "feat-5.3",
+      "title": "Create custom edge for references (dashed line, circle)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Reference edge styled correctly"]
+    },
+    {
+      "id": "5.5b.1",
+      "sprint": 5,
+      "feature": "feat-5.3",
+      "title": "Style edges: blue dependencies, gray references",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Edge colors match design"]
+    },
+    {
+      "id": "5.6.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Implement node selection synced with store",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Click selects, visual ring, syncs with outline"]
+    },
+    {
+      "id": "5.7.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Store node positions in project.json",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Positions persist across reload"]
+    },
+    {
+      "id": "5.8a.1",
+      "sprint": 5,
+      "feature": "feat-5.4",
+      "title": "Install elkjs for layout calculations",
+      "type": "setup",
+      "priority": "medium",
+      "acceptanceCriteria": ["elkjs package installed"]
+    },
+    {
+      "id": "5.8a.2",
+      "sprint": 5,
+      "feature": "feat-5.4",
+      "title": "Create calculateLayout(nodes, edges): PositionMap",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Returns valid positions respecting DAG"]
+    },
+    {
+      "id": "5.8b.1",
+      "sprint": 5,
+      "feature": "feat-5.4",
+      "title": "Add 'Reset Layout' button in graph toolbar",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Button repositions nodes logically"]
+    },
+    {
+      "id": "5.9.1",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Enable mouse wheel zoom and click-drag pan",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Pan/zoom works smoothly"]
+    },
+    {
+      "id": "5.9.2",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Add zoom controls UI (+/-/fit buttons)",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Fit-to-view centers all nodes"]
+    },
+    {
+      "id": "5.10.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Connect graph to same filters as outline",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Hide/show nodes based on filters"]
+    },
+    {
+      "id": "5.11.1",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Enable React Flow minimap",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Minimap toggleable, reflects graph state"]
+    },
+    {
+      "id": "5.12.1",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Implement keyboard navigation in graph",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Tab focus, arrow keys, Enter, Escape"]
+    },
+    {
+      "id": "5.13.1",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Add screen reader support for graph",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["aria-label, announce on focus, alt outline view"]
+    },
+    {
+      "id": "5.14.1",
+      "sprint": 5,
+      "feature": "feat-5.5",
+      "title": "Respect prefers-reduced-motion in graph",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Animations disabled when preference set"]
+    },
+    {
+      "id": "5.15.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Create node context menu",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Right-click shows Edit, Delete, View, Add Link options"
+      ]
+    },
+    {
+      "id": "5.16.1",
+      "sprint": 5,
+      "feature": "feat-5.1",
+      "title": "Implement node clustering by tag",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Clusters display, expand/collapse works"]
+    },
+    {
+      "id": "6.1.1",
+      "sprint": 6,
+      "feature": "feat-6.1",
+      "title": "Create DependencyGraph class",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "addNode, addEdge, removeNode, removeEdge, getEdges methods"
+      ]
+    },
+    {
+      "id": "6.1.2",
+      "sprint": 6,
+      "feature": "feat-6.1",
+      "title": "Validate DAG (no cycles allowed)",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Rejects cyclic dependencies"]
+    },
+    {
+      "id": "6.2.1",
+      "sprint": 6,
+      "feature": "feat-6.1",
+      "title": "Create wouldCreateCycle(graph, fromId, toId): boolean",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "DFS-based detection of direct, indirect, and self-ref cycles"
+      ]
+    },
+    {
+      "id": "6.3.1",
+      "sprint": 6,
+      "feature": "feat-6.1",
+      "title": "Create topologicalSort(graph): string[]",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Correct ordering, handles disconnected subgraphs"]
+    },
+    {
+      "id": "6.4.1",
+      "sprint": 6,
+      "feature": "feat-6.2",
+      "title": "Create calculateBlockedStatus(node, allNodes): boolean",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Blocked if depends_on Task not complete or Decision pending"
+      ]
+    },
+    {
+      "id": "6.5.1",
+      "sprint": 6,
+      "feature": "feat-6.2",
+      "title": "Implement automatic status propagation",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Status change cascades, toast shows unblocked nodes"
+      ]
+    },
+    {
+      "id": "6.6.1",
+      "sprint": 6,
+      "feature": "feat-6.4",
+      "title": "Create <DependencyEditor nodeId={string}>",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Multi-select dropdown, chips, cycle prevention"]
+    },
+    {
+      "id": "6.7.1",
+      "sprint": 6,
+      "feature": "feat-6.4",
+      "title": "Create 'Blocks' display showing nodes blocked by current node",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Computed from dependency graph, links to blocked nodes"
+      ]
+    },
+    {
+      "id": "6.8.1",
+      "sprint": 6,
+      "feature": "feat-6.3",
+      "title": "Create calculateCriticalPath(nodes, graph): string[]",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Finds longest chain through incomplete tasks"]
+    },
+    {
+      "id": "6.9.1",
+      "sprint": 6,
+      "feature": "feat-6.3",
+      "title": "Visualize critical path in graph view",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Highlighted edges and nodes, toggleable in toolbar"
+      ]
+    },
+    {
+      "id": "6.10.1",
+      "sprint": 6,
+      "feature": "feat-6.3",
+      "title": "Show 'Critical' badge in outline view",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Badge on correct nodes, optional filter"]
+    },
+    {
+      "id": "6.11.1",
+      "sprint": 6,
+      "feature": "feat-6.3",
+      "title": "Create distinct dependency visualization in graph",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Dependencies visually distinct, arrow direction correct"
+      ]
+    },
+    {
+      "id": "6.12.1",
+      "sprint": 6,
+      "feature": "feat-6.2",
+      "title": "Create <BlockedIndicator> component",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Tooltip lists blocking nodes, click navigates"]
+    },
+    {
+      "id": "6.13.1",
+      "sprint": 6,
+      "feature": "feat-6.2",
+      "title": "Implement dependency impact preview",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": [
+        "Hover 'Mark Complete' shows tooltip of nodes to unblock"
+      ]
+    },
+    {
+      "id": "6.14a.1",
+      "sprint": 6,
+      "feature": "feat-6.5",
+      "title": "Add optional milestone: string field to TaskNode",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Field parses/serializes correctly"]
+    },
+    {
+      "id": "6.14b.1",
+      "sprint": 6,
+      "feature": "feat-6.5",
+      "title": "Create <MilestoneSelector> dropdown",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Auto-complete, create new inline"]
+    },
+    {
+      "id": "6.14c.1",
+      "sprint": 6,
+      "feature": "feat-6.5",
+      "title": "Display milestone grouping in outline",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Group tasks, show progress, collapse/expand"]
+    },
+    {
+      "id": "7.1.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Define DecisionOption type",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "id, name, values: Record<criterionId, string | number>"
+      ]
+    },
+    {
+      "id": "7.1.2",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Define Criterion type",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["id, name, weight, unit"]
+    },
+    {
+      "id": "7.2.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Create <ComparisonTable decision={DecisionNode}>",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Rows = criteria, Columns = options"]
+    },
+    {
+      "id": "7.3.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Implement 'Add Option' column",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["New column with default name, focus name cell"]
+    },
+    {
+      "id": "7.4.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Implement 'Add Criterion' row",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Name input, unit dropdown, weight slider"]
+    },
+    {
+      "id": "7.5.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Implement cell editing",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Click to edit, Tab navigation, Escape to cancel"]
+    },
+    {
+      "id": "7.6.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Implement option deletion",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Confirmation dialog, removes from all criteria"]
+    },
+    {
+      "id": "7.7.1",
+      "sprint": 7,
+      "feature": "feat-7.1",
+      "title": "Implement criterion deletion",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Confirmation dialog, removes row"]
+    },
+    {
+      "id": "7.8.1",
+      "sprint": 7,
+      "feature": "feat-7.2",
+      "title": "Implement weighted scoring calculation",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Weight slider 0-10, normalized score formula correct"
+      ]
+    },
+    {
+      "id": "7.9.1",
+      "sprint": 7,
+      "feature": "feat-7.2",
+      "title": "Create score visualization",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Score bar, tabular-nums, highlight highest"]
+    },
+    {
+      "id": "7.10.1",
+      "sprint": 7,
+      "feature": "feat-7.3",
+      "title": "Implement option selection",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "'Select' button, updates status to selected, records option ID"
+      ]
+    },
+    {
+      "id": "7.11.1",
+      "sprint": 7,
+      "feature": "feat-7.3",
+      "title": "Create selection rationale editor",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Text area, auto-populated, editable"]
+    },
+    {
+      "id": "7.12.1",
+      "sprint": 7,
+      "feature": "feat-7.3",
+      "title": "Implement implications section parsing",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Parse ## Implications, display as links"]
+    },
+    {
+      "id": "7.13.1",
+      "sprint": 7,
+      "feature": "feat-7.3",
+      "title": "Create decision status timeline",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Show Created, Last Updated, Selected dates"]
+    },
+    {
+      "id": "7.14.1",
+      "sprint": 7,
+      "feature": "feat-7.3",
+      "title": "Implement 'Reopen Decision' action",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Reverts to pending, preserves history"]
+    },
+    {
+      "id": "7.15.1",
+      "sprint": 7,
+      "feature": "feat-7.4",
+      "title": "Create pre-defined decision templates",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Component Selection, Design Choice, Vendor Selection"
+      ]
+    },
+    {
+      "id": "7.16.1",
+      "sprint": 7,
+      "feature": "feat-7.4",
+      "title": "Define Template type",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["id, type, name, frontmatter, content"]
+    },
+    {
+      "id": "7.17.1",
+      "sprint": 7,
+      "feature": "feat-7.4",
+      "title": "Create template manager UI",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["List, create, edit, delete, duplicate templates"]
+    },
+    {
+      "id": "7.18.1",
+      "sprint": 7,
+      "feature": "feat-7.4",
+      "title": "Integrate templates with node creation",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Template dropdown in CreateNodeDialog, pre-fill content"
+      ]
+    },
+    {
+      "id": "8.1.1",
+      "sprint": 8,
+      "feature": "feat-8.1",
+      "title": "Define ExportService interface",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["export(project, format, options) method defined"]
+    },
+    {
+      "id": "8.2.1",
+      "sprint": 8,
+      "feature": "feat-8.1",
+      "title": "Implement exportToJSON(project): string",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Pretty-print, all data, export metadata"]
+    },
+    {
+      "id": "8.3.1",
+      "sprint": 8,
+      "feature": "feat-8.1",
+      "title": "Implement importFromJSON(json): Project",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Validate with zod, handle version migrations"]
+    },
+    {
+      "id": "8.4.1",
+      "sprint": 8,
+      "feature": "feat-8.2",
+      "title": "Implement exportNodeToMarkdown(node): string",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Frontmatter + body format matching spec"]
+    },
+    {
+      "id": "8.5.1",
+      "sprint": 8,
+      "feature": "feat-8.2",
+      "title": "Implement exportProjectToMarkdown(project): FileMap",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Correct directory structure"]
+    },
+    {
+      "id": "8.6.1",
+      "sprint": 8,
+      "feature": "feat-8.2",
+      "title": "Implement importFromMarkdown(files): Project",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Parse directory, handle malformed files, merge option"
+      ]
+    },
+    {
+      "id": "8.7.1",
+      "sprint": 8,
+      "feature": "feat-8.3",
+      "title": "Implement exportComponentsToCSV(nodes): string",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Proper CSV escaping, Excel-compatible"]
+    },
+    {
+      "id": "8.8.1",
+      "sprint": 8,
+      "feature": "feat-8.3",
+      "title": "Implement exportBOM(project): string",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Bill of Materials format, sum costs"]
+    },
+    {
+      "id": "8.9.1",
+      "sprint": 8,
+      "feature": "feat-8.4",
+      "title": "Create <ExportDialog> using Base UI Dialog",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Format selection, options, preview, download"]
+    },
+    {
+      "id": "8.10.1",
+      "sprint": 8,
+      "feature": "feat-8.4",
+      "title": "Create <ImportDialog> with file/folder picker",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Format auto-detection, preview, conflict resolution"
+      ]
+    },
+    {
+      "id": "8.11.1",
+      "sprint": 8,
+      "feature": "feat-8.4",
+      "title": "Implement drag-and-drop import",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Drop zone overlay, visual feedback"]
+    },
+    {
+      "id": "8.12.1",
+      "sprint": 8,
+      "feature": "feat-8.4",
+      "title": "Implement clipboard import (Ctrl/Cmd+V)",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Detect format, import JSON or Markdown"]
+    },
+    {
+      "id": "8.13.1",
+      "sprint": 8,
+      "feature": "feat-8.4",
+      "title": "Create export progress indicator",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Progress bar, node count, cancellation"]
+    },
+    {
+      "id": "9.1.1",
+      "sprint": 9,
+      "feature": "feat-9.1",
+      "title": "Create <CommandPalette> using Base UI Dialog",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Input, results list, keyboard navigation"]
+    },
+    {
+      "id": "9.2.1",
+      "sprint": 9,
+      "feature": "feat-9.1",
+      "title": "Create useHotkey(key, callback, options) hook",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Cmd+K / Ctrl+K, handle context"]
+    },
+    {
+      "id": "9.3.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Create command registry",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["registerCommand, getCommands, executeCommand"]
+    },
+    {
+      "id": "9.4.1",
+      "sprint": 9,
+      "feature": "feat-9.1",
+      "title": "Implement node search with fuzzy match",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Type icon, title, status; Enter navigates"]
+    },
+    {
+      "id": "9.5.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Register action commands",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "Create nodes, switch view, export, toggle dark mode"
+      ]
+    },
+    {
+      "id": "9.6.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Implement navigation commands",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Recent nodes, project switching, settings"]
+    },
+    {
+      "id": "9.7.1",
+      "sprint": 9,
+      "feature": "feat-9.1",
+      "title": "Add fuzzy search with character highlighting",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Levenshtein matching, highlight matched chars"]
+    },
+    {
+      "id": "9.8.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Implement command categories",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Navigation, Create, View, Actions groups"]
+    },
+    {
+      "id": "9.9.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Add keyboard shortcut display",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Platform-aware symbols (⌘ Mac, Ctrl Windows)"]
+    },
+    {
+      "id": "9.10.1",
+      "sprint": 9,
+      "feature": "feat-9.1",
+      "title": "Implement recent commands",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Last 10 commands, show when query empty, persist"]
+    },
+    {
+      "id": "9.11a.1",
+      "sprint": 9,
+      "feature": "feat-9.2",
+      "title": "Create full-text search index (minisearch)",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Index titles and body, update on changes"]
+    },
+    {
+      "id": "9.11b.1",
+      "sprint": 9,
+      "feature": "feat-9.2",
+      "title": "Implement full-text search",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": ["Context snippet with highlighted match"]
+    },
+    {
+      "id": "9.12.1",
+      "sprint": 9,
+      "feature": "feat-9.2",
+      "title": "Implement search result highlighting",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Bold matched characters, show match location"]
+    },
+    {
+      "id": "9.13.1",
+      "sprint": 9,
+      "feature": "feat-9.3",
+      "title": "Add filter commands",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Filter by type, tag, status via command"]
+    },
+    {
+      "id": "10.1.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Install and run axe-core on all views",
+      "type": "test",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Audit report completed"]
+    },
+    {
+      "id": "10.1.2",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Test with VoiceOver (Mac) and NVDA (Windows)",
+      "type": "test",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Screen reader testing documented"]
+    },
+    {
+      "id": "10.1.3",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Test keyboard-only navigation",
+      "type": "test",
+      "priority": "high",
+      "tools": ["playwright", "rams"],
+      "acceptanceCriteria": ["All features accessible via keyboard"]
+    },
+    {
+      "id": "10.2.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Fix heading hierarchy (h1 -> h2 -> h3, no skips)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["No heading level violations"]
+    },
+    {
+      "id": "10.3.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Fix form labels (htmlFor or wrapping)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["No label violations"]
+    },
+    {
+      "id": "10.4.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Fix focus management (logical order, return focus)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Focus flows logically"]
+    },
+    {
+      "id": "10.5.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Add missing ARIA labels",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Icon buttons, landmarks, busy states labeled"]
+    },
+    {
+      "id": "10.6.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Implement focus-visible styles",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design", "rams"],
+      "acceptanceCriteria": ["Visible focus ring on Tab, not on click"]
+    },
+    {
+      "id": "10.7.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Fix color contrast (4.5:1 text, 3:1 UI)",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["No contrast violations"]
+    },
+    {
+      "id": "10.8.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Add error message improvements",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": [
+        "aria-describedby, aria-invalid, actionable messages"
+      ]
+    },
+    {
+      "id": "10.9.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Implement loading states with skeletons",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Structural skeletons, aria-busy"]
+    },
+    {
+      "id": "10.10.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Verify 44x44px minimum touch targets",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["All interactive elements meet minimum size"]
+    },
+    {
+      "id": "10.11a.1",
+      "sprint": 10,
+      "feature": "feat-10.2",
+      "title": "Implement dark mode theme with Tailwind dark:",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["All components visible in dark mode"]
+    },
+    {
+      "id": "10.11b.1",
+      "sprint": 10,
+      "feature": "feat-10.2",
+      "title": "Configure dark mode toggle",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "color-scheme, theme-color meta, localStorage, system preference"
+      ]
+    },
+    {
+      "id": "10.12.1",
+      "sprint": 10,
+      "feature": "feat-10.3",
+      "title": "Implement prefers-reduced-motion support",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["rams"],
+      "acceptanceCriteria": ["Animations disabled when preference set"]
+    },
+    {
+      "id": "10.13.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Run Lighthouse performance audit",
+      "type": "test",
+      "priority": "high",
+      "tools": ["playwright"],
+      "acceptanceCriteria": ["Score >= 90"]
+    },
+    {
+      "id": "10.14.1",
+      "sprint": 10,
+      "feature": "feat-10.4",
+      "title": "Create first-run welcome dialog",
+      "type": "implementation",
+      "priority": "low",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Quick tips, shows for new users"]
+    },
+    {
+      "id": "10.14.2",
+      "sprint": 10,
+      "feature": "feat-10.4",
+      "title": "Create keyboard shortcuts reference (? shortcut)",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Help reference accessible"]
+    },
+    {
+      "id": "10.15.1",
+      "sprint": 10,
+      "feature": "feat-10.1",
+      "title": "Final cross-browser testing (Chrome, Firefox, Safari, Edge)",
+      "type": "test",
+      "priority": "high",
+      "tools": ["playwright"],
+      "acceptanceCriteria": ["Core functionality works in all browsers"]
+    },
+    {
+      "id": "11.1.1",
+      "sprint": 11,
+      "feature": "feat-11.1",
+      "title": "Create workspace loader from .forge/config.json",
+      "type": "implementation",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Discover projects, handle missing/corrupted config"
+      ]
+    },
+    {
+      "id": "11.2.1",
+      "sprint": 11,
+      "feature": "feat-11.1",
+      "title": "Create <ProjectSwitcher> dropdown in sidebar",
+      "type": "implementation",
+      "priority": "high",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["List projects, active indicator, search/filter"]
+    },
+    {
+      "id": "11.3.1",
+      "sprint": 11,
+      "feature": "feat-11.1",
+      "title": "Create <CreateProjectDialog>",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Name input, folder selection, initialize structure"
+      ]
+    },
+    {
+      "id": "11.4.1",
+      "sprint": 11,
+      "feature": "feat-11.1",
+      "title": "Create project settings panel",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Edit name/description, delete with confirmation"]
+    },
+    {
+      "id": "11.5.1",
+      "sprint": 11,
+      "feature": "feat-11.2",
+      "title": "Implement git status detection",
+      "type": "implementation",
+      "priority": "medium",
+      "acceptanceCriteria": ["Detect repo, branch name, uncommitted changes"]
+    },
+    {
+      "id": "11.6.1",
+      "sprint": 11,
+      "feature": "feat-11.2",
+      "title": "Create git status indicator in sidebar/header",
+      "type": "implementation",
+      "priority": "medium",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Branch name, changes count, clean/dirty icon"]
+    },
+    {
+      "id": "11.7.1",
+      "sprint": 11,
+      "feature": "feat-11.2",
+      "title": "Implement auto-commit on save (optional setting)",
+      "type": "implementation",
+      "priority": "low",
+      "acceptanceCriteria": ["Stage + commit on save when enabled"]
+    },
+    {
+      "id": "11.8.1",
+      "sprint": 11,
+      "feature": "feat-11.2",
+      "title": "Create git settings UI",
+      "type": "implementation",
+      "priority": "low",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": ["Toggle auto-commit, view commits, manual commit"]
+    }
+  ],
+  "technicalDecisions": {
+    "packageVersions": {
+      "react": "18.x",
+      "typescript": "5.x",
+      "vite": "5.x",
+      "tailwindcss": "3.x",
+      "tailwindcss-animate": "latest",
+      "@base-ui-components/react": "pin exact version (alpha)",
+      "zustand": "4.x",
+      "nuqs": "2.x",
+      "gray-matter": "latest",
+      "zod": "3.x",
+      "reactflow": "11.x",
+      "elkjs": "latest",
+      "codemirror": "6.x",
+      "lucide-react": "latest"
+    },
+    "fileSystemStrategy": [
+      "Primary: File System Access API (Chrome/Edge)",
+      "Fallback: <input type='file' webkitdirectory> (Firefox/Safari)",
+      "Future: Local server adapter for Electron/Tauri"
+    ],
+    "zIndexScale": {
+      "Z_DROPDOWN": 10,
+      "Z_STICKY": 20,
+      "Z_MODAL": 30,
+      "Z_POPOVER": 40,
+      "Z_TOAST": 50,
+      "Z_TOOLTIP": 60
+    },
+    "colorTokens": {
+      "decision": {
+        "lightBg": "blue-50",
+        "darkBg": "blue-950",
+        "accent": "blue-500"
+      },
+      "component": {
+        "lightBg": "green-50",
+        "darkBg": "green-950",
+        "accent": "green-500"
+      },
+      "task": {
+        "lightBg": "orange-50",
+        "darkBg": "orange-950",
+        "accent": "orange-500"
+      },
+      "note": {
+        "lightBg": "gray-50",
+        "darkBg": "gray-900",
+        "accent": "gray-500"
+      }
+    }
+  },
+  "references": {
+    "sprintPlan": "SPRINT_PLAN.md",
+    "spec": "spec.md",
+    "progress": ".ralph/progress.md"
+  }
+}
