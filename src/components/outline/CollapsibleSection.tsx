@@ -1,13 +1,13 @@
 /**
  * CollapsibleSection Component
  *
- * A collapsible section with animated height transitions.
+ * A collapsible section with accessible expand/collapse behavior.
  * - Enter/Space toggles expanded state
  * - Respects prefers-reduced-motion
  * - Announces state changes to screen readers
  */
 
-import { useRef, useEffect, useState, useId, useCallback } from 'react'
+import { useId, useCallback } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -36,42 +36,11 @@ export interface CollapsibleSectionProps {
 }
 
 // ============================================================================
-// Hook: useReducedMotion
-// ============================================================================
-
-/**
- * Hook to detect user's motion preference
- */
-function useReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
-    }
-
-    // Modern browsers
-    mediaQuery.addEventListener('change', handleChange)
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange)
-    }
-  }, [])
-
-  return prefersReducedMotion
-}
-
-// ============================================================================
 // Component
 // ============================================================================
 
 /**
- * Collapsible section with animated height transition.
+ * Collapsible section with accessible expand/collapse behavior.
  *
  * @example
  * <CollapsibleSection
@@ -94,42 +63,7 @@ export function CollapsibleSection({
   className,
   id,
 }: CollapsibleSectionProps) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState<number | 'auto'>(expanded ? 'auto' : 0)
   const contentId = useId()
-  const prefersReducedMotion = useReducedMotion()
-
-  // Measure content height for animation
-  useEffect(() => {
-    if (!contentRef.current) return
-
-    if (expanded) {
-      // Measure the actual height
-      const contentHeight = contentRef.current.scrollHeight
-      setHeight(contentHeight)
-
-      // After animation completes, set to auto for dynamic content
-      const timer = setTimeout(() => {
-        setHeight('auto')
-      }, 200) // Match animation duration
-
-      return () => clearTimeout(timer)
-    } else {
-      // When collapsing, first set explicit height, then 0
-      if (height === 'auto') {
-        const contentHeight = contentRef.current.scrollHeight
-        setHeight(contentHeight)
-        // Force a reflow before setting to 0
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setHeight(0)
-          })
-        })
-      } else {
-        setHeight(0)
-      }
-    }
-  }, [expanded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
@@ -202,18 +136,10 @@ export function CollapsibleSection({
         )}
       </button>
 
-      {/* Animated content container */}
+      {/* Content container - instant show/hide complies with animation constraints */}
       <div
         id={contentId}
-        ref={contentRef}
-        style={{
-          height: prefersReducedMotion ? (expanded ? 'auto' : 0) : height,
-          overflow: 'hidden',
-        }}
-        className={cn(
-          !prefersReducedMotion &&
-            'transition-[height] duration-200 ease-in-out'
-        )}
+        className={cn('overflow-hidden', expanded ? 'block' : 'hidden')}
         aria-hidden={!expanded}
       >
         <div className="px-4 pb-3">{children}</div>

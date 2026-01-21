@@ -41,8 +41,8 @@ function loadPreferences(): GraphPreferences {
             : DEFAULT_PREFERENCES.showBackground,
       }
     }
-  } catch {
-    // Ignore parse errors, use defaults
+  } catch (error) {
+    console.warn('Failed to load graph preferences from localStorage:', error)
   }
 
   return DEFAULT_PREFERENCES
@@ -58,8 +58,8 @@ function savePreferences(preferences: GraphPreferences): void {
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
-  } catch {
-    // Ignore storage errors (e.g., quota exceeded)
+  } catch (error) {
+    console.warn('Failed to save graph preferences to localStorage:', error)
   }
 }
 

@@ -128,7 +128,11 @@ export function useNodeOrder(
 
       // Auto-save if enabled
       if (autoSave) {
-        await saveMetadata()
+        try {
+          await saveMetadata()
+        } catch (error) {
+          console.error('Failed to save node order:', error)
+        }
       }
     },
     [updateMetadata, saveMetadata, autoSave]
@@ -141,7 +145,11 @@ export function useNodeOrder(
 
     // Auto-save if enabled
     if (autoSave) {
-      await saveMetadata()
+      try {
+        await saveMetadata()
+      } catch (error) {
+        console.error('Failed to save node order reset:', error)
+      }
     }
   }, [updateMetadata, saveMetadata, autoSave])
 

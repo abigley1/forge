@@ -154,6 +154,7 @@ function GraphViewInner({
     announceNodeDeselected,
     announceNodeFocused,
     announceLayoutReset,
+    announceLayoutError,
     announceMinimapToggled,
   } = useGraphAnnouncer()
 
@@ -531,6 +532,7 @@ function GraphViewInner({
       }, 50)
     } catch (error) {
       console.error('Failed to calculate layout:', error)
+      announceLayoutError()
     } finally {
       setIsLayouting(false)
     }
@@ -543,6 +545,7 @@ function GraphViewInner({
     updateMetadata,
     onPositionsChange,
     announceLayoutReset,
+    announceLayoutError,
     reactFlowInstance,
     reducedMotion,
   ])

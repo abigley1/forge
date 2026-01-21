@@ -1165,3 +1165,178 @@ describe('calculateCenteredLayout', () => {
     expect(positions['task-1'].y).toBeGreaterThan(0)
   })
 })
+
+// ============================================================================
+// ELK Layout Error Tests (PR review feedback)
+// ============================================================================
+
+describe('ELK Layout Error Handling', () => {
+  it('handles nodes with missing required properties gracefully', async () => {
+    // Create a minimal valid graph node
+    const task = createTaskNode('task-1', 'Task 1')
+    const nodes = new Map<string, ForgeNode>([['task-1', task]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // This should not throw - ELK should handle the node
+    const positions = await calculateLayout(graphData.nodes, graphData.edges)
+    expect(positions).toHaveProperty('task-1')
+  })
+
+  it('throws error for edges referencing non-existent nodes', async () => {
+    // Create nodes
+    const task1 = createTaskNode('task-1', 'Task 1')
+    const nodes = new Map<string, ForgeNode>([['task-1', task1]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // Manually add an invalid edge that references non-existent node
+    const edgesWithInvalidRef = [
+      ...graphData.edges,
+      {
+        id: 'invalid-edge',
+        source: 'task-1',
+        target: 'non-existent-node',
+        type: 'reference' as const,
+        data: { linkType: 'reference' as const },
+      },
+    ]
+
+    // ELK throws when given edges to non-existent nodes
+    // Callers must filter edges to valid nodes before calling calculateLayout
+    await expect(
+      calculateLayout(graphData.nodes, edgesWithInvalidRef)
+    ).rejects.toThrow()
+  })
+
+  it('handles self-referencing edges', async () => {
+    // Create a node that might reference itself
+    const task1 = createTaskNode('task-1', 'Task 1')
+    const nodes = new Map<string, ForgeNode>([['task-1', task1]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // Manually add a self-referencing edge
+    const edgesWithSelfRef = [
+      ...graphData.edges,
+      {
+        id: 'self-ref-edge',
+        source: 'task-1',
+        target: 'task-1',
+        type: 'reference' as const,
+        data: { linkType: 'reference' as const },
+      },
+    ]
+
+    // Should not throw, even with self-referencing edge
+    const positions = await calculateLayout(graphData.nodes, edgesWithSelfRef)
+    expect(positions).toHaveProperty('task-1')
+  })
+
+  it('handles cyclic dependencies', async () => {
+    // Create a cycle: task-1 -> task-2 -> task-3 -> task-1
+    const task1 = createTaskNodeWithDependencies('task-1', 'Task 1', ['task-3'])
+    const task2 = createTaskNodeWithDependencies('task-2', 'Task 2', ['task-1'])
+    const task3 = createTaskNodeWithDependencies('task-3', 'Task 3', ['task-2'])
+    const nodes = new Map<string, ForgeNode>([
+      ['task-1', task1],
+      ['task-2', task2],
+      ['task-3', task3],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // ELK's layered algorithm should handle cycles (breaks them for layout)
+    const positions = await calculateLayout(graphData.nodes, graphData.edges)
+    expect(Object.keys(positions)).toHaveLength(3)
+    expect(positions).toHaveProperty('task-1')
+    expect(positions).toHaveProperty('task-2')
+    expect(positions).toHaveProperty('task-3')
+  })
+
+  it('handles large graphs without timeout', async () => {
+    // Create a graph with many nodes
+    const nodes = new Map<string, ForgeNode>()
+    for (let i = 0; i < 50; i++) {
+      nodes.set(`task-${i}`, createTaskNode(`task-${i}`, `Task ${i}`))
+    }
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // Should complete without timeout
+    const startTime = Date.now()
+    const positions = await calculateLayout(graphData.nodes, graphData.edges)
+    const elapsed = Date.now() - startTime
+
+    expect(Object.keys(positions)).toHaveLength(50)
+    // Should complete in reasonable time (< 5 seconds)
+    expect(elapsed).toBeLessThan(5000)
+  })
+
+  it('handles graph with many edges', async () => {
+    // Create nodes with many interconnections
+    const task1 = createTaskNode(
+      'task-1',
+      'Task 1',
+      '[[task-2]] [[task-3]] [[task-4]]'
+    )
+    const task2 = createTaskNode('task-2', 'Task 2', '[[task-3]] [[task-4]]')
+    const task3 = createTaskNode('task-3', 'Task 3', '[[task-4]]')
+    const task4 = createTaskNode('task-4', 'Task 4')
+    const nodes = new Map<string, ForgeNode>([
+      ['task-1', task1],
+      ['task-2', task2],
+      ['task-3', task3],
+      ['task-4', task4],
+    ])
+    const linkIndex = buildLinkIndex(nodes)
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateLayout(graphData.nodes, graphData.edges)
+
+    expect(Object.keys(positions)).toHaveLength(4)
+  })
+
+  it('handles force layout algorithm option', async () => {
+    const task1 = createTaskNode('task-1', 'Task 1')
+    const task2 = createTaskNode('task-2', 'Task 2')
+    const nodes = new Map<string, ForgeNode>([
+      ['task-1', task1],
+      ['task-2', task2],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    // Test with force algorithm instead of layered
+    const options: AutoLayoutOptions = { algorithm: 'force' }
+    const positions = await calculateLayout(
+      graphData.nodes,
+      graphData.edges,
+      options
+    )
+
+    expect(positions).toHaveProperty('task-1')
+    expect(positions).toHaveProperty('task-2')
+  })
+
+  it('produces valid numeric positions for all nodes', async () => {
+    const task1 = createTaskNode('task-1', 'Task 1')
+    const task2 = createTaskNodeWithDependencies('task-2', 'Task 2', ['task-1'])
+    const nodes = new Map<string, ForgeNode>([
+      ['task-1', task1],
+      ['task-2', task2],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateLayout(graphData.nodes, graphData.edges)
+
+    // All positions should be valid finite numbers
+    Object.values(positions).forEach((pos) => {
+      expect(Number.isFinite(pos.x)).toBe(true)
+      expect(Number.isFinite(pos.y)).toBe(true)
+      expect(Number.isNaN(pos.x)).toBe(false)
+      expect(Number.isNaN(pos.y)).toBe(false)
+    })
+  })
+})

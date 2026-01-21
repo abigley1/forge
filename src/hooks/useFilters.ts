@@ -17,6 +17,29 @@ import type { ForgeNode } from '@/types/nodes'
 import type { NodeStatus } from '@/components/nodes/config'
 
 // ============================================================================
+// Type Guards
+// ============================================================================
+
+const VALID_NODE_TYPES: ReadonlySet<string> = new Set(Object.values(NodeType))
+const VALID_STATUSES: ReadonlySet<string> = new Set([
+  'pending',
+  'selected',
+  'considering',
+  'rejected',
+  'in_progress',
+  'blocked',
+  'complete',
+])
+
+function isValidNodeType(value: string): value is NodeType {
+  return VALID_NODE_TYPES.has(value)
+}
+
+function isValidStatus(value: string): value is NodeStatus {
+  return VALID_STATUSES.has(value)
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -85,9 +108,9 @@ export function useFilters(): UseFiltersReturn {
   const [statuses, setStatusesState] = useQueryState('statuses', statusesParser)
   const [search, setSearchState] = useQueryState('q', searchParser)
 
-  // Cast types to correct TypeScript types
-  const typedTypes = types as NodeType[]
-  const typedStatuses = statuses as NodeStatus[]
+  // Filter to only valid values (handles invalid URL params gracefully)
+  const typedTypes = types.filter(isValidNodeType)
+  const typedStatuses = statuses.filter(isValidStatus)
 
   // Filter state object
   const filters: FilterState = useMemo(

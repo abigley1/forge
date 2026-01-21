@@ -28,6 +28,8 @@ export interface UseGraphAnnouncerReturn {
   announceMinimapToggled: (visible: boolean) => void
   /** Announce layout reset */
   announceLayoutReset: () => void
+  /** Announce layout error */
+  announceLayoutError: () => void
   /** Clear announcement */
   clear: () => void
 }
@@ -128,6 +130,10 @@ export function useGraphAnnouncer(clearDelay = 1000): UseGraphAnnouncerReturn {
     announce('Layout reset complete')
   }, [announce])
 
+  const announceLayoutError = useCallback(() => {
+    announce('Layout failed. Please try again.')
+  }, [announce])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -147,6 +153,7 @@ export function useGraphAnnouncer(clearDelay = 1000): UseGraphAnnouncerReturn {
     announceFilterApplied,
     announceMinimapToggled,
     announceLayoutReset,
+    announceLayoutError,
     clear,
   }
 }

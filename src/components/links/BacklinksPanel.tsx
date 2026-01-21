@@ -276,12 +276,12 @@ export function BacklinksPanel({
         </span>
       </button>
 
-      {/* Content */}
+      {/* Content - instant show/hide complies with animation constraints */}
       <div
         id={contentId}
         className={cn(
-          'overflow-hidden transition-[max-height] duration-200 ease-in-out',
-          expanded ? 'max-h-[500px]' : 'max-h-0'
+          'overflow-hidden',
+          expanded ? 'block max-h-[500px] overflow-y-auto' : 'hidden'
         )}
         aria-hidden={!expanded}
       >
