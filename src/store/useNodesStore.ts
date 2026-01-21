@@ -9,6 +9,13 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
 import type { ForgeNode, NodeType } from '@/types/nodes'
+import {
+  type LinkIndex,
+  buildLinkIndex,
+  createEmptyLinkIndex,
+  getOutgoingLinks,
+  getIncomingLinks,
+} from '@/lib/links'
 
 // ============================================================================
 // Types
@@ -24,6 +31,8 @@ export interface NodesState {
   activeNodeId: string | null
   /** Set of node IDs that have been modified since last save */
   dirtyNodeIds: Set<string>
+  /** Bidirectional link index for wiki-links between nodes */
+  linkIndex: LinkIndex
 }
 
 /**
@@ -49,6 +58,8 @@ export interface NodesActions {
   markClean: (id: string) => void
   /** Clear all dirty flags */
   clearDirty: () => void
+  /** Rebuild the link index from current nodes */
+  rebuildLinkIndex: () => void
 }
 
 /**
@@ -71,6 +82,10 @@ export interface NodesSelectors {
   hasDirtyNodes: () => boolean
   /** Get all dirty node IDs */
   getDirtyNodeIds: () => string[]
+  /** Get outgoing links for a node (nodes it links to) */
+  getOutgoingLinks: (id: string) => string[]
+  /** Get incoming links for a node (nodes that link to it) */
+  getIncomingLinks: (id: string) => string[]
 }
 
 /**
@@ -86,6 +101,7 @@ const initialNodesState: NodesState = {
   nodes: new Map(),
   activeNodeId: null,
   dirtyNodeIds: new Set(),
+  linkIndex: createEmptyLinkIndex(),
 }
 
 // ============================================================================
@@ -109,7 +125,11 @@ export const useNodesStore = create<NodesStore>()(
             newNodes.set(node.id, node)
             const newDirty = new Set(state.dirtyNodeIds)
             newDirty.add(node.id)
-            return { nodes: newNodes, dirtyNodeIds: newDirty }
+            return {
+              nodes: newNodes,
+              dirtyNodeIds: newDirty,
+              linkIndex: buildLinkIndex(newNodes),
+            }
           },
           false,
           'addNode'
@@ -142,7 +162,16 @@ export const useNodesStore = create<NodesStore>()(
             newNodes.set(id, updatedNode)
             const newDirty = new Set(state.dirtyNodeIds)
             newDirty.add(id)
-            return { nodes: newNodes, dirtyNodeIds: newDirty }
+
+            // Only rebuild link index if content changed (contains wiki-links)
+            const contentChanged = updates.content !== undefined
+            return {
+              nodes: newNodes,
+              dirtyNodeIds: newDirty,
+              linkIndex: contentChanged
+                ? buildLinkIndex(newNodes)
+                : state.linkIndex,
+            }
           },
           false,
           'updateNode'
@@ -172,6 +201,7 @@ export const useNodesStore = create<NodesStore>()(
               nodes: newNodes,
               dirtyNodeIds: newDirty,
               activeNodeId: newActiveId,
+              linkIndex: buildLinkIndex(newNodes),
             }
           },
           false,
@@ -197,11 +227,13 @@ export const useNodesStore = create<NodesStore>()(
       },
 
       setNodes: (nodes) => {
+        const newNodes = new Map(nodes)
         set(
           {
-            nodes: new Map(nodes),
+            nodes: newNodes,
             activeNodeId: null,
             dirtyNodeIds: new Set(),
+            linkIndex: buildLinkIndex(newNodes),
           },
           false,
           'setNodes'
@@ -209,7 +241,14 @@ export const useNodesStore = create<NodesStore>()(
       },
 
       clearNodes: () => {
-        set(initialNodesState, false, 'clearNodes')
+        set(
+          {
+            ...initialNodesState,
+            linkIndex: createEmptyLinkIndex(),
+          },
+          false,
+          'clearNodes'
+        )
       },
 
       // ========================================================================
@@ -242,6 +281,16 @@ export const useNodesStore = create<NodesStore>()(
 
       clearDirty: () => {
         set({ dirtyNodeIds: new Set() }, false, 'clearDirty')
+      },
+
+      rebuildLinkIndex: () => {
+        set(
+          (state) => ({
+            linkIndex: buildLinkIndex(state.nodes),
+          }),
+          false,
+          'rebuildLinkIndex'
+        )
       },
 
       // ========================================================================
@@ -297,6 +346,14 @@ export const useNodesStore = create<NodesStore>()(
       getDirtyNodeIds: () => {
         return Array.from(get().dirtyNodeIds)
       },
+
+      getOutgoingLinks: (id) => {
+        return getOutgoingLinks(get().linkIndex, id)
+      },
+
+      getIncomingLinks: (id) => {
+        return getIncomingLinks(get().linkIndex, id)
+      },
     }),
     {
       name: 'forge-nodes-store',
@@ -337,3 +394,8 @@ export const selectNodeCount = (state: NodesStore) => state.nodes.size
  */
 export const selectHasDirtyNodes = (state: NodesStore) =>
   state.dirtyNodeIds.size > 0
+
+/**
+ * Selector to get the link index
+ */
+export const selectLinkIndex = (state: NodesStore) => state.linkIndex

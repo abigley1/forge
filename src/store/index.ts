@@ -16,6 +16,7 @@ export {
   selectActiveNode,
   selectNodeCount,
   selectHasDirtyNodes,
+  selectLinkIndex,
 } from './useNodesStore'
 
 // Project store

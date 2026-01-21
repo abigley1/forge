@@ -94,6 +94,7 @@ describe('useNodesStore', () => {
       nodes: new Map(),
       activeNodeId: null,
       dirtyNodeIds: new Set(),
+      linkIndex: { outgoing: new Map(), incoming: new Map() },
     })
   })
 
@@ -561,6 +562,224 @@ describe('useNodesStore', () => {
         const dirtyIds = useNodesStore.getState().getDirtyNodeIds()
 
         expect(dirtyIds.sort()).toEqual(['task-1', 'task-2'])
+      })
+    })
+  })
+
+  // ==========================================================================
+  // Link Index
+  // ==========================================================================
+
+  describe('linkIndex', () => {
+    it('should have empty linkIndex initially', () => {
+      const { linkIndex } = useNodesStore.getState()
+
+      expect(linkIndex.outgoing.size).toBe(0)
+      expect(linkIndex.incoming.size).toBe(0)
+    })
+
+    it('addNode should rebuild linkIndex', () => {
+      const node1: TaskNode = {
+        ...createTestTaskNode('task-1', 'Task 1'),
+        content: 'Links to [[task-2]]',
+      }
+      const node2 = createTestTaskNode('task-2', 'Task 2')
+
+      useNodesStore.getState().addNode(node1)
+      useNodesStore.getState().addNode(node2)
+
+      const { linkIndex } = useNodesStore.getState()
+
+      expect(linkIndex.outgoing.get('task-1')).toEqual(new Set(['task-2']))
+      expect(linkIndex.incoming.get('task-2')).toEqual(new Set(['task-1']))
+    })
+
+    it('updateNode should rebuild linkIndex when content changes', () => {
+      const node1 = createTestTaskNode('task-1', 'Task 1')
+      const node2 = createTestTaskNode('task-2', 'Task 2')
+
+      useNodesStore.getState().addNode(node1)
+      useNodesStore.getState().addNode(node2)
+
+      // Initially no links
+      expect(useNodesStore.getState().linkIndex.outgoing.get('task-1')).toEqual(
+        new Set()
+      )
+
+      // Update content to add a link
+      useNodesStore.getState().updateNode('task-1', {
+        content: 'Now links to [[task-2]]',
+      })
+
+      // Link index should be updated
+      expect(useNodesStore.getState().linkIndex.outgoing.get('task-1')).toEqual(
+        new Set(['task-2'])
+      )
+      expect(useNodesStore.getState().linkIndex.incoming.get('task-2')).toEqual(
+        new Set(['task-1'])
+      )
+    })
+
+    it('updateNode should not rebuild linkIndex when content unchanged', () => {
+      const node: TaskNode = {
+        ...createTestTaskNode('task-1', 'Task 1'),
+        content: 'Links to [[task-2]]',
+      }
+      const node2 = createTestTaskNode('task-2', 'Task 2')
+
+      useNodesStore.getState().addNode(node)
+      useNodesStore.getState().addNode(node2)
+
+      const indexBefore = useNodesStore.getState().linkIndex
+
+      // Update title only (not content)
+      useNodesStore.getState().updateNode('task-1', { title: 'New Title' })
+
+      const indexAfter = useNodesStore.getState().linkIndex
+
+      // Should be same reference since content didn't change
+      expect(indexAfter).toBe(indexBefore)
+    })
+
+    it('deleteNode should rebuild linkIndex', () => {
+      const node1: TaskNode = {
+        ...createTestTaskNode('task-1', 'Task 1'),
+        content: 'Links to [[task-2]]',
+      }
+      const node2 = createTestTaskNode('task-2', 'Task 2')
+
+      useNodesStore.getState().addNode(node1)
+      useNodesStore.getState().addNode(node2)
+
+      // Delete the linked node
+      useNodesStore.getState().deleteNode('task-2')
+
+      const { linkIndex } = useNodesStore.getState()
+
+      // task-1's outgoing link should now be empty (broken link not included)
+      expect(linkIndex.outgoing.get('task-1')).toEqual(new Set())
+      // task-2 should no longer be in the index
+      expect(linkIndex.outgoing.has('task-2')).toBe(false)
+      expect(linkIndex.incoming.has('task-2')).toBe(false)
+    })
+
+    it('setNodes should build linkIndex', () => {
+      const nodes = new Map<string, ForgeNode>([
+        [
+          'task-1',
+          {
+            ...createTestTaskNode('task-1', 'Task 1'),
+            content: 'Links to [[task-2]] and [[task-3]]',
+          },
+        ],
+        ['task-2', createTestTaskNode('task-2', 'Task 2')],
+        [
+          'task-3',
+          {
+            ...createTestTaskNode('task-3', 'Task 3'),
+            content: 'Links back to [[task-1]]',
+          },
+        ],
+      ])
+
+      useNodesStore.getState().setNodes(nodes)
+
+      const { linkIndex } = useNodesStore.getState()
+
+      expect(linkIndex.outgoing.get('task-1')).toEqual(
+        new Set(['task-2', 'task-3'])
+      )
+      expect(linkIndex.outgoing.get('task-3')).toEqual(new Set(['task-1']))
+      expect(linkIndex.incoming.get('task-1')).toEqual(new Set(['task-3']))
+      expect(linkIndex.incoming.get('task-2')).toEqual(new Set(['task-1']))
+      expect(linkIndex.incoming.get('task-3')).toEqual(new Set(['task-1']))
+    })
+
+    it('clearNodes should reset linkIndex', () => {
+      const node: TaskNode = {
+        ...createTestTaskNode('task-1', 'Task 1'),
+        content: 'Links to [[task-2]]',
+      }
+      useNodesStore.getState().addNode(node)
+      useNodesStore.getState().addNode(createTestTaskNode('task-2', 'Task 2'))
+
+      useNodesStore.getState().clearNodes()
+
+      const { linkIndex } = useNodesStore.getState()
+
+      expect(linkIndex.outgoing.size).toBe(0)
+      expect(linkIndex.incoming.size).toBe(0)
+    })
+
+    it('rebuildLinkIndex should manually rebuild', () => {
+      const node: TaskNode = {
+        ...createTestTaskNode('task-1', 'Task 1'),
+        content: 'Links to [[task-2]]',
+      }
+      useNodesStore.getState().addNode(node)
+      useNodesStore.getState().addNode(createTestTaskNode('task-2', 'Task 2'))
+
+      // Manually clear and rebuild
+      useNodesStore.setState({
+        linkIndex: { outgoing: new Map(), incoming: new Map() },
+      })
+
+      expect(useNodesStore.getState().linkIndex.outgoing.size).toBe(0)
+
+      useNodesStore.getState().rebuildLinkIndex()
+
+      expect(useNodesStore.getState().linkIndex.outgoing.get('task-1')).toEqual(
+        new Set(['task-2'])
+      )
+    })
+
+    describe('link selectors', () => {
+      it('getOutgoingLinks should return outgoing links', () => {
+        const node1: TaskNode = {
+          ...createTestTaskNode('task-1', 'Task 1'),
+          content: 'Links to [[task-2]] and [[task-3]]',
+        }
+        useNodesStore.getState().addNode(node1)
+        useNodesStore.getState().addNode(createTestTaskNode('task-2', 'Task 2'))
+        useNodesStore.getState().addNode(createTestTaskNode('task-3', 'Task 3'))
+
+        const links = useNodesStore.getState().getOutgoingLinks('task-1')
+
+        expect(links).toHaveLength(2)
+        expect(links).toContain('task-2')
+        expect(links).toContain('task-3')
+      })
+
+      it('getIncomingLinks should return backlinks', () => {
+        const node1: TaskNode = {
+          ...createTestTaskNode('task-1', 'Task 1'),
+          content: 'Links to [[task-3]]',
+        }
+        const node2: TaskNode = {
+          ...createTestTaskNode('task-2', 'Task 2'),
+          content: 'Also links to [[task-3]]',
+        }
+        useNodesStore.getState().addNode(node1)
+        useNodesStore.getState().addNode(node2)
+        useNodesStore.getState().addNode(createTestTaskNode('task-3', 'Task 3'))
+
+        const backlinks = useNodesStore.getState().getIncomingLinks('task-3')
+
+        expect(backlinks).toHaveLength(2)
+        expect(backlinks).toContain('task-1')
+        expect(backlinks).toContain('task-2')
+      })
+
+      it('getOutgoingLinks should return empty for node with no links', () => {
+        useNodesStore.getState().addNode(createTestTaskNode('task-1', 'Task 1'))
+
+        expect(useNodesStore.getState().getOutgoingLinks('task-1')).toEqual([])
+      })
+
+      it('getIncomingLinks should return empty for node with no backlinks', () => {
+        useNodesStore.getState().addNode(createTestTaskNode('task-1', 'Task 1'))
+
+        expect(useNodesStore.getState().getIncomingLinks('task-1')).toEqual([])
       })
     })
   })
