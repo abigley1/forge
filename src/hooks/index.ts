@@ -92,3 +92,20 @@ export type {
   UseLinkRenamingOptions,
   UseLinkRenamingResult,
 } from './useLinkRenaming'
+
+// Graph preferences hooks (minimap, background visibility)
+export { useGraphPreferences } from './useGraphPreferences'
+export type {
+  GraphPreferences,
+  UseGraphPreferencesReturn,
+} from './useGraphPreferences'
+
+// Reduced motion preference hook
+export { useReducedMotion, prefersReducedMotion } from './useReducedMotion'
+
+// Graph keyboard navigation hook
+export { useGraphKeyboardNavigation } from './useGraphKeyboardNavigation'
+export type {
+  UseGraphKeyboardNavigationProps,
+  UseGraphKeyboardNavigationReturn,
+} from './useGraphKeyboardNavigation'
