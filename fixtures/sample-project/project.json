@@ -1,0 +1,25 @@
+{
+  "createdAt": "2026-01-10T08:00:00Z",
+  "modifiedAt": "2026-01-19T10:00:00Z",
+  "description": "A small CNC router project for PCB milling and light aluminum work",
+  "nodeOrder": [
+    "project-overview",
+    "motor-selection",
+    "enclosure-material",
+    "design-frame",
+    "order-parts",
+    "nema17-stepper",
+    "aluminum-extrusion",
+    "motor-research"
+  ],
+  "nodePositions": {
+    "project-overview": { "x": 400, "y": 50 },
+    "motor-selection": { "x": 200, "y": 200 },
+    "enclosure-material": { "x": 600, "y": 200 },
+    "design-frame": { "x": 400, "y": 350 },
+    "order-parts": { "x": 400, "y": 500 },
+    "nema17-stepper": { "x": 100, "y": 350 },
+    "aluminum-extrusion": { "x": 700, "y": 350 },
+    "motor-research": { "x": 100, "y": 200 }
+  }
+}
