@@ -20,6 +20,18 @@ export { EmptyState } from './EmptyState'
 export { NodeListItem } from './NodeListItem'
 export { NodeList } from './NodeList'
 
+// Virtualized node list (for performance with large lists)
+export { VirtualizedNodeList } from './VirtualizedNodeList'
+export type { VirtualizedNodeListProps } from './VirtualizedNodeList'
+
+// Auto-switching node list (uses virtualization for >50 items)
+export { AutoNodeList, VIRTUALIZATION_THRESHOLD } from './AutoNodeList'
+export type { AutoNodeListProps } from './AutoNodeList'
+
+// Sortable node list (drag and drop)
+export { SortableNodeListItem } from './SortableNodeListItem'
+export { SortableNodeList } from './SortableNodeList'
+
 // Create node dialog
 export { CreateNodeDialog } from './CreateNodeDialog'
 export type { CreateNodeDialogProps } from './CreateNodeDialog'

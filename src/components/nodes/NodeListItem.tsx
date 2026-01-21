@@ -18,7 +18,10 @@ import type { NodeStatus } from './config'
 // Types
 // ============================================================================
 
-interface NodeListItemProps {
+interface NodeListItemProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'id'
+> {
   /** The node to display */
   node: ForgeNode
   /** Whether this node is currently active/selected */
@@ -64,7 +67,7 @@ function getNodeStatus(node: ForgeNode): NodeStatus | null {
  */
 export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
   function NodeListItem(
-    { node, isActive = false, onClick, className, tabIndex = 0, id },
+    { node, isActive = false, onClick, className, tabIndex = 0, id, ...rest },
     ref
   ) {
     const status = getNodeStatus(node)
@@ -76,6 +79,7 @@ export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
         type="button"
         onClick={onClick}
         tabIndex={tabIndex}
+        {...rest}
         className={cn(
           'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left',
           'transition-colors duration-150',
