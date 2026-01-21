@@ -1,0 +1,33 @@
+// Main panel component
+export { NodeDetailPanel } from './NodeDetailPanel'
+export type { NodeDetailPanelProps } from './NodeDetailPanel'
+
+// Field editors
+export { NodeTitleEditor } from './NodeTitleEditor'
+export type { NodeTitleEditorProps } from './NodeTitleEditor'
+
+export { StatusSelect } from './StatusSelect'
+export type {
+  StatusSelectProps,
+  StatusOption,
+  NodeStatus,
+} from './StatusSelect'
+
+export { TagInput } from './TagInput'
+export type { TagInputProps } from './TagInput'
+
+export { PrioritySelector } from './PrioritySelector'
+export type { PrioritySelectorProps } from './PrioritySelector'
+
+export { ChecklistEditor } from './ChecklistEditor'
+export type { ChecklistEditorProps } from './ChecklistEditor'
+
+// Re-export checklist utilities from lib
+export { parseChecklist, serializeChecklist } from '@/lib/checklist'
+
+export { ComponentFields } from './ComponentFields'
+export type { ComponentFieldsProps } from './ComponentFields'
+
+// Main frontmatter editor
+export { FrontmatterEditor } from './FrontmatterEditor'
+export type { FrontmatterEditorProps } from './FrontmatterEditor'
