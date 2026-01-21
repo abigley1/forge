@@ -1,9 +1,9 @@
 # Ralph Loop Progress
 
 ## Status
-- **Current Iteration:** 24
+- **Current Iteration:** 27
 - **Last Updated:** 2026-01-21
-- **Status:** Sprint 4 Complete - All Tasks (4.1-4.5) Done
+- **Status:** Task 5.5 Complete - Graph Navigation & Accessibility
 
 ## Completed Tasks
 - feat-0.3: Testing Infrastructure (Vitest + RTL + coverage reporting)
@@ -558,14 +558,240 @@
   - 4.5.22: Wrote 23 unit tests for useLinkRenaming hook and utilities
   - 4.5.23: All 1394 tests passing, lint, type-check, and build all pass
 
+- feat-5.1: React Flow Integration (Graph view container with node selection and filtering)
+  - 5.1.1: Installed reactflow package v11
+  - 5.1.2: Created `src/lib/graph.ts` with nodesToGraphData() utility function
+  - 5.1.3: nodesToGraphData() returns React Flow arrays with positions from nodes Map and linkIndex
+  - 5.1.4: Created extractNodePositions() for persisting positions to project metadata
+  - 5.1.5: Created applyStoredPositions() for restoring positions from storage
+  - 5.1.6: Created filterGraphData() for filtering nodes/edges based on visible IDs
+  - 5.1.7: Created getConnectedNodeIds() for finding related nodes
+  - 5.1.8: Created `<ForgeGraphNode>` custom node component with type-specific colors and status badges
+  - 5.1.9: Node colors: Decision (blue), Component (green), Task (orange), Note (gray)
+  - 5.1.10: Selected nodes have ring-2 visual indicator
+  - 5.1.11: Created `<NodeContextMenu>` with Edit, Delete, View, Add Link actions
+  - 5.1.12: Context menu closes on Escape and click outside
+  - 5.1.13: Created `<GraphView>` container component with React Flow integration
+  - 5.1.14: GraphView renders Controls, MiniMap, and Background components
+  - 5.1.15: Node selection synced with activeNodeId in NodesStore
+  - 5.1.16: Click selects node, pane click deselects
+  - 5.1.17: Node positions stored in project.metadata.nodePositions
+  - 5.1.18: Positions persist across reload via updateMetadata
+  - 5.1.19: Graph connected to useFilters hook for filter integration
+  - 5.1.20: Filtered nodes/edges automatically update when filters change
+  - 5.1.21: Right-click opens context menu at cursor position
+  - 5.1.22: Created forgeNodeTypes registry in separate file for fast-refresh compliance
+  - 5.1.23: Wrote 19 unit tests for graph utilities
+  - 5.1.24: Wrote 25 unit tests for graph components (ForgeGraphNode, NodeContextMenu, GraphView)
+  - 5.1.25: All 1438 tests passing, lint, type-check, and build all pass
+
+- feat-5.2: Custom Graph Nodes (Styled graph nodes by type with badges)
+  - 5.2.1: Updated ForgeGraphNode with min-h-[44px] for WCAG 2.1 44x44px touch target requirement
+  - 5.2.2: Different colors per node type already implemented using Tailwind tokens (blue, green, orange, gray)
+  - 5.2.3: Created `groupNodesByTag(nodes)` utility function returning Map<string, string[]>
+  - 5.2.4: Created `createClusterNodes()` for generating collapsed cluster nodes
+  - 5.2.5: Created `getAllTagsForClustering()` utility for UI tag selection
+  - 5.2.6: Created `nodesToGraphDataWithClusters()` for full clustering support
+  - 5.2.7: Created `<TagCluster>` component with expand/collapse functionality
+  - 5.2.8: TagCluster shows tag name, node count badge, chevron indicator
+  - 5.2.9: TagCluster has 44x44px minimum touch target and aria-label accessibility
+  - 5.2.10: TagCluster uses purple color scheme to distinguish from regular nodes
+  - 5.2.11: Updated forgeNodeTypes registry to include tagCluster node type
+  - 5.2.12: Updated GraphView with enableClustering and onClusterToggle props
+  - 5.2.13: GraphView manages cluster expansion state internally
+  - 5.2.14: Click on cluster toggles expansion (shows/hides contained nodes)
+  - 5.2.15: Cluster nodes shown in minimap with purple color
+  - 5.2.16: Updated graph.test.ts with 14 new tests for clustering utilities
+  - 5.2.17: Updated graph.test.tsx with 11 new tests for TagCluster and GraphView clustering
+  - 5.2.18: All 1463 tests passing, lint, type-check, and build all pass
+
+- feat-5.3: Edge Styling & Differentiation (Custom edge types for dependencies vs references)
+  - 5.3.1: Created `<DependencyEdge>` component with solid blue line (#3b82f6) and arrow marker
+  - 5.3.2: DependencyEdge uses 2px stroke width for visual prominence
+  - 5.3.3: DependencyEdge uses getSmoothStepPath with 8px border radius
+  - 5.3.4: DependencyEdge selected state uses darker blue (#1d4ed8)
+  - 5.3.5: Created `<ReferenceEdge>` component with dashed gray line (#94a3b8)
+  - 5.3.6: ReferenceEdge uses 1px stroke width (lighter than dependencies)
+  - 5.3.7: ReferenceEdge has custom CircleMarker at target end instead of arrow
+  - 5.3.8: ReferenceEdge selected state uses darker gray (#4b5563)
+  - 5.3.9: Created `edgeTypes.ts` registry mapping 'dependency' and 'reference' to components
+  - 5.3.10: Created `createDependencyEdges()` function for TaskNode.dependsOn relationships
+  - 5.3.11: Dependency edges go from dependency -> task (showing blocking direction)
+  - 5.3.12: Created `createReferenceEdges()` function for wiki-link references
+  - 5.3.13: Reference edges created from linkIndex.outgoing map
+  - 5.3.14: Implemented edge deduplication - dependency edges take priority over reference edges for same node pair
+  - 5.3.15: Dependency edges have MarkerType.ArrowClosed at target end
+  - 5.3.16: Updated `nodesToEdges()` to combine dependency and reference edges
+  - 5.3.17: Updated `nodesToGraphData()` to use new edge creation functions
+  - 5.3.18: GraphView uses forgeEdgeTypes for custom edge rendering
+  - 5.3.19: Both edge types have sr-only labels for screen reader accessibility
+  - 5.3.20: Updated index.ts exports for DependencyEdge, ReferenceEdge, forgeEdgeTypes
+  - 5.3.21: Wrote 12 unit tests for DependencyEdge component
+  - 5.3.22: Wrote 12 unit tests for ReferenceEdge component
+  - 5.3.23: Wrote 12 unit tests for dependency edge creation logic
+  - 5.3.24: Wrote 8 unit tests for reference edge creation logic
+  - 5.3.25: All 1491 tests passing, lint, type-check, and build all pass
+
+- feat-5.4: Auto Layout (elkjs-based hierarchical layout)
+  - 5.4.1: Installed elkjs package for ELK layout kernel
+  - 5.4.2: Created `AutoLayoutOptions` interface with direction, nodeSpacing, levelSpacing, edgeSpacing, algorithm
+  - 5.4.3: Created `LayoutDirection` type: 'DOWN' | 'RIGHT' | 'UP' | 'LEFT'
+  - 5.4.4: Created `toElkGraph()` function to convert React Flow nodes/edges to ELK format
+  - 5.4.5: Created `extractElkPositions()` function to extract positions from ELK result
+  - 5.4.6: Created `calculateLayout(nodes, edges, options)` async function using elkjs
+  - 5.4.7: Layout uses 'layered' algorithm by default for DAG-respecting hierarchical layout
+  - 5.4.8: Dependencies positioned above dependents with DOWN direction (default)
+  - 5.4.9: Configurable spacing: nodeSpacing (80), levelSpacing (100), edgeSpacing (30)
+  - 5.4.10: Created `calculateCenteredLayout()` for viewport-centered layout
+  - 5.4.11: Added 'Reset Layout' button to GraphView Controls panel
+  - 5.4.12: Button shows LayoutGrid icon (lucide-react), Loader2 spinner during layout
+  - 5.4.13: Reset layout calculates positions, updates React Flow state, persists to metadata
+  - 5.4.14: Button has aria-label for accessibility
+  - 5.4.15: Wrote 12 unit tests for calculateLayout (empty, single, multiple, DAG, options)
+  - 5.4.16: Wrote 4 unit tests for calculateCenteredLayout
+  - 5.4.17: All 1503 tests passing, lint, type-check, and build all pass
+  - 5.5.1: Mouse wheel zoom and click-drag pan work smoothly (via React Flow defaults)
+  - 5.5.2: Zoom controls UI (+/-/fit buttons) provided by React Flow Controls component
+  - 5.5.3: Created `useGraphPreferences` hook for minimap/background visibility with localStorage persistence
+  - 5.5.4: Created toggleable minimap button with Map/EyeOff icons in Controls panel
+  - 5.5.5: Minimap visibility persists via localStorage (forge:graph-preferences key)
+  - 5.5.6: Created `useGraphKeyboardNavigation` hook for keyboard navigation support
+  - 5.5.7: Tab focuses graph container, arrow keys navigate between nodes
+  - 5.5.8: Home/End jump to first/last node, Enter/Space selects focused node, Escape deselects
+  - 5.5.9: Navigation skips cluster nodes, only navigates forgeNode types
+  - 5.5.10: Created `GraphAnnouncer` component with aria-live="polite" region
+  - 5.5.11: Created `useGraphAnnouncer` hook for screen reader announcements
+  - 5.5.12: Announces: node selected/deselected, node focused (with position), graph summary, filter applied, minimap toggled, layout reset
+  - 5.5.13: Graph container has role="application" with aria-label and aria-activedescendant
+  - 5.5.14: Created `useReducedMotion` hook detecting prefers-reduced-motion media query
+  - 5.5.15: Created `prefersReducedMotion()` utility function for use outside React
+  - 5.5.16: Animations disabled when reduced motion preferred: fitView, setCenter, layout reset
+  - 5.5.17: Loader2 spin animation disabled when reduced motion preferred
+  - 5.5.18: Wrote 14 unit tests for useGraphPreferences (localStorage, toggle, persistence)
+  - 5.5.19: Wrote 7 unit tests for useReducedMotion (initial value, change detection, cleanup)
+  - 5.5.20: Wrote 24 unit tests for useGraphKeyboardNavigation (arrow keys, Home/End, Enter/Space, Escape, focus)
+  - 5.5.21: Wrote 29 unit tests for GraphAnnouncer and useGraphAnnouncer (rendering, announcements, clear)
+  - 5.5.22: All 1577 tests passing, lint, type-check, and build all pass
+
 ## Current Focus
-_Sprint 4 Complete - All Wiki-Link features implemented (Link Index, Autocomplete, Navigation, Backlinks, Validation)_
+_Task 5.5 Complete - Graph Navigation & Accessibility_
 
 ## Blockers
 _None_
 
 ## Notes
-Sprint 4 is COMPLETE! All 5 tasks (4.1-4.5) are done.
+Task 5.5 (Graph Navigation & Accessibility) is complete!
+
+Files created:
+- src/hooks/useGraphPreferences.ts - Preferences persistence hook
+- src/hooks/useGraphPreferences.test.ts - 14 unit tests
+- src/hooks/useReducedMotion.ts - Reduced motion detection hook
+- src/hooks/useReducedMotion.test.ts - 7 unit tests
+- src/hooks/useGraphKeyboardNavigation.ts - Keyboard navigation hook
+- src/hooks/useGraphKeyboardNavigation.test.ts - 24 unit tests
+- src/components/graph/GraphAnnouncer.tsx - Screen reader announcer component
+- src/components/graph/useGraphAnnouncer.ts - Announcer hook (split for fast-refresh compliance)
+- src/components/graph/GraphAnnouncer.test.tsx - 29 unit tests
+
+Files modified:
+- src/components/graph/GraphView.tsx - Integrated keyboard navigation, announcements, reduced motion
+- src/components/graph/index.ts - Added GraphAnnouncer and useGraphAnnouncer exports
+- src/hooks/index.ts - Added useGraphPreferences, useReducedMotion, useGraphKeyboardNavigation exports
+
+All acceptance criteria met for Task 5.5:
+- Mouse wheel zoom and click-drag pan work smoothly (React Flow defaults) ✓
+- Zoom controls UI: +/-/fit buttons, fit-to-view centers all nodes (React Flow Controls) ✓
+- Minimap toggleable, reflects graph state (Map/EyeOff button, localStorage persistence) ✓
+- Keyboard navigation: Tab focus, arrow keys, Enter, Escape (useGraphKeyboardNavigation hook) ✓
+- Screen reader support: aria-label, announce on focus (GraphAnnouncer, aria-live region) ✓
+- Respects prefers-reduced-motion (useReducedMotion hook, animations disabled) ✓
+
+---
+
+Task 5.4 (Auto Layout) is complete!
+
+Files modified:
+- src/lib/graph.ts - Added calculateLayout, calculateCenteredLayout, AutoLayoutOptions, LayoutDirection
+- src/lib/graph.test.ts - Added 12 tests for calculateLayout + 4 tests for calculateCenteredLayout (57 total)
+- src/components/graph/GraphView.tsx - Added Reset Layout button with ControlButton, LayoutGrid icon
+- package.json - Added elkjs dependency
+
+All acceptance criteria met for Task 5.4:
+- elkjs package installed ✓
+- calculateLayout(nodes, edges) returns valid positions respecting DAG ✓
+- 'Reset Layout' button repositions nodes logically ✓
+
+---
+
+Task 5.3 (Edge Styling & Differentiation) is complete!
+
+Files created:
+- src/components/graph/DependencyEdge.tsx - Custom edge for task dependencies (solid blue, arrow)
+- src/components/graph/ReferenceEdge.tsx - Custom edge for wiki-link references (dashed gray, circle)
+- src/components/graph/edgeTypes.ts - Edge types registry for React Flow
+
+Files modified:
+- src/lib/graph.ts - Added createDependencyEdges, createReferenceEdges, nodesToEdges functions
+- src/lib/graph.test.ts - Added 20 tests for dependency/reference edge creation (45 total)
+- src/components/graph/GraphView.tsx - Added forgeEdgeTypes integration
+- src/components/graph/index.ts - Added DependencyEdge, ReferenceEdge, forgeEdgeTypes exports
+- src/components/graph/graph.test.tsx - Added 12 tests for edge components (52 total)
+
+All acceptance criteria met for Task 5.3:
+- Different edge styles: dependency (solid blue + arrow) vs reference (dashed gray + circle) ✓
+- Edge direction: dependency edges show blocking direction (from blocker to blocked) ✓
+- Edge deduplication: dependency edges take priority for same node pair ✓
+- Accessibility: screen reader labels on edges ✓
+- Selected state styling for both edge types ✓
+
+---
+
+Task 5.2 (Custom Graph Nodes) is complete!
+
+Files created:
+- src/components/graph/TagCluster.tsx - Tag cluster component for grouped nodes
+
+Files modified:
+- src/lib/graph.ts - Added groupNodesByTag, createClusterNodes, getAllTagsForClustering, nodesToGraphDataWithClusters
+- src/lib/graph.test.ts - Added 14 new tests for clustering utilities (33 total)
+- src/components/graph/ForgeGraphNode.tsx - Added min-h-[44px] for accessibility
+- src/components/graph/GraphView.tsx - Added enableClustering, onClusterToggle props and cluster support
+- src/components/graph/nodeTypes.ts - Added tagCluster node type
+- src/components/graph/index.ts - Added TagCluster export
+- src/components/graph/graph.test.tsx - Added 11 new tests for TagCluster and clustering (36 total)
+
+All acceptance criteria met for Task 5.2:
+- GraphNode displays title, type icon, status badge (44x44px min) ✓
+- Different colors per node type using Tailwind tokens ✓
+- Node clustering by tag with expand/collapse (optional) ✓
+
+---
+
+Task 5.1 (React Flow Integration) is complete!
+
+Files created:
+- src/lib/graph.ts - Graph utilities for converting nodes to React Flow format
+- src/lib/graph.test.ts - 19 unit tests
+- src/components/graph/ForgeGraphNode.tsx - Custom graph node component
+- src/components/graph/NodeContextMenu.tsx - Right-click context menu
+- src/components/graph/GraphView.tsx - Main graph view container
+- src/components/graph/nodeTypes.ts - Node types registry
+- src/components/graph/index.ts - Clean exports
+- src/components/graph/graph.test.tsx - 25 unit tests
+
+Files modified:
+- package.json - Added reactflow dependency
+
+All acceptance criteria met:
+- reactflow package installed (v11)
+- GraphView container renders empty graph with Controls, MiniMap, Background
+- nodesToGraphData(nodes, linkIndex) returns React Flow arrays with positions
+- Node selection synced with store (click selects, visual ring indicator)
+- Node positions stored in project.metadata.nodePositions, persist across reload
+- Graph connected to same filters as outline (useFilters hook integration)
+- Node context menu with Edit, Delete, View, Add Link actions
+
+---
 
 Task 4.5 (Link Validation) is complete:
 - Broken links already styled with red dashed underline (from task 4.3)
