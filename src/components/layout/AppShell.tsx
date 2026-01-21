@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { ErrorBoundary } from '@/components/ui'
 import { SkipLink } from './SkipLink'
 import { Sidebar } from './Sidebar'
 
@@ -27,7 +28,9 @@ export function AppShell({ children, sidebar, className }: AppShellProps) {
           className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900"
           aria-label="Sidebar navigation"
         >
-          {sidebar ?? <Sidebar />}
+          <ErrorBoundary section="sidebar" className="h-full">
+            {sidebar ?? <Sidebar />}
+          </ErrorBoundary>
         </aside>
 
         <main
@@ -35,7 +38,9 @@ export function AppShell({ children, sidebar, className }: AppShellProps) {
           className="flex min-w-0 flex-1 flex-col overflow-auto"
           tabIndex={-1}
         >
-          {children}
+          <ErrorBoundary section="main" className="flex-1">
+            {children}
+          </ErrorBoundary>
         </main>
       </div>
     </div>
