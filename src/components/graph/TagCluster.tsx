@@ -36,7 +36,7 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
       <div
         className={cn(
           // Ensure 44x44px minimum touch target for accessibility (WCAG 2.1)
-          'min-h-[44px] min-w-[120px] cursor-pointer rounded-lg border-2 p-3 shadow-sm transition-all',
+          'min-h-[44px] min-w-[120px] cursor-pointer rounded-lg border-2 p-3 shadow-sm transition-colors transition-shadow',
           'bg-purple-50 dark:bg-purple-950',
           'border-purple-300 dark:border-purple-700',
           'hover:border-purple-400 hover:shadow-md dark:hover:border-purple-600',

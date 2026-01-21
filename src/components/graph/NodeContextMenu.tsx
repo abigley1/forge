@@ -47,7 +47,7 @@ function MenuItem({
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
         'hover:bg-gray-100 dark:hover:bg-gray-700',
-        'focus:bg-gray-100 focus:outline-none dark:focus:bg-gray-700',
+        'focus-visible:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:bg-gray-700',
         variant === 'danger' &&
           'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
       )}
