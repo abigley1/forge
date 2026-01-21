@@ -526,7 +526,7 @@ function GraphViewInner({
       setTimeout(() => {
         reactFlowInstance?.fitView({
           padding: 0.2,
-          duration: reducedMotion ? 0 : 300,
+          duration: reducedMotion ? 0 : 200,
         })
       }, 50)
     } catch (error) {

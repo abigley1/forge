@@ -30,7 +30,7 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2 !w-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
       />
 
       <div
@@ -93,7 +93,7 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2 !w-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
       />
     </>
   )

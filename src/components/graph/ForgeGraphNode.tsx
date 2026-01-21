@@ -83,7 +83,7 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2 !w-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
       />
 
       <div
@@ -136,7 +136,7 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2 !w-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
       />
     </>
   )
