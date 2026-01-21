@@ -8,71 +8,87 @@ Forge is a personal project brainstorming, planning, and tracking tool for compl
 
 **Target user:** Solo maker/engineer working on complex hardware projects (3D design, PCB design, component selection, system architecture).
 
-## Current State
+## Development Commands
 
-This is a greenfield project in early development. The repository contains:
-- `spec.md` - Full product specification
-- `SPRINT_PLAN.md` - Detailed task breakdown across 12 sprints
-- `PRD.json` - Machine-readable version of the sprint plan
-- `ralph.sh` - Automated development loop script
+```bash
+npm run dev          # Start Vite dev server
+npm run build        # TypeScript build + Vite production build
+npm run test         # Run all Vitest tests once
+npm run test:watch   # Run tests in watch mode
+npm run lint         # ESLint check
+npm run lint:fix     # ESLint with auto-fix
+npm run type-check   # TypeScript type check (no emit)
+npm run format       # Prettier format all files
+npm run format:check # Check formatting without writing
+```
 
-## Tech Stack (Planned)
-
-- **Framework:** React 18+ with TypeScript (Vite)
-- **Styling:** Tailwind CSS + tw-animate-css + `cn` utility (clsx + tailwind-merge)
-- **Components:** Base UI for accessible primitives
-- **Animation:** motion/react (only transform/opacity, max 200ms for feedback)
-- **State:** Zustand or Jotai for app state; nuqs for URL state sync
-- **Graph:** React Flow
-- **Markdown:** MDX or Remark with gray-matter for YAML frontmatter
-- **Validation:** Zod for runtime validation
+Run a single test file:
+```bash
+npx vitest run src/lib/validation.test.ts
+npx vitest src/lib/validation.test.ts  # watch mode for single file
+```
 
 ## Architecture
 
-### Node Types
-All content is organized as **nodes** that link together:
-- **Decision** - Compare options with scoring tables, pending/selected status
-- **Component** - Parts with specs, cost, supplier links
-- **Task** - Things to do with dependencies, DAG-based blocking
-- **Note** - Freeform markdown content
+### Layered Structure
 
-### File Structure
 ```
-forge-workspace/
-├── .forge/
-│   ├── config.json          # Workspace settings
-│   └── templates/           # Node templates
-├── project-name/
-│   ├── project.json         # Project metadata
-│   ├── decisions/           # Decision nodes as .md files
-│   ├── components/          # Component nodes
-│   ├── tasks/               # Task nodes
-│   └── notes/               # Note nodes
+src/
+├── types/           # TypeScript interfaces & Zod-validated types
+│   ├── nodes.ts     # ForgeNode discriminated union (Decision|Component|Task|Note)
+│   └── project.ts   # Project, Workspace, WorkspaceConfig
+├── lib/             # Core logic (no React dependencies)
+│   ├── validation.ts    # Zod schemas, validateNode() returns Result type
+│   ├── frontmatter.ts   # YAML parsing (gray-matter), wiki-link extraction
+│   ├── project.ts       # loadProject(), saveNode(), initializeProject()
+│   └── filesystem/      # Adapter pattern for file I/O
+│       ├── types.ts             # FileSystemAdapter interface
+│       ├── MemoryFileSystemAdapter.ts   # For tests
+│       └── BrowserFileSystemAdapter.ts  # File System Access API
+├── store/           # Zustand stores with devtools
+│   └── useAppStore.ts   # UI state (sidebar, activeView)
+└── components/
+    ├── ui/          # Base UI primitives (Dialog, Button, Toast, AlertDialog)
+    └── layout/      # App shell, Sidebar, SkipLink
 ```
 
-### Data Format
-Nodes are markdown files with YAML frontmatter:
-```markdown
----
+### Key Patterns
+
+**Node Type System:** Uses discriminated unions with type guards. Always narrow with `isTaskNode(node)` etc. before accessing type-specific fields.
+
+**File System Abstraction:** All file I/O goes through `FileSystemAdapter` interface. Use `MemoryFileSystemAdapter` in tests; production will use `BrowserFileSystemAdapter` (File System Access API).
+
+**Validation:** `validateNode()` in `src/lib/validation.ts` returns `ValidationResult<ForgeNode>` - a Result type that's either `{ success: true, data: ForgeNode }` or `{ success: false, error: ValidationError }`. Never throw on validation failure.
+
+**Frontmatter Conventions:** YAML uses snake_case (`depends_on`), TypeScript uses camelCase (`dependsOn`). The validation layer handles conversion.
+
+### Node Data Format
+
+Nodes are markdown files with YAML frontmatter stored in type-specific directories:
+```
+project-name/
+├── project.json     # Project metadata
+├── decisions/       # Decision nodes as .md files
+├── components/      # Component nodes
+├── tasks/           # Task nodes
+└── notes/           # Note nodes
+```
+
+### Path Alias
+
+`@/` maps to `src/` - use `import { cn } from '@/lib/utils'`
+
+## Test Patterns
+
+Tests use `MemoryFileSystemAdapter` for isolation. Test fixtures can be created inline:
+```typescript
+const adapter = new MemoryFileSystemAdapter()
+await adapter.writeFile('/project/tasks/my-task.md', `---
 type: task
-status: pending | in_progress | blocked | complete
-priority: high | medium | low
-depends_on: [node-id-1, node-id-2]
-tags: [electronics, motor]
+status: pending
 ---
-# Node Title
-Markdown content...
-```
-
-## Development Commands
-
-Once the project is initialized:
-```bash
-npm run dev          # Start Vite dev server
-npm run build        # Production build
-npm run test         # Run Vitest tests
-npm run lint         # ESLint
-npm run type-check   # TypeScript check
+# My Task
+Content here`)
 ```
 
 ## Ralph Loop (Automated Development)

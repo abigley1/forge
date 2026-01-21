@@ -103,6 +103,13 @@
       "title": "Workspace Management & Git Integration",
       "description": "Multi-project workspace and optional git integration",
       "demoGoal": "Switch between projects, see git status, auto-commit on save"
+    },
+    {
+      "id": "obj-12",
+      "sprint": 12,
+      "title": "Self-Hosted Deployment (Tailscale + Home Assistant)",
+      "description": "Deploy Forge as a self-hosted application accessible via Tailscale VPN on Home Assistant",
+      "demoGoal": "Access Forge from any Tailscale-connected device, data persists on Home Assistant storage"
     }
   ],
   "tasks": [
@@ -535,7 +542,7 @@
       "sprint": 4,
       "title": "Wiki-Link Autocomplete",
       "description": "CodeMirror autocomplete for [[ syntax with suggestions",
-      "tools": ["rams"],
+      "tools": ["/rams"],
       "acceptanceCriteria": [
         "Autocomplete source filters nodes by typed text after [[",
         "Trigger on [[, insert on Enter, dismiss on Escape",
@@ -560,7 +567,7 @@
       "sprint": 4,
       "title": "Backlinks Panel",
       "description": "Panel showing all nodes linking to current node",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "BacklinksPanel lists linking nodes with context snippet",
         "RelatedNodes shows outgoing + incoming links grouped"
@@ -931,6 +938,87 @@
         "Git status indicator: branch name, changes count, clean/dirty icon",
         "Auto-commit on save (optional setting): stage + commit when enabled",
         "Git settings UI: toggle auto-commit, view commits, manual commit"
+      ]
+    },
+    {
+      "id": "12.1",
+      "sprint": 12,
+      "title": "Production Build & Static Export",
+      "description": "Optimize build for self-hosted deployment with configurable base path",
+      "acceptanceCriteria": [
+        "npm run build:prod generates optimized static files in dist/",
+        "Configurable base path via VITE_BASE_PATH environment variable",
+        "All assets use relative paths or respect base path",
+        "Service worker for offline capability (optional)",
+        "Build output includes version.json with build timestamp and git hash"
+      ]
+    },
+    {
+      "id": "12.2",
+      "sprint": 12,
+      "title": "Server-Side File System Adapter",
+      "description": "File system adapter for server-hosted deployment with REST API",
+      "acceptanceCriteria": [
+        "ServerFileSystemAdapter implements FileSystemAdapter interface",
+        "REST API endpoints: GET/PUT/DELETE /api/files/:path",
+        "Directory listing endpoint: GET /api/files/:path?list=true",
+        "File watching via polling or Server-Sent Events",
+        "Authentication token support for API requests",
+        "CORS configuration for Tailscale hostnames"
+      ]
+    },
+    {
+      "id": "12.3",
+      "sprint": 12,
+      "title": "Home Assistant Add-on Package",
+      "description": "Package Forge as a Home Assistant add-on with configuration UI",
+      "acceptanceCriteria": [
+        "Add-on config.yaml with name, version, ports, options",
+        "Dockerfile builds Node.js server with static files",
+        "Data stored in /data (persistent across updates)",
+        "Add-on options: port, base_path, auth_required",
+        "Ingress support for seamless HA integration",
+        "README with installation instructions for HACS or manual install"
+      ]
+    },
+    {
+      "id": "12.4",
+      "sprint": 12,
+      "title": "Tailscale Network Configuration",
+      "description": "Documentation and configuration for Tailscale access",
+      "acceptanceCriteria": [
+        "TAILSCALE_HOSTNAME environment variable for CORS whitelist",
+        "Documentation: enabling Tailscale on Home Assistant",
+        "Documentation: accessing Forge via MagicDNS (e.g., homeassistant.tail1234.ts.net)",
+        "Optional: Tailscale Funnel configuration for public sharing",
+        "Security guidance: recommended Tailscale ACL policies"
+      ]
+    },
+    {
+      "id": "12.5",
+      "sprint": 12,
+      "title": "Docker Compose Deployment",
+      "description": "Alternative deployment via Docker Compose for non-HA setups",
+      "acceptanceCriteria": [
+        "docker-compose.yml with forge service and volume mounts",
+        "Dockerfile with multi-stage build (build + nginx)",
+        "Environment variable configuration via .env file",
+        "Health check endpoint at /api/health",
+        "docker-compose.tailscale.yml variant with Tailscale sidecar container",
+        "README with quick-start instructions"
+      ]
+    },
+    {
+      "id": "12.6",
+      "sprint": 12,
+      "title": "Backup & Sync",
+      "description": "Backup mechanisms for self-hosted data",
+      "acceptanceCriteria": [
+        "Manual backup: export all projects as .zip via UI",
+        "Scheduled backup option (daily/weekly) to configured path",
+        "Restore from backup functionality",
+        "Optional: sync to remote git repository on schedule",
+        "Backup status indicator in settings"
       ]
     }
   ],
