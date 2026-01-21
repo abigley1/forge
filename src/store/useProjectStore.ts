@@ -317,13 +317,13 @@ export const useProjectStore = create<ProjectStore>()(
         set({ isLoading: true, error: null }, false, 'deleteNode/start')
 
         try {
-          const success = await deleteNodeFromDisk(adapter, project.path, node)
+          const result = await deleteNodeFromDisk(adapter, project.path, node)
 
-          if (!success) {
+          if (!result.success) {
             set(
               {
                 isLoading: false,
-                error: 'Failed to delete node',
+                error: result.error || 'Failed to delete node',
               },
               false,
               'deleteNode/error'

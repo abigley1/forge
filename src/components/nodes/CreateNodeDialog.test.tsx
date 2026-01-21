@@ -19,7 +19,13 @@ import { useUndoStore } from '@/store/useUndoStore'
 import { useCreateNodeDialog } from '@/hooks'
 import { CreateNodeDialog } from './CreateNodeDialog'
 import { NODE_TYPE_ICON_CONFIG } from './config'
+import { ToastProvider } from '@/components/ui/Toast'
 import { renderHook, act } from '@testing-library/react'
+
+// Helper to render with ToastProvider
+function renderWithToast(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 // ============================================================================
 // Setup
@@ -42,20 +48,20 @@ afterEach(() => {
 describe('CreateNodeDialog', () => {
   describe('rendering', () => {
     it('renders dialog when open', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
       expect(screen.getByText('Create New Node')).toBeInTheDocument()
     })
 
     it('does not render dialog when closed', () => {
-      render(<CreateNodeDialog open={false} onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open={false} onOpenChange={() => {}} />)
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
 
     it('renders type selector with all node types', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       Object.values(NODE_TYPE_ICON_CONFIG).forEach((config) => {
         expect(screen.getByText(config.label)).toBeInTheDocument()
@@ -63,26 +69,26 @@ describe('CreateNodeDialog', () => {
     })
 
     it('renders title input', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByLabelText('Title')).toBeInTheDocument()
     })
 
     it('renders template selector', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByLabelText('Template')).toBeInTheDocument()
     })
 
     it('renders Cancel and Create buttons', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
     })
 
     it('renders keyboard shortcut hint', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByText(/Keyboard shortcut/)).toBeInTheDocument()
     })
@@ -94,7 +100,7 @@ describe('CreateNodeDialog', () => {
 
   describe('type selection', () => {
     it('selects Note type by default', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const noteButton = screen.getByRole('radio', { name: /Note/i })
       expect(noteButton).toHaveAttribute('aria-checked', 'true')
@@ -102,7 +108,7 @@ describe('CreateNodeDialog', () => {
 
     it('allows selecting different node types', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const decisionButton = screen.getByRole('radio', { name: /Decision/i })
       await user.click(decisionButton)
@@ -112,11 +118,13 @@ describe('CreateNodeDialog', () => {
 
     it('respects defaultType prop', () => {
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+          />
+        </ToastProvider>
       )
 
       const taskButton = screen.getByRole('radio', { name: /Task/i })
@@ -125,7 +133,7 @@ describe('CreateNodeDialog', () => {
 
     it('updates template options when type changes', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       // Note type should have certain templates
       expect(screen.getByText('Blank Note')).toBeInTheDocument()
@@ -139,7 +147,7 @@ describe('CreateNodeDialog', () => {
     })
 
     it('type selector has proper aria attributes', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(
         screen.getByRole('radiogroup', { name: 'Node type' })
@@ -154,7 +162,7 @@ describe('CreateNodeDialog', () => {
   describe('title input', () => {
     it('accepts text input', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'My New Node')
@@ -164,11 +172,13 @@ describe('CreateNodeDialog', () => {
 
     it('shows placeholder based on selected type', () => {
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Decision}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Decision}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -178,7 +188,7 @@ describe('CreateNodeDialog', () => {
     it('is required for form submission', async () => {
       const user = userEvent.setup()
       const handleOpenChange = vi.fn()
-      render(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
 
       const createButton = screen.getByRole('button', { name: 'Create' })
       expect(createButton).toBeDisabled()
@@ -193,11 +203,13 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -212,7 +224,7 @@ describe('CreateNodeDialog', () => {
     })
 
     it('focuses title input when dialog opens', async () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       await waitFor(() => {
         expect(screen.getByLabelText('Title')).toHaveFocus()
@@ -226,7 +238,7 @@ describe('CreateNodeDialog', () => {
 
   describe('template selection', () => {
     it('defaults to Blank template', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const select = screen.getByLabelText('Template')
       expect(select).toHaveValue('blank')
@@ -234,7 +246,7 @@ describe('CreateNodeDialog', () => {
 
     it('shows different templates for each type', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       // Check Decision templates
       const decisionButton = screen.getByRole('radio', { name: /Decision/i })
@@ -248,11 +260,13 @@ describe('CreateNodeDialog', () => {
     it('shows template description when non-blank selected', async () => {
       const user = userEvent.setup()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+          />
+        </ToastProvider>
       )
 
       const select = screen.getByLabelText('Template')
@@ -264,11 +278,13 @@ describe('CreateNodeDialog', () => {
     it('resets to blank when type changes', async () => {
       const user = userEvent.setup()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+          />
+        </ToastProvider>
       )
 
       const select = screen.getByLabelText('Template')
@@ -292,12 +308,14 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -315,11 +333,13 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -337,12 +357,14 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const select = screen.getByLabelText('Template')
@@ -363,7 +385,7 @@ describe('CreateNodeDialog', () => {
 
     it('adds node to store', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'Store Test Node')
@@ -379,11 +401,13 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -411,11 +435,13 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -431,7 +457,7 @@ describe('CreateNodeDialog', () => {
 
     it('sets created node as active', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'Active Test')
@@ -445,7 +471,7 @@ describe('CreateNodeDialog', () => {
 
     it('records action for undo', async () => {
       const user = userEvent.setup()
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'Undo Test')
@@ -461,7 +487,7 @@ describe('CreateNodeDialog', () => {
     it('closes dialog after creation', async () => {
       const user = userEvent.setup()
       const handleOpenChange = vi.fn()
-      render(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'Close Test')
@@ -476,12 +502,14 @@ describe('CreateNodeDialog', () => {
       const user = userEvent.setup()
       const handleNodeCreated = vi.fn()
       render(
-        <CreateNodeDialog
-          open
-          onOpenChange={() => {}}
-          defaultType={NodeType.Task}
-          onNodeCreated={handleNodeCreated}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open
+            onOpenChange={() => {}}
+            defaultType={NodeType.Task}
+            onNodeCreated={handleNodeCreated}
+          />
+        </ToastProvider>
       )
 
       const input = screen.getByLabelText('Title')
@@ -511,7 +539,7 @@ describe('CreateNodeDialog', () => {
     it('closes when Cancel is clicked', async () => {
       const user = userEvent.setup()
       const handleOpenChange = vi.fn()
-      render(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' })
       await user.click(cancelButton)
@@ -522,7 +550,7 @@ describe('CreateNodeDialog', () => {
     it('closes when Escape is pressed', async () => {
       const user = userEvent.setup()
       const handleOpenChange = vi.fn()
-      render(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={handleOpenChange} />)
 
       await user.keyboard('{Escape}')
 
@@ -532,7 +560,9 @@ describe('CreateNodeDialog', () => {
     it('resets form when reopened', async () => {
       const user = userEvent.setup()
       const { rerender } = render(
-        <CreateNodeDialog open onOpenChange={() => {}} />
+        <ToastProvider>
+          <CreateNodeDialog open onOpenChange={() => {}} />
+        </ToastProvider>
       )
 
       // Type something
@@ -540,8 +570,16 @@ describe('CreateNodeDialog', () => {
       await user.type(input, 'Test')
 
       // Close and reopen
-      rerender(<CreateNodeDialog open={false} onOpenChange={() => {}} />)
-      rerender(<CreateNodeDialog open onOpenChange={() => {}} />)
+      rerender(
+        <ToastProvider>
+          <CreateNodeDialog open={false} onOpenChange={() => {}} />
+        </ToastProvider>
+      )
+      rerender(
+        <ToastProvider>
+          <CreateNodeDialog open onOpenChange={() => {}} />
+        </ToastProvider>
+      )
 
       // Form should be reset
       expect(screen.getByLabelText('Title')).toHaveValue('')
@@ -556,11 +594,13 @@ describe('CreateNodeDialog', () => {
     it('opens dialog with Ctrl+Shift+N', async () => {
       const handleOpenChange = vi.fn()
       render(
-        <CreateNodeDialog
-          open={false}
-          onOpenChange={handleOpenChange}
-          enableHotkey
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open={false}
+            onOpenChange={handleOpenChange}
+            enableHotkey
+          />
+        </ToastProvider>
       )
 
       // Simulate Ctrl+Shift+N
@@ -576,11 +616,13 @@ describe('CreateNodeDialog', () => {
     it('does not open when hotkey is disabled', () => {
       const handleOpenChange = vi.fn()
       render(
-        <CreateNodeDialog
-          open={false}
-          onOpenChange={handleOpenChange}
-          enableHotkey={false}
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open={false}
+            onOpenChange={handleOpenChange}
+            enableHotkey={false}
+          />
+        </ToastProvider>
       )
 
       fireEvent.keyDown(document, {
@@ -595,11 +637,13 @@ describe('CreateNodeDialog', () => {
     it('does not trigger when dialog is already open', () => {
       const handleOpenChange = vi.fn()
       render(
-        <CreateNodeDialog
-          open={true}
-          onOpenChange={handleOpenChange}
-          enableHotkey
-        />
+        <ToastProvider>
+          <CreateNodeDialog
+            open={true}
+            onOpenChange={handleOpenChange}
+            enableHotkey
+          />
+        </ToastProvider>
       )
 
       fireEvent.keyDown(document, {
@@ -619,14 +663,14 @@ describe('CreateNodeDialog', () => {
 
   describe('accessibility', () => {
     it('has proper dialog role and aria attributes', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const dialog = screen.getByRole('dialog')
       expect(dialog).toBeInTheDocument()
     })
 
     it('has accessible name from title', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(
         screen.getByRole('dialog', { name: /Create New Node/i })
@@ -634,21 +678,21 @@ describe('CreateNodeDialog', () => {
     })
 
     it('form inputs have proper labels', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       expect(screen.getByLabelText('Title')).toBeInTheDocument()
       expect(screen.getByLabelText('Template')).toBeInTheDocument()
     })
 
     it('type icons have aria-hidden', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const icons = document.querySelectorAll('[aria-hidden="true"]')
       expect(icons.length).toBeGreaterThan(0)
     })
 
     it('type selector buttons have aria-checked', () => {
-      render(<CreateNodeDialog open onOpenChange={() => {}} />)
+      renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const radioButtons = screen.getAllByRole('radio')
       radioButtons.forEach((button) => {

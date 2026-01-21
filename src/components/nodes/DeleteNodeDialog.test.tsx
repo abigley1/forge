@@ -24,7 +24,7 @@ vi.mock('@/store/useNodesStore', () => ({
 }))
 
 vi.mock('@/hooks/useUndoRedo', () => ({
-  useUndoableDeleteNode: () => vi.fn(),
+  useUndoableDeleteNode: () => vi.fn().mockReturnValue(true),
 }))
 
 const mockUseNodesStore = useNodesStore as unknown as ReturnType<typeof vi.fn>

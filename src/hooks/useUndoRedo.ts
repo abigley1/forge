@@ -234,15 +234,13 @@ export function useUndoRedo(
 export function useUndoableAddNode() {
   const addNode = useNodesStore((state) => state.addNode)
   const recordAction = useUndoStore((state) => state.recordAction)
-  const isUndoRedoInProgress = useUndoStore(
-    (state) => state.isUndoRedoInProgress
-  )
 
   return useCallback(
     (node: ForgeNode) => {
       addNode(node)
 
-      if (!isUndoRedoInProgress) {
+      // Check isUndoRedoInProgress at execution time to avoid stale closure
+      if (!useUndoStore.getState().isUndoRedoInProgress) {
         recordAction({
           type: 'addNode',
           nodeId: node.id,
@@ -250,7 +248,7 @@ export function useUndoableAddNode() {
         })
       }
     },
-    [addNode, recordAction, isUndoRedoInProgress]
+    [addNode, recordAction]
   )
 }
 
@@ -261,9 +259,6 @@ export function useUndoableUpdateNode() {
   const nodes = useNodesStore((state) => state.nodes)
   const updateNode = useNodesStore((state) => state.updateNode)
   const recordAction = useUndoStore((state) => state.recordAction)
-  const isUndoRedoInProgress = useUndoStore(
-    (state) => state.isUndoRedoInProgress
-  )
 
   return useCallback(
     (id: string, updates: Partial<ForgeNode>) => {
@@ -287,7 +282,8 @@ export function useUndoableUpdateNode() {
 
       updateNode(id, updates)
 
-      if (!isUndoRedoInProgress) {
+      // Check isUndoRedoInProgress at execution time to avoid stale closure
+      if (!useUndoStore.getState().isUndoRedoInProgress) {
         recordAction({
           type: 'updateNode',
           nodeId: id,
@@ -296,7 +292,7 @@ export function useUndoableUpdateNode() {
         })
       }
     },
-    [nodes, updateNode, recordAction, isUndoRedoInProgress]
+    [nodes, updateNode, recordAction]
   )
 }
 
@@ -307,29 +303,29 @@ export function useUndoableDeleteNode() {
   const nodes = useNodesStore((state) => state.nodes)
   const deleteNode = useNodesStore((state) => state.deleteNode)
   const recordAction = useUndoStore((state) => state.recordAction)
-  const isUndoRedoInProgress = useUndoStore(
-    (state) => state.isUndoRedoInProgress
-  )
 
   return useCallback(
-    (id: string) => {
+    (id: string): boolean => {
       const node = nodes.get(id)
       if (!node) {
         console.warn(`Cannot delete non-existent node: ${id}`)
-        return
+        return false
       }
 
       deleteNode(id)
 
-      if (!isUndoRedoInProgress) {
+      // Check isUndoRedoInProgress at execution time to avoid stale closure
+      if (!useUndoStore.getState().isUndoRedoInProgress) {
         recordAction({
           type: 'deleteNode',
           nodeId: id,
           node,
         })
       }
+
+      return true
     },
-    [nodes, deleteNode, recordAction, isUndoRedoInProgress]
+    [nodes, deleteNode, recordAction]
   )
 }
 

@@ -324,6 +324,65 @@ Line 3`
       const { container } = render(<MarkdownEditor value={content} />)
       expect(getWrapper(container)).toBeInTheDocument()
     })
+
+    it('renders nested formatting', () => {
+      const { container } = render(
+        <MarkdownEditor value="***bold and italic***" />
+      )
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
+
+    it('renders multiple wiki-links', () => {
+      const content = 'See [[link-one]] and [[link-two]] for details'
+      const { container } = render(<MarkdownEditor value={content} />)
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
+
+    it('renders incomplete markdown gracefully', () => {
+      // Unclosed bold
+      const { container: c1 } = render(
+        <MarkdownEditor value="**unclosed bold" />
+      )
+      expect(getWrapper(c1)).toBeInTheDocument()
+
+      // Unclosed code block
+      const { container: c2 } = render(
+        <MarkdownEditor value="```\nunclosed code" />
+      )
+      expect(getWrapper(c2)).toBeInTheDocument()
+    })
+
+    it('renders special characters', () => {
+      const content = '< > & " \' © ® ™ — –'
+      const { container } = render(<MarkdownEditor value={content} />)
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
+
+    it('renders all heading levels', () => {
+      const content = `# H1
+## H2
+### H3
+#### H4
+##### H5
+###### H6`
+      const { container } = render(<MarkdownEditor value={content} />)
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
+
+    it('renders task lists', () => {
+      const content = `- [ ] Unchecked task
+- [x] Checked task`
+      const { container } = render(<MarkdownEditor value={content} />)
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
+
+    it('renders tables', () => {
+      const content = `| Column 1 | Column 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |`
+      const { container } = render(<MarkdownEditor value={content} />)
+      expect(getWrapper(container)).toBeInTheDocument()
+    })
   })
 
   // ============================================================================

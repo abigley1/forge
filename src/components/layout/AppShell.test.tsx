@@ -3,7 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach } from 'vitest'
 
 import { useAppStore } from '@/store/useAppStore'
+import { ToastProvider } from '@/components/ui/Toast'
 import { AppShell } from './AppShell'
+
+function renderWithToast(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 // Reset store before each test
 beforeEach(() => {
@@ -15,7 +20,7 @@ beforeEach(() => {
 
 describe('AppShell', () => {
   it('renders with two-column layout', () => {
-    render(<AppShell>Content</AppShell>)
+    renderWithToast(<AppShell>Content</AppShell>)
 
     expect(
       screen.getByRole('complementary', { name: /sidebar/i })
@@ -24,7 +29,7 @@ describe('AppShell', () => {
   })
 
   it('renders children in main content area', () => {
-    render(
+    renderWithToast(
       <AppShell>
         <div data-testid="test-content">Test Content</div>
       </AppShell>
@@ -36,7 +41,7 @@ describe('AppShell', () => {
 
   it('renders skip link that receives focus on Tab', async () => {
     const user = userEvent.setup()
-    render(<AppShell>Content</AppShell>)
+    renderWithToast(<AppShell>Content</AppShell>)
 
     await user.tab()
 
@@ -45,7 +50,7 @@ describe('AppShell', () => {
   })
 
   it('skip link targets the main content area', () => {
-    render(<AppShell>Content</AppShell>)
+    renderWithToast(<AppShell>Content</AppShell>)
 
     const skipLink = screen.getByRole('link', { name: /skip to main content/i })
     expect(skipLink).toHaveAttribute('href', '#main-content')
@@ -55,14 +60,14 @@ describe('AppShell', () => {
   })
 
   it('main content area has tabIndex for focus management', () => {
-    render(<AppShell>Content</AppShell>)
+    renderWithToast(<AppShell>Content</AppShell>)
 
     const main = screen.getByRole('main')
     expect(main).toHaveAttribute('tabIndex', '-1')
   })
 
   it('renders custom sidebar when provided', () => {
-    render(
+    renderWithToast(
       <AppShell sidebar={<div data-testid="custom-sidebar">Custom</div>}>
         Content
       </AppShell>
@@ -72,7 +77,7 @@ describe('AppShell', () => {
   })
 
   it('uses semantic HTML landmarks', () => {
-    render(<AppShell>Content</AppShell>)
+    renderWithToast(<AppShell>Content</AppShell>)
 
     // aside element for sidebar
     expect(
@@ -89,7 +94,7 @@ describe('AppShell', () => {
   })
 
   it('applies h-dvh class for dynamic viewport height', () => {
-    const { container } = render(<AppShell>Content</AppShell>)
+    const { container } = renderWithToast(<AppShell>Content</AppShell>)
 
     const rootDiv = container.firstChild as HTMLElement
     expect(rootDiv).toHaveClass('h-dvh')
@@ -97,7 +102,7 @@ describe('AppShell', () => {
 
   describe('mobile responsive behavior', () => {
     it('renders mobile menu toggle button', () => {
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       // Mobile menu button should exist (visible at mobile breakpoint via CSS)
       const menuButton = screen.getByRole('button', {
@@ -107,7 +112,7 @@ describe('AppShell', () => {
     })
 
     it('menu toggle button has aria-expanded attribute', () => {
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       const menuButton = screen.getByRole('button', {
         name: /close sidebar|open sidebar/i,
@@ -117,7 +122,7 @@ describe('AppShell', () => {
 
     it('menu toggle toggles sidebar state', async () => {
       const user = userEvent.setup()
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       // Initially sidebar is open
       expect(useAppStore.getState().sidebarOpen).toBe(true)
@@ -138,7 +143,7 @@ describe('AppShell', () => {
     })
 
     it('sidebar has responsive positioning classes', () => {
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
 
@@ -151,7 +156,7 @@ describe('AppShell', () => {
     })
 
     it('shows backdrop when sidebar is open on mobile', () => {
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       // When sidebar is open, backdrop should be present
       // (visibility controlled by CSS md:hidden class)
@@ -163,7 +168,7 @@ describe('AppShell', () => {
 
     it('clicking backdrop closes sidebar', async () => {
       const user = userEvent.setup()
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       expect(useAppStore.getState().sidebarOpen).toBe(true)
 
@@ -181,14 +186,14 @@ describe('AppShell', () => {
       // Close sidebar before render
       useAppStore.setState({ sidebarOpen: false })
 
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
       expect(sidebar).toHaveClass('-translate-x-full')
     })
 
     it('sidebar is visible when open', () => {
-      render(<AppShell>Content</AppShell>)
+      renderWithToast(<AppShell>Content</AppShell>)
 
       const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
       expect(sidebar).toHaveClass('translate-x-0')

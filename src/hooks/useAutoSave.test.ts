@@ -388,4 +388,139 @@ describe('useAutoSave', () => {
       expect(result.current.isSaving).toBe(false)
     })
   })
+
+  describe('edge cases', () => {
+    it('does not save multiple times when save is already in progress', async () => {
+      let resolveSave: (value: boolean) => void
+      mockSaveAllDirtyNodes.mockImplementation(() => {
+        return new Promise<boolean>((resolve) => {
+          resolveSave = resolve
+        })
+      })
+
+      mockUseNodesStore.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          const state = {
+            hasDirtyNodes: () => true,
+          }
+          return selector(state)
+        }
+      )
+
+      const { result } = renderHook(() => useAutoSave())
+
+      // Start first save
+      let firstSavePromise: Promise<boolean>
+      act(() => {
+        firstSavePromise = result.current.saveNow()
+      })
+
+      expect(result.current.isSaving).toBe(true)
+      expect(mockSaveAllDirtyNodes).toHaveBeenCalledTimes(1)
+
+      // Complete first save
+      await act(async () => {
+        resolveSave!(true)
+        await firstSavePromise
+      })
+
+      expect(result.current.isSaving).toBe(false)
+    })
+  })
+
+  describe('error recovery', () => {
+    it('allows retry after save failure', async () => {
+      mockUseNodesStore.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          const state = {
+            hasDirtyNodes: () => true,
+          }
+          return selector(state)
+        }
+      )
+
+      // First save fails, second succeeds
+      mockSaveAllDirtyNodes
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true)
+
+      const onSaveError = vi.fn()
+      const onSaveSuccess = vi.fn()
+      const { result } = renderHook(() =>
+        useAutoSave({ onSaveError, onSaveSuccess })
+      )
+
+      // First attempt - fails
+      await act(async () => {
+        await result.current.saveNow()
+      })
+
+      expect(onSaveError).toHaveBeenCalledTimes(1)
+      expect(onSaveSuccess).not.toHaveBeenCalled()
+      expect(result.current.isSaving).toBe(false)
+
+      // Second attempt - succeeds
+      await act(async () => {
+        await result.current.saveNow()
+      })
+
+      expect(onSaveSuccess).toHaveBeenCalledTimes(1)
+    })
+
+    it('recovers from exception and allows retry', async () => {
+      mockUseNodesStore.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          const state = {
+            hasDirtyNodes: () => true,
+          }
+          return selector(state)
+        }
+      )
+
+      // First save throws exception, second succeeds
+      mockSaveAllDirtyNodes
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce(true)
+
+      const onSaveError = vi.fn()
+      const { result } = renderHook(() => useAutoSave({ onSaveError }))
+
+      // First attempt - throws
+      await act(async () => {
+        await result.current.saveNow()
+      })
+
+      expect(onSaveError).toHaveBeenCalledWith('Network error')
+      expect(result.current.isSaving).toBe(false)
+
+      // Second attempt - succeeds
+      await act(async () => {
+        await result.current.saveNow()
+      })
+
+      expect(mockSaveAllDirtyNodes).toHaveBeenCalledTimes(2)
+    })
+
+    it('resets isSaving state after exception', async () => {
+      mockSaveAllDirtyNodes.mockRejectedValueOnce(new Error('Save failed'))
+
+      mockUseNodesStore.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          const state = {
+            hasDirtyNodes: () => true,
+          }
+          return selector(state)
+        }
+      )
+
+      const { result } = renderHook(() => useAutoSave())
+
+      await act(async () => {
+        await result.current.saveNow()
+      })
+
+      // isSaving should be false after exception
+      expect(result.current.isSaving).toBe(false)
+    })
+  })
 })

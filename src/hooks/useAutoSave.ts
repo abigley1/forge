@@ -88,6 +88,7 @@ export function useAutoSave(
     }
 
     if (!hasAdapter || !hasProject) {
+      onSaveError?.('Cannot save: No project is currently open')
       return false
     }
 

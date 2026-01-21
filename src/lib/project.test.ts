@@ -780,17 +780,19 @@ describe('deleteNode', () => {
 
     const result = await deleteNode(fs, '/project', node)
 
-    expect(result).toBe(true)
+    expect(result.success).toBe(true)
+    expect(result.error).toBeNull()
     expect(await fs.exists('/project/tasks/to-delete.md')).toBe(false)
   })
 
-  it('should return true for already deleted node', async () => {
+  it('should return success for already deleted node', async () => {
     await fs.mkdir('/project')
     const node = createTestTaskNode({ id: 'nonexistent' })
 
     const result = await deleteNode(fs, '/project', node)
 
-    expect(result).toBe(true)
+    expect(result.success).toBe(true)
+    expect(result.error).toBeNull()
   })
 })
 

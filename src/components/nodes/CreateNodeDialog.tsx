@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 
-import { Dialog, Button } from '@/components/ui'
+import { Dialog, Button, useToast } from '@/components/ui'
 import { useUndoableAddNode, useHotkey, formatHotkey } from '@/hooks'
 import { useNodesStore } from '@/store/useNodesStore'
 import { generateNodeId } from '@/lib/project'
@@ -308,6 +308,7 @@ export function CreateNodeDialog({
   const addNode = useUndoableAddNode()
   const nodes = useNodesStore((state) => state.nodes)
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
+  const { error: showError } = useToast()
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -368,6 +369,15 @@ export function CreateNodeDialog({
 
         // Close dialog
         setOpen(false)
+      } catch (err) {
+        // Show error toast - don't close dialog so user can retry
+        const message =
+          err instanceof Error ? err.message : 'An unexpected error occurred'
+        showError({
+          title: 'Failed to create node',
+          description: message,
+        })
+        console.error('Node creation failed:', err)
       } finally {
         setIsSubmitting(false)
       }
@@ -382,6 +392,7 @@ export function CreateNodeDialog({
       setActiveNode,
       onNodeCreated,
       setOpen,
+      showError,
     ]
   )
 

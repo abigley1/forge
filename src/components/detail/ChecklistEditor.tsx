@@ -232,8 +232,8 @@ export function ChecklistEditor({
               <GripVertical className="h-4 w-4" />
             </span>
 
-            {/* Checkbox */}
-            <label className="flex items-center">
+            {/* Checkbox - label provides 44x44px touch target per WCAG 2.1 */}
+            <label className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center">
               <input
                 type="checkbox"
                 checked={item.completed}

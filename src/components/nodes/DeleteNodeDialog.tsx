@@ -74,7 +74,7 @@ export function DeleteNodeDialog({
   const addNode = useNodesStore((state) => state.addNode)
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
   const deleteNode = useUndoableDeleteNode()
-  const { undo: showUndoToast } = useToast()
+  const { undo: showUndoToast, error: showError } = useToast()
 
   // Find nodes that link to this node (would have broken links after deletion)
   const linkingNodes = useMemo(() => {
@@ -88,8 +88,17 @@ export function DeleteNodeDialog({
     // Store node data for undo
     const deletedNode = node
 
-    // Perform deletion
-    deleteNode(node.id)
+    // Perform deletion - check for success
+    const success = deleteNode(node.id)
+
+    if (!success) {
+      // Show error toast - don't close dialog so user knows it failed
+      showError({
+        title: 'Failed to delete node',
+        description: `Could not delete "${node.title}". The node may have already been removed.`,
+      })
+      return
+    }
 
     // Close the dialog
     onOpenChange(false)
@@ -116,6 +125,7 @@ export function DeleteNodeDialog({
     onOpenChange,
     setActiveNode,
     showUndoToast,
+    showError,
     addNode,
     onDeleted,
   ])

@@ -145,6 +145,7 @@ export function NodeList({
       nodes.map((node, index) => (
         <NodeListItem
           key={node.id}
+          id={node.id}
           ref={(el) => setItemRef(node.id, el)}
           node={node}
           isActive={node.id === activeNodeId}

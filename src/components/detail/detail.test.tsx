@@ -664,4 +664,108 @@ describe('FrontmatterEditor', () => {
 
     expect(screen.getByText('design')).toBeInTheDocument()
   })
+
+  describe('Decision fields', () => {
+    it('calls onChange when selected option changes', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      const nodeWithOptions = createTestDecisionNode({
+        options: [
+          { id: 'opt1', name: 'Option 1', values: {} },
+          { id: 'opt2', name: 'Option 2', values: {} },
+        ],
+      })
+      render(<FrontmatterEditor node={nodeWithOptions} onChange={onChange} />)
+
+      const select = screen.getByLabelText('Selected Option')
+      await user.selectOptions(select, 'opt1')
+
+      expect(onChange).toHaveBeenCalledWith({ selected: 'opt1' })
+    })
+
+    it('displays current selected option', () => {
+      const nodeWithSelection = createTestDecisionNode({
+        selected: 'opt2',
+        options: [
+          { id: 'opt1', name: 'Option 1', values: {} },
+          { id: 'opt2', name: 'Option 2', values: {} },
+        ],
+      })
+      render(<FrontmatterEditor node={nodeWithSelection} onChange={vi.fn()} />)
+
+      const select = screen.getByLabelText(
+        'Selected Option'
+      ) as HTMLSelectElement
+      expect(select.value).toBe('opt2')
+    })
+
+    it('allows clearing selected option', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      const nodeWithSelection = createTestDecisionNode({
+        selected: 'opt1',
+        options: [
+          { id: 'opt1', name: 'Option 1', values: {} },
+          { id: 'opt2', name: 'Option 2', values: {} },
+        ],
+      })
+      render(<FrontmatterEditor node={nodeWithSelection} onChange={onChange} />)
+
+      const select = screen.getByLabelText('Selected Option')
+      await user.selectOptions(select, '')
+
+      expect(onChange).toHaveBeenCalledWith({ selected: null })
+    })
+
+    it('renders all options in dropdown', () => {
+      const nodeWithOptions = createTestDecisionNode({
+        options: [
+          { id: 'opt1', name: 'Alpha Option', values: {} },
+          { id: 'opt2', name: 'Beta Option', values: {} },
+          { id: 'opt3', name: 'Gamma Option', values: {} },
+        ],
+      })
+      render(<FrontmatterEditor node={nodeWithOptions} onChange={vi.fn()} />)
+
+      expect(
+        screen.getByRole('option', { name: 'Alpha Option' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('option', { name: 'Beta Option' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('option', { name: 'Gamma Option' })
+      ).toBeInTheDocument()
+    })
+
+    it('renders status select for decision nodes', () => {
+      render(
+        <FrontmatterEditor node={createTestDecisionNode()} onChange={vi.fn()} />
+      )
+      expect(screen.getByLabelText('Status')).toBeInTheDocument()
+    })
+
+    it('calls onChange when decision status changes', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      render(
+        <FrontmatterEditor
+          node={createTestDecisionNode({ status: 'pending' })}
+          onChange={onChange}
+        />
+      )
+
+      // StatusSelect is a custom component using Base UI, need to click to open then select
+      const statusButton = screen.getByRole('combobox', { name: /status/i })
+      await user.click(statusButton)
+
+      // Wait for dropdown and click the option - Decision status values are 'pending' | 'selected'
+      const selectedOption = await screen.findByRole('option', {
+        name: /selected/i,
+      })
+      await user.click(selectedOption)
+
+      expect(onChange).toHaveBeenCalledWith({ status: 'selected' })
+    })
+  })
 })

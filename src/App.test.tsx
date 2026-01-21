@@ -1,9 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import App from './App'
+import { ToastProvider } from '@/components/ui/Toast'
+
+function renderWithToast(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>)
+}
 
 describe('App', () => {
   it('renders without crashing', () => {
-    render(<App />)
+    renderWithToast(<App />)
     // Forge heading appears in sidebar and mobile header
     const forgeHeadings = screen.getAllByRole('heading', {
       level: 1,
@@ -13,7 +18,7 @@ describe('App', () => {
   })
 
   it('renders the AppShell layout with sidebar and main content', () => {
-    render(<App />)
+    renderWithToast(<App />)
     expect(
       screen.getByRole('complementary', { name: /sidebar/i })
     ).toBeInTheDocument()
@@ -21,7 +26,7 @@ describe('App', () => {
   })
 
   it('displays welcome message', () => {
-    render(<App />)
+    renderWithToast(<App />)
     expect(screen.getByText(/welcome to forge/i)).toBeInTheDocument()
   })
 })

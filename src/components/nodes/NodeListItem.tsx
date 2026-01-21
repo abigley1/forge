@@ -29,6 +29,8 @@ interface NodeListItemProps {
   className?: string
   /** Tab index for keyboard navigation */
   tabIndex?: number
+  /** HTML id attribute - used for aria-activedescendant */
+  id?: string
 }
 
 // ============================================================================
@@ -62,7 +64,7 @@ function getNodeStatus(node: ForgeNode): NodeStatus | null {
  */
 export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
   function NodeListItem(
-    { node, isActive = false, onClick, className, tabIndex = 0 },
+    { node, isActive = false, onClick, className, tabIndex = 0, id },
     ref
   ) {
     const status = getNodeStatus(node)
@@ -70,6 +72,7 @@ export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
     return (
       <button
         ref={ref}
+        id={id}
         type="button"
         onClick={onClick}
         tabIndex={tabIndex}

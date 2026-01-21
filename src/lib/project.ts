@@ -423,11 +423,13 @@ export async function loadProject(
           nodeOrder: parsed.nodeOrder,
           nodePositions: parsed.nodePositions,
         }
-      } catch {
-        // Failed to parse metadata - use defaults
+      } catch (err) {
+        // Failed to parse metadata - include error details for debugging
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown error'
         parseErrors.push({
           path: metadataPath,
-          message: 'Failed to parse project.json, using defaults',
+          message: `Failed to parse project.json: ${errorMessage}. Using defaults.`,
         })
       }
     }
@@ -526,19 +528,25 @@ export async function deleteNode(
   adapter: FileSystemAdapter,
   projectPath: string,
   node: ForgeNode
-): Promise<boolean> {
+): Promise<{ success: boolean; error: string | null }> {
   try {
     const filePath = getNodeFilePath(projectPath, node)
 
     const exists = await adapter.exists(filePath)
     if (!exists) {
-      return true // Already deleted
+      return { success: true, error: null } // Already deleted
     }
 
     await adapter.delete(filePath)
-    return true
-  } catch {
-    return false
+    return { success: true, error: null }
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Unknown error deleting file'
+    console.error(`Failed to delete node "${node.title}" (${node.id}):`, err)
+    return {
+      success: false,
+      error: `Failed to delete "${node.title}": ${message}`,
+    }
   }
 }
 

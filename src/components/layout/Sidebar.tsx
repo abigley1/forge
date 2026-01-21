@@ -22,7 +22,7 @@ import {
   Filter,
   Tags,
 } from 'lucide-react'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useId } from 'react'
 
 import { cn } from '@/lib/utils'
 import { NodeType, createNodeDates } from '@/types/nodes'
@@ -120,6 +120,7 @@ function SidebarSection({
   className,
 }: SidebarSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded)
+  const contentId = useId()
 
   return (
     <div
@@ -135,6 +136,7 @@ function SidebarSection({
           'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:ring-gray-300'
         )}
         aria-expanded={expanded}
+        aria-controls={contentId}
       >
         {expanded ? (
           <ChevronDown
@@ -150,7 +152,11 @@ function SidebarSection({
         {icon && <span className="shrink-0 text-gray-500">{icon}</span>}
         <span className="truncate">{title}</span>
       </button>
-      {expanded && <div className="px-4 pb-3">{children}</div>}
+      {expanded && (
+        <div id={contentId} className="px-4 pb-3">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -277,7 +283,8 @@ function TagCloud({ onTagClick }: TagCloudProps) {
           type="button"
           onClick={() => onTagClick?.(tag)}
           className={cn(
-            'inline-flex items-center gap-1 rounded-full px-2 py-0.5',
+            'inline-flex items-center gap-1 rounded-full px-3 py-2',
+            'min-h-[44px]', // WCAG 2.1 touch target minimum
             'text-xs font-medium text-gray-700 dark:text-gray-300',
             'bg-gray-100 dark:bg-gray-800',
             'hover:bg-gray-200 dark:hover:bg-gray-700',
