@@ -1,6 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { beforeEach } from 'vitest'
+
+import { useAppStore } from '@/store/useAppStore'
 import { AppShell } from './AppShell'
+
+// Reset store before each test
+beforeEach(() => {
+  useAppStore.setState({
+    sidebarOpen: true,
+    activeView: 'outline',
+  })
+})
 
 describe('AppShell', () => {
   it('renders with two-column layout', () => {
@@ -82,5 +93,105 @@ describe('AppShell', () => {
 
     const rootDiv = container.firstChild as HTMLElement
     expect(rootDiv).toHaveClass('h-dvh')
+  })
+
+  describe('mobile responsive behavior', () => {
+    it('renders mobile menu toggle button', () => {
+      render(<AppShell>Content</AppShell>)
+
+      // Mobile menu button should exist (visible at mobile breakpoint via CSS)
+      const menuButton = screen.getByRole('button', {
+        name: /close sidebar|open sidebar/i,
+      })
+      expect(menuButton).toBeInTheDocument()
+    })
+
+    it('menu toggle button has aria-expanded attribute', () => {
+      render(<AppShell>Content</AppShell>)
+
+      const menuButton = screen.getByRole('button', {
+        name: /close sidebar|open sidebar/i,
+      })
+      expect(menuButton).toHaveAttribute('aria-expanded')
+    })
+
+    it('menu toggle toggles sidebar state', async () => {
+      const user = userEvent.setup()
+      render(<AppShell>Content</AppShell>)
+
+      // Initially sidebar is open
+      expect(useAppStore.getState().sidebarOpen).toBe(true)
+
+      const menuButton = screen.getByRole('button', {
+        name: /close sidebar/i,
+      })
+      await user.click(menuButton)
+
+      // Sidebar should now be closed
+      expect(useAppStore.getState().sidebarOpen).toBe(false)
+
+      // Button text should change
+      const openButton = screen.getByRole('button', {
+        name: /open sidebar/i,
+      })
+      expect(openButton).toBeInTheDocument()
+    })
+
+    it('sidebar has responsive positioning classes', () => {
+      render(<AppShell>Content</AppShell>)
+
+      const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
+
+      // Should have transform classes for mobile
+      expect(sidebar).toHaveClass('transform')
+      expect(sidebar).toHaveClass('transition-transform')
+
+      // Should have static positioning on desktop (md: prefix)
+      expect(sidebar).toHaveClass('md:static')
+    })
+
+    it('shows backdrop when sidebar is open on mobile', () => {
+      render(<AppShell>Content</AppShell>)
+
+      // When sidebar is open, backdrop should be present
+      // (visibility controlled by CSS md:hidden class)
+      const backdrop = document.querySelector(
+        '[aria-hidden="true"].fixed.inset-0'
+      )
+      expect(backdrop).toBeInTheDocument()
+    })
+
+    it('clicking backdrop closes sidebar', async () => {
+      const user = userEvent.setup()
+      render(<AppShell>Content</AppShell>)
+
+      expect(useAppStore.getState().sidebarOpen).toBe(true)
+
+      const backdrop = document.querySelector(
+        '[aria-hidden="true"].fixed.inset-0'
+      )
+      expect(backdrop).toBeInTheDocument()
+
+      await user.click(backdrop as Element)
+
+      expect(useAppStore.getState().sidebarOpen).toBe(false)
+    })
+
+    it('sidebar is translated off-screen when closed', () => {
+      // Close sidebar before render
+      useAppStore.setState({ sidebarOpen: false })
+
+      render(<AppShell>Content</AppShell>)
+
+      const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
+      expect(sidebar).toHaveClass('-translate-x-full')
+    })
+
+    it('sidebar is visible when open', () => {
+      render(<AppShell>Content</AppShell>)
+
+      const sidebar = screen.getByRole('complementary', { name: /sidebar/i })
+      expect(sidebar).toHaveClass('translate-x-0')
+    })
   })
 })
