@@ -56,3 +56,39 @@ export type { UseNodeOrderOptions, UseNodeOrderResult } from './useNodeOrder'
 // Node navigation hooks (URL-synced navigation)
 export { useNodeNavigation } from './useNodeNavigation'
 export type { UseNodeNavigationReturn } from './useNodeNavigation'
+
+// Wiki-link autocomplete hooks
+export { useWikiLinkAutocomplete } from './useWikiLinkAutocomplete'
+export type {
+  UseWikiLinkAutocompleteOptions,
+  UseWikiLinkAutocompleteReturn,
+} from './useWikiLinkAutocomplete'
+
+// Wiki-link navigation hooks
+export { useWikiLinkNavigation } from './useWikiLinkNavigation'
+export type {
+  WikiLinkNavigationState,
+  UseWikiLinkNavigationOptions,
+  UseWikiLinkNavigationReturn,
+} from './useWikiLinkNavigation'
+
+// Broken links detection hook
+export { useBrokenLinks } from './useBrokenLinks'
+export type {
+  BrokenLink,
+  UseBrokenLinksOptions,
+  UseBrokenLinksResult,
+} from './useBrokenLinks'
+
+// Link renaming hooks (title change reference updates)
+export {
+  useLinkRenaming,
+  updateWikiLinkReferences,
+  countWikiLinkReferences,
+} from './useLinkRenaming'
+export type {
+  ReferencingNodeInfo,
+  LinkRenamingState,
+  UseLinkRenamingOptions,
+  UseLinkRenamingResult,
+} from './useLinkRenaming'

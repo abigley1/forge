@@ -8,6 +8,14 @@ import { EditorView } from '@codemirror/view'
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import { getEditorTheme } from './theme'
+import {
+  createWikiLinkAutocomplete,
+  type NodeSuggestion,
+} from './wikiLinkAutocomplete'
+import {
+  createWikiLinkDecorations,
+  type WikiLinkDecorationOptions,
+} from './wikiLinkDecorations'
 
 export type MarkdownEditorProps = {
   /**
@@ -66,6 +74,48 @@ export type MarkdownEditorProps = {
    * ID of element that describes the editor
    */
   'aria-describedby'?: string
+  /**
+   * Enable wiki-link autocomplete with [[ trigger
+   * When true, nodes must be provided via the nodes prop
+   * @default false
+   */
+  enableWikiLinks?: boolean
+  /**
+   * Nodes available for wiki-link autocomplete suggestions
+   * Required when enableWikiLinks is true
+   */
+  nodes?: NodeSuggestion[]
+  /**
+   * Callback when a wiki-link is inserted
+   */
+  onLinkInserted?: (nodeId: string, nodeTitle: string) => void
+  /**
+   * Callback when navigating through autocomplete suggestions (for aria-live)
+   */
+  onAutocompleteNavigate?: (
+    suggestion: NodeSuggestion | null,
+    totalCount: number
+  ) => void
+  /**
+   * Callback when autocomplete result count changes (for aria-live)
+   */
+  onAutocompleteResultCountChange?: (count: number) => void
+  /**
+   * Maximum number of autocomplete suggestions to show
+   * @default 10
+   */
+  maxAutocompleteSuggestions?: number
+  /**
+   * Enable wiki-link decorations (underline, click navigation)
+   * When true, wikiLinkDecorationOptions should be provided
+   * @default false
+   */
+  enableWikiLinkDecorations?: boolean
+  /**
+   * Options for wiki-link decorations (link resolution, click handlers)
+   * Required when enableWikiLinkDecorations is true
+   */
+  wikiLinkDecorationOptions?: WikiLinkDecorationOptions
 }
 
 /**
@@ -106,9 +156,21 @@ export const MarkdownEditor = forwardRef<
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
     'aria-describedby': ariaDescribedBy,
+    enableWikiLinks = false,
+    nodes,
+    onLinkInserted,
+    onAutocompleteNavigate,
+    onAutocompleteResultCountChange,
+    maxAutocompleteSuggestions = 10,
+    enableWikiLinkDecorations = false,
+    wikiLinkDecorationOptions,
   },
   ref
 ) {
+  // Memoize the nodes array for stable reference
+  // This avoids recreating the getNodes function on every render
+  const memoizedNodes = useMemo(() => nodes ?? [], [nodes])
+
   // Memoize extensions to avoid recreating on every render
   const extensions = useMemo(() => {
     const exts = [
@@ -116,8 +178,37 @@ export const MarkdownEditor = forwardRef<
       EditorView.lineWrapping,
       getEditorTheme(darkMode),
     ]
+
+    // Add wiki-link autocomplete if enabled
+    if (enableWikiLinks) {
+      exts.push(
+        ...createWikiLinkAutocomplete({
+          getNodes: () => memoizedNodes,
+          onLinkInserted,
+          onNavigate: onAutocompleteNavigate,
+          onResultCountChange: onAutocompleteResultCountChange,
+          maxSuggestions: maxAutocompleteSuggestions,
+        })
+      )
+    }
+
+    // Add wiki-link decorations if enabled
+    if (enableWikiLinkDecorations && wikiLinkDecorationOptions) {
+      exts.push(...createWikiLinkDecorations(wikiLinkDecorationOptions))
+    }
+
     return exts
-  }, [darkMode])
+  }, [
+    darkMode,
+    enableWikiLinks,
+    memoizedNodes,
+    onLinkInserted,
+    onAutocompleteNavigate,
+    onAutocompleteResultCountChange,
+    maxAutocompleteSuggestions,
+    enableWikiLinkDecorations,
+    wikiLinkDecorationOptions,
+  ])
 
   // Handle content changes
   const handleChange = useCallback(
@@ -142,6 +233,7 @@ export const MarkdownEditor = forwardRef<
       syntaxHighlighting: true,
       bracketMatching: false,
       closeBrackets: false,
+      // Disable built-in autocompletion - we use our own wiki-link autocomplete
       autocompletion: false,
       rectangularSelection: true,
       crosshairCursor: false,
@@ -152,10 +244,11 @@ export const MarkdownEditor = forwardRef<
       searchKeymap: true,
       historyKeymap: true,
       foldKeymap: false,
-      completionKeymap: false,
+      // Enable completion keymap when wiki-links are enabled for Enter/Escape handling
+      completionKeymap: enableWikiLinks,
       lintKeymap: false,
     }),
-    [lineNumbers]
+    [lineNumbers, enableWikiLinks]
   )
 
   return (
