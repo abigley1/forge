@@ -4,7 +4,7 @@
  * Main navigation sidebar with:
  * - Project switcher (header)
  * - Quick create buttons for all node types
- * - Filters section (type, status)
+ * - Filters section (type, status, search)
  * - Tag cloud from nodes
  *
  * Collapses at mobile breakpoint (handled by AppShell).
@@ -35,7 +35,14 @@ import type {
 } from '@/types/nodes'
 import { useNodesStore } from '@/store'
 import { generateNodeId } from '@/lib/project'
-import { useUndoableAddNode } from '@/hooks'
+import { useUndoableAddNode, useFilters, useSorting } from '@/hooks'
+import {
+  TypeFilter,
+  StatusFilter,
+  NodeSearchInput,
+  FilterResultsCount,
+  SortDropdown,
+} from '@/components/filters'
 
 // ============================================================================
 // Types
@@ -223,15 +230,59 @@ function ProjectSwitcher() {
 // FilterSection Component
 // ============================================================================
 
+interface FilterSectionContentProps {
+  filters: ReturnType<typeof useFilters>
+  sorting: ReturnType<typeof useSorting>
+}
+
 /**
- * Placeholder filter section - will be fully implemented in Sprint 3
+ * Filter section with type, status, search filters, and sorting
  */
-function FilterSection() {
+function FilterSectionContent({ filters, sorting }: FilterSectionContentProps) {
+  const nodes = useNodesStore((state) => state.nodes)
+  const filteredNodes = filters.filterNodes(nodes)
+
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        Type, status, and search filters will appear here.
-      </p>
+    <div className="space-y-4">
+      {/* Search Input */}
+      <NodeSearchInput
+        value={filters.filters.search}
+        onChange={filters.setSearch}
+        placeholder="Search nodes..."
+      />
+
+      {/* Sort Dropdown */}
+      <div>
+        <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+          Sort
+        </span>
+        <SortDropdown
+          sortBy={sorting.sortBy}
+          direction={sorting.direction}
+          onSortByChange={sorting.setSortBy}
+          onDirectionChange={sorting.setDirection}
+        />
+      </div>
+
+      {/* Type Filter */}
+      <TypeFilter
+        selectedTypes={filters.filters.types}
+        onToggleType={filters.toggleType}
+      />
+
+      {/* Status Filter */}
+      <StatusFilter
+        selectedStatuses={filters.filters.statuses}
+        onToggleStatus={filters.toggleStatus}
+      />
+
+      {/* Results Count */}
+      <FilterResultsCount
+        resultCount={filteredNodes.length}
+        totalCount={nodes.size}
+        hasActiveFilters={filters.hasActiveFilters}
+        onClearFilters={filters.clearFilters}
+      />
     </div>
   )
 }
@@ -242,12 +293,15 @@ function FilterSection() {
 
 interface TagCloudProps {
   onTagClick?: (tag: string) => void
+  /** Currently selected tags (for highlighting) */
+  selectedTags?: string[]
 }
 
 /**
- * Displays tags from all nodes with counts
+ * Displays tags from all nodes with counts.
+ * Click adds tag to filter.
  */
-function TagCloud({ onTagClick }: TagCloudProps) {
+function TagCloud({ onTagClick, selectedTags = [] }: TagCloudProps) {
   const nodes = useNodesStore((state) => state.nodes)
 
   // Extract unique tags with counts
@@ -277,26 +331,45 @@ function TagCloud({ onTagClick }: TagCloudProps) {
 
   return (
     <div className="flex flex-wrap gap-1">
-      {tagCounts.map(([tag, count]) => (
-        <button
-          key={tag}
-          type="button"
-          onClick={() => onTagClick?.(tag)}
-          className={cn(
-            'inline-flex items-center gap-1 rounded-full px-3 py-2',
-            'min-h-[44px]', // WCAG 2.1 touch target minimum
-            'text-xs font-medium text-gray-700 dark:text-gray-300',
-            'bg-gray-100 dark:bg-gray-800',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
-            'transition-colors duration-150',
-            'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
-          )}
-          aria-label={`Filter by tag: ${tag}`}
-        >
-          <span className="max-w-[100px] truncate">{tag}</span>
-          <span className="text-gray-500 dark:text-gray-400">{count}</span>
-        </button>
-      ))}
+      {tagCounts.map(([tag, count]) => {
+        const isSelected = selectedTags.includes(tag)
+        return (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => onTagClick?.(tag)}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full px-3 py-2',
+              'min-h-[44px]', // WCAG 2.1 touch target minimum
+              'text-xs font-medium',
+              'transition-colors duration-150',
+              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+              isSelected
+                ? [
+                    'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
+                    'hover:bg-blue-200 dark:hover:bg-blue-800/50',
+                  ]
+                : [
+                    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+                    'hover:bg-gray-200 dark:hover:bg-gray-700',
+                  ]
+            )}
+            aria-label={`${isSelected ? 'Remove' : 'Add'} tag filter: ${tag}`}
+            aria-pressed={isSelected}
+          >
+            <span className="max-w-[100px] truncate">{tag}</span>
+            <span
+              className={cn(
+                isSelected
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              )}
+            >
+              {count}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -312,6 +385,8 @@ export function Sidebar({ className }: SidebarProps) {
   const nodes = useNodesStore((state) => state.nodes)
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
   const addNodeWithUndo = useUndoableAddNode()
+  const filters = useFilters()
+  const sorting = useSorting()
 
   /**
    * Creates a new node of the specified type with default values
@@ -389,10 +464,15 @@ export function Sidebar({ className }: SidebarProps) {
     [nodes, addNodeWithUndo, setActiveNode]
   )
 
-  const handleTagClick = useCallback((tag: string) => {
-    // TODO: Implement tag filtering in Sprint 3
-    console.log('Tag clicked:', tag)
-  }, [])
+  /**
+   * Toggle tag in filter when clicked in tag cloud
+   */
+  const handleTagClick = useCallback(
+    (tag: string) => {
+      filters.toggleTag(tag)
+    },
+    [filters]
+  )
 
   return (
     <nav
@@ -432,11 +512,15 @@ export function Sidebar({ className }: SidebarProps) {
 
         {/* Filters Section */}
         <SidebarSection
-          title="Filters"
+          title={
+            filters.hasActiveFilters
+              ? `Filters (${filters.activeFilterCount})`
+              : 'Filters'
+          }
           icon={<Filter className="h-4 w-4" />}
-          defaultExpanded={false}
+          defaultExpanded={filters.hasActiveFilters}
         >
-          <FilterSection />
+          <FilterSectionContent filters={filters} sorting={sorting} />
         </SidebarSection>
 
         {/* Tag Cloud Section */}
@@ -445,7 +529,10 @@ export function Sidebar({ className }: SidebarProps) {
           icon={<Tags className="h-4 w-4" />}
           defaultExpanded={true}
         >
-          <TagCloud onTagClick={handleTagClick} />
+          <TagCloud
+            onTagClick={handleTagClick}
+            selectedTags={filters.filters.tags}
+          />
         </SidebarSection>
       </div>
 

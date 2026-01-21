@@ -5,12 +5,18 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach } from 'vitest'
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
 
 import { useNodesStore } from '@/store/useNodesStore'
 import { useUndoStore } from '@/store/useUndoStore'
 import { NodeType, createNodeDates } from '@/types/nodes'
 import type { TaskNode, NoteNode } from '@/types/nodes'
 import { Sidebar } from './Sidebar'
+
+// Wrapper with NuqsTestingAdapter for URL state
+const renderWithNuqs = (ui: React.ReactElement) => {
+  return render(<NuqsTestingAdapter>{ui}</NuqsTestingAdapter>)
+}
 
 // Reset stores before each test
 beforeEach(() => {
@@ -29,7 +35,7 @@ beforeEach(() => {
 describe('Sidebar', () => {
   describe('rendering', () => {
     it('renders with main navigation landmark', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(
         screen.getByRole('navigation', { name: /main navigation/i })
@@ -37,14 +43,14 @@ describe('Sidebar', () => {
     })
 
     it('renders project switcher section', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(screen.getByText('Forge')).toBeInTheDocument()
       expect(screen.getByText('No project loaded')).toBeInTheDocument()
     })
 
     it('renders quick create section with all node type buttons', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       // Section header
       expect(screen.getByText('Quick Create')).toBeInTheDocument()
@@ -65,19 +71,19 @@ describe('Sidebar', () => {
     })
 
     it('renders filters section', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(screen.getByText('Filters')).toBeInTheDocument()
     })
 
     it('renders tags section', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(screen.getByText('Tags')).toBeInTheDocument()
     })
 
     it('renders version footer', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(screen.getByText(/v0\.0\.1/)).toBeInTheDocument()
     })
@@ -85,7 +91,7 @@ describe('Sidebar', () => {
 
   describe('collapsible sections', () => {
     it('quick create section is expanded by default', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const quickCreateButton = screen.getByRole('button', {
         name: /quick create/i,
@@ -99,7 +105,7 @@ describe('Sidebar', () => {
     })
 
     it('filters section is collapsed by default', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const filtersButton = screen.getByRole('button', { name: /filters/i })
       expect(filtersButton).toHaveAttribute('aria-expanded', 'false')
@@ -107,7 +113,7 @@ describe('Sidebar', () => {
 
     it('can toggle section expansion', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const quickCreateButton = screen.getByRole('button', {
         name: /quick create/i,
@@ -125,7 +131,7 @@ describe('Sidebar', () => {
   describe('quick create buttons', () => {
     it('creates a new Decision node when clicking Decision button', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const decisionButton = screen.getByRole('button', {
         name: /create new decision/i,
@@ -143,7 +149,7 @@ describe('Sidebar', () => {
 
     it('creates a new Component node when clicking Component button', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const componentButton = screen.getByRole('button', {
         name: /create new component/i,
@@ -160,7 +166,7 @@ describe('Sidebar', () => {
 
     it('creates a new Task node when clicking Task button', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const taskButton = screen.getByRole('button', {
         name: /create new task/i,
@@ -177,7 +183,7 @@ describe('Sidebar', () => {
 
     it('creates a new Note node when clicking Note button', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const noteButton = screen.getByRole('button', {
         name: /create new note/i,
@@ -194,7 +200,7 @@ describe('Sidebar', () => {
 
     it('sets the newly created node as active', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const decisionButton = screen.getByRole('button', {
         name: /create new decision/i,
@@ -210,7 +216,7 @@ describe('Sidebar', () => {
 
     it('records action for undo', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const decisionButton = screen.getByRole('button', {
         name: /create new decision/i,
@@ -224,7 +230,7 @@ describe('Sidebar', () => {
 
     it('generates unique IDs for multiple nodes of the same type', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const decisionButton = screen.getByRole('button', {
         name: /create new decision/i,
@@ -245,7 +251,7 @@ describe('Sidebar', () => {
 
   describe('tag cloud', () => {
     it('shows empty state when no tags exist', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(screen.getByText(/no tags yet/i)).toBeInTheDocument()
     })
@@ -293,23 +299,23 @@ describe('Sidebar', () => {
         dirtyNodeIds: new Set(),
       })
 
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
-      // frontend appears twice
+      // frontend appears twice (now with "tag filter" aria-labels)
       expect(
-        screen.getByRole('button', { name: /filter by tag: frontend/i })
+        screen.getByRole('button', { name: /tag filter.*frontend/i })
       ).toBeInTheDocument()
       const frontendButton = screen.getByRole('button', {
-        name: /filter by tag: frontend/i,
+        name: /tag filter.*frontend/i,
       })
       expect(within(frontendButton).getByText('2')).toBeInTheDocument()
 
       // urgent appears once
       expect(
-        screen.getByRole('button', { name: /filter by tag: urgent/i })
+        screen.getByRole('button', { name: /tag filter.*urgent/i })
       ).toBeInTheDocument()
       const urgentButton = screen.getByRole('button', {
-        name: /filter by tag: urgent/i,
+        name: /tag filter.*urgent/i,
       })
       expect(within(urgentButton).getByText('1')).toBeInTheDocument()
     })
@@ -338,11 +344,11 @@ describe('Sidebar', () => {
         dirtyNodeIds: new Set(),
       })
 
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
-      // Should only show 10 tags
+      // Should only show 10 tags (now with "tag filter" aria-labels)
       const tagButtons = screen.getAllByRole('button', {
-        name: /filter by tag:/i,
+        name: /tag filter.*tag/i,
       })
       expect(tagButtons.length).toBe(10)
     })
@@ -350,7 +356,7 @@ describe('Sidebar', () => {
 
   describe('accessibility', () => {
     it('quick create buttons have proper aria-labels', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       expect(
         screen.getByRole('button', { name: /create new decision/i })
@@ -367,7 +373,7 @@ describe('Sidebar', () => {
     })
 
     it('section buttons have aria-expanded attributes', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       const quickCreate = screen.getByRole('button', { name: /quick create/i })
       const filters = screen.getByRole('button', { name: /filters/i })
@@ -379,7 +385,7 @@ describe('Sidebar', () => {
     })
 
     it('icons are hidden from screen readers', () => {
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       // All SVG icons should have aria-hidden
       const svgs = document.querySelectorAll('svg')
@@ -414,10 +420,11 @@ describe('Sidebar', () => {
         dirtyNodeIds: new Set(),
       })
 
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
+      // TagCloud now has "Add tag filter" or "Remove tag filter" aria-labels
       expect(
-        screen.getByRole('button', { name: /filter by tag: test-tag/i })
+        screen.getByRole('button', { name: /tag filter.*test-tag/i })
       ).toBeInTheDocument()
     })
   })
@@ -425,7 +432,7 @@ describe('Sidebar', () => {
   describe('keyboard navigation', () => {
     it('quick create buttons are keyboard accessible', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
       // Focus the Decision button directly and press Enter
       const decisionButton = screen.getByRole('button', {
@@ -443,19 +450,22 @@ describe('Sidebar', () => {
 
     it('section headers can be toggled with keyboard', async () => {
       const user = userEvent.setup()
-      render(<Sidebar />)
+      renderWithNuqs(<Sidebar />)
 
-      const filtersButton = screen.getByRole('button', { name: /filters/i })
-      filtersButton.focus()
-      expect(filtersButton).toHaveAttribute('aria-expanded', 'false')
+      // Quick Create section is expanded by default
+      const quickCreateButton = screen.getByRole('button', {
+        name: /quick create/i,
+      })
+      quickCreateButton.focus()
+      expect(quickCreateButton).toHaveAttribute('aria-expanded', 'true')
 
-      // Press Enter to expand
+      // Press Enter to collapse
       await user.keyboard('{Enter}')
-      expect(filtersButton).toHaveAttribute('aria-expanded', 'true')
+      expect(quickCreateButton).toHaveAttribute('aria-expanded', 'false')
 
-      // Press Space to collapse
+      // Press Space to expand
       await user.keyboard(' ')
-      expect(filtersButton).toHaveAttribute('aria-expanded', 'false')
+      expect(quickCreateButton).toHaveAttribute('aria-expanded', 'true')
     })
   })
 })
