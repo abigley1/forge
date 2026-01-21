@@ -1,57 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import { cn } from '@/lib/utils'
-import type { AppConfig } from '@/types'
-
-const config: AppConfig = { name: 'Forge', version: '0.0.1' }
+import { AppShell } from '@/components/layout'
+import { Button, Dialog } from '@/components/ui'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-8">
-      <div className="flex gap-8">
-        <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
-          <img
-            src={viteLogo}
-            className="h-24 p-6 transition-all duration-200 hover:drop-shadow-lg"
-            alt="Vite logo"
-          />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
-          <img
-            src={reactLogo}
-            className="h-24 p-6 transition-all duration-200 [animation-duration:20s] hover:drop-shadow-lg motion-safe:animate-spin"
-            alt="React logo"
-          />
-        </a>
-      </div>
-      <h1 className="mt-8 text-4xl font-bold">{config.name}</h1>
-      <div className="mt-8 rounded-lg bg-gray-100 p-8 dark:bg-gray-800">
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          className={cn(
-            'rounded-lg border border-transparent px-5 py-2.5',
-            'bg-gray-900 text-white dark:bg-white dark:text-gray-900',
-            'transition-colors duration-200',
-            'hover:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
-          )}
-        >
-          count is {count}
-        </button>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">
-          Edit{' '}
-          <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">
-            src/App.tsx
-          </code>{' '}
-          and save to test HMR
+    <AppShell>
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          Welcome to Forge
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Select a project or create a new one to get started.
         </p>
+
+        {/* Example Dialog usage - demonstrates Base UI integration */}
+        <Dialog.Root>
+          <Dialog.Trigger>Create New Project</Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Backdrop />
+            <Dialog.Popup>
+              <Dialog.Title>Create New Project</Dialog.Title>
+              <Dialog.Description>
+                Enter a name for your new project. You can change this later.
+              </Dialog.Description>
+              <div className="mt-4">
+                <label
+                  htmlFor="project-name"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Project Name
+                </label>
+                <input
+                  id="project-name"
+                  type="text"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
+                  placeholder="My Hardware Project"
+                  autoComplete="off"
+                />
+              </div>
+              <Dialog.Footer>
+                <Dialog.Close>Cancel</Dialog.Close>
+                <Button>Create</Button>
+              </Dialog.Footer>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
-      <p className="mt-8 text-gray-500">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    </AppShell>
   )
 }
 
