@@ -4,10 +4,12 @@ import App from './App'
 describe('App', () => {
   it('renders without crashing', () => {
     render(<App />)
-    // Sidebar contains the h1 "Forge" heading
-    expect(
-      screen.getByRole('heading', { level: 1, name: /forge/i })
-    ).toBeInTheDocument()
+    // Forge heading appears in sidebar and mobile header
+    const forgeHeadings = screen.getAllByRole('heading', {
+      level: 1,
+      name: /forge/i,
+    })
+    expect(forgeHeadings.length).toBeGreaterThan(0)
   })
 
   it('renders the AppShell layout with sidebar and main content', () => {
