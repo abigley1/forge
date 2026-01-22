@@ -131,3 +131,21 @@ export type {
   UseCriticalPathOptions,
   UseCriticalPathResult,
 } from './useCriticalPath'
+
+// Full-text search hooks
+export {
+  useFullTextSearch,
+  useFilteredSearchResults,
+} from './useFullTextSearch'
+export type {
+  UseFullTextSearchOptions,
+  UseFullTextSearchResult,
+} from './useFullTextSearch'
+
+// Command system hooks
+export { useCommands, useCommandHotkeys } from './useCommands'
+export type {
+  CommandCallbacks,
+  UseCommandsOptions,
+  UseCommandsReturn,
+} from './useCommands'

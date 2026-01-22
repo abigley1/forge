@@ -69,6 +69,16 @@ export type {
 } from './useTemplatesStore'
 export { selectCustomTemplates, selectTemplateCount } from './useTemplatesStore'
 
+// Command registry store
+export { useCommandRegistry } from './useCommandRegistry'
+export type {
+  CommandRegistryState,
+  CommandRegistryActions,
+  CommandRegistrySelectors,
+  CommandRegistryStore,
+} from './useCommandRegistry'
+export { selectCommands, selectCommandCount } from './useCommandRegistry'
+
 // Store type utilities
 export type { ExtractState, Selector, StateCreator, AsyncState } from './types'
 export { initialAsyncState } from './types'
