@@ -11,9 +11,10 @@ import type { GraphEdgeData } from '@/lib/graph'
  *
  * Visual characteristics:
  * - Solid line (not dashed)
- * - Blue color (#3b82f6 / blue-500)
+ * - Blue color (#3b82f6 / blue-500) - normal
+ * - Amber color (#f59e0b / amber-500) - on critical path
  * - Arrow marker at target end
- * - 2px stroke width for visual prominence
+ * - 2px stroke width for visual prominence (3px on critical path)
  *
  * Dependency edges represent "blocks" relationships where
  * the source node must be completed before the target.
@@ -41,8 +42,19 @@ export function DependencyEdge({
     borderRadius: 8,
   })
 
-  // Blue color for dependencies (solid, prominent)
-  const strokeColor = selected ? '#1d4ed8' : '#3b82f6' // blue-700 when selected, blue-500 otherwise
+  const isOnCriticalPath = data?.isOnCriticalPath ?? false
+
+  // Amber for critical path, blue for normal dependencies
+  let strokeColor: string
+  let strokeWidth: number
+
+  if (isOnCriticalPath) {
+    strokeColor = selected ? '#d97706' : '#f59e0b' // amber-600 when selected, amber-500 otherwise
+    strokeWidth = 3
+  } else {
+    strokeColor = selected ? '#1d4ed8' : '#3b82f6' // blue-700 when selected, blue-500 otherwise
+    strokeWidth = 2
+  }
 
   return (
     <>
@@ -51,7 +63,7 @@ export function DependencyEdge({
         style={{
           ...style,
           stroke: strokeColor,
-          strokeWidth: 2,
+          strokeWidth,
         }}
         className="react-flow__edge-path"
         d={edgePath}
@@ -69,7 +81,8 @@ export function DependencyEdge({
         >
           {/* Hidden label for screen readers */}
           <span className="sr-only">
-            Dependency edge from {data?.linkType || 'dependency'}
+            {isOnCriticalPath ? 'Critical path d' : 'D'}ependency edge from{' '}
+            {data?.linkType || 'dependency'}
           </span>
         </div>
       </EdgeLabelRenderer>

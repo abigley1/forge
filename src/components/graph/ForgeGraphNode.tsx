@@ -12,6 +12,7 @@ import {
   Package,
   CheckSquare,
   FileText,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -76,6 +77,7 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
   const colors = NODE_TYPE_COLORS[data.nodeType]
   const Icon = NODE_TYPE_ICONS[data.nodeType]
   const statusColor = data.status ? STATUS_COLORS[data.status] : undefined
+  const isOnCriticalPath = data.isOnCriticalPath ?? false
 
   return (
     <>
@@ -83,33 +85,57 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
       <Handle
         type="target"
         position={Position.Left}
-        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
+        className={cn(
+          '!size-2',
+          isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
+        )}
       />
 
       <div
         className={cn(
           // Ensure 44x44px minimum touch target for accessibility (WCAG 2.1)
           'min-h-[44px] max-w-[200px] min-w-[140px] rounded-lg border-2 p-3 shadow-sm transition-shadow',
-          colors.bg,
-          colors.border,
+          // Use amber styling when on critical path, otherwise use type colors
+          isOnCriticalPath
+            ? 'border-amber-400 bg-amber-50 dark:border-amber-600 dark:bg-amber-950'
+            : cn(colors.bg, colors.border),
           selected &&
             'shadow-md ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900'
         )}
       >
+        {/* Critical path indicator */}
+        {isOnCriticalPath && (
+          <div className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm">
+            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+          </div>
+        )}
+
         {/* Header with icon and type indicator */}
         <div className="mb-1 flex items-center gap-2">
           <Icon
-            className={cn('h-4 w-4 flex-shrink-0', colors.text)}
+            className={cn(
+              'h-4 w-4 flex-shrink-0',
+              isOnCriticalPath
+                ? 'text-amber-600 dark:text-amber-400'
+                : colors.text
+            )}
             aria-hidden="true"
           />
           <span
             className={cn(
               'text-xs font-medium tracking-wide uppercase',
-              colors.text
+              isOnCriticalPath
+                ? 'text-amber-600 dark:text-amber-400'
+                : colors.text
             )}
           >
             {data.nodeType}
           </span>
+          {isOnCriticalPath && data.criticalPathPosition !== undefined && (
+            <span className="ml-auto rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              #{data.criticalPathPosition + 1}
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -136,7 +162,10 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
+        className={cn(
+          '!size-2',
+          isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
+        )}
       />
     </>
   )

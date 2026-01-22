@@ -30,6 +30,7 @@ import {
   useGraphPreferences,
   useReducedMotion,
   useGraphKeyboardNavigation,
+  useCriticalPath,
 } from '@/hooks'
 import {
   nodesToGraphData,
@@ -72,6 +73,8 @@ export interface GraphViewProps {
   onClusterToggle?: (tag: string, expanded: boolean) => void
   /** Enable keyboard navigation (default: true) */
   enableKeyboardNavigation?: boolean
+  /** Show critical path highlighting (default: true) */
+  showCriticalPath?: boolean
 }
 
 interface ContextMenuState {
@@ -122,6 +125,7 @@ function GraphViewInner({
   enableClustering = false,
   onClusterToggle,
   enableKeyboardNavigation = true,
+  showCriticalPath = true,
 }: GraphViewProps) {
   // Get nodes and link index from store
   const nodes = useNodesStore((state) => state.nodes)
@@ -146,6 +150,10 @@ function GraphViewInner({
 
   // Reduced motion preference
   const reducedMotion = useReducedMotion()
+
+  // Critical path calculation
+  const { criticalPath, checkIsOnCriticalPath, getNodePosition } =
+    useCriticalPath()
 
   // Screen reader announcements
   const {
@@ -248,10 +256,32 @@ function GraphViewInner({
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState(allNodes)
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState(graphData.edges)
 
-  // Sync graph data changes to React Flow
+  // Track previous node/edge IDs to avoid infinite update loops
+  // (comparing full arrays would trigger on every render due to new references)
+  const prevNodeIdsRef = useRef<string>('')
+  const prevEdgeIdsRef = useRef<string>('')
+
+  // Sync graph data changes to React Flow (only when content actually changes)
   useEffect(() => {
-    setRfNodes(allNodes)
-    setRfEdges(graphData.edges)
+    // Create ID strings for comparison (cheaper than deep equality)
+    const nodeIds = allNodes
+      .map((n) => n.id)
+      .sort()
+      .join(',')
+    const edgeIds = graphData.edges
+      .map((e) => e.id)
+      .sort()
+      .join(',')
+
+    // Only update if IDs changed (avoids infinite loop from array reference changes)
+    if (nodeIds !== prevNodeIdsRef.current) {
+      prevNodeIdsRef.current = nodeIds
+      setRfNodes(allNodes)
+    }
+    if (edgeIds !== prevEdgeIdsRef.current) {
+      prevEdgeIdsRef.current = edgeIds
+      setRfEdges(graphData.edges)
+    }
   }, [allNodes, graphData.edges, setRfNodes, setRfEdges])
 
   // Keyboard navigation
@@ -553,23 +583,62 @@ function GraphViewInner({
   // Get container accessibility props
   const containerProps = getContainerProps()
 
-  // Compute focused node styling
-  const nodesWithFocus = useMemo(() => {
-    if (!focusedNodeId) return rfNodes
-
+  // Compute nodes with focus and critical path styling
+  const processedNodes = useMemo(() => {
     return rfNodes.map((node) => {
-      if (node.id === focusedNodeId) {
+      // Only process forgeNode types (skip clusters)
+      if (node.type !== 'forgeNode') return node
+
+      const isOnCriticalPath =
+        showCriticalPath &&
+        criticalPath.hasPath &&
+        checkIsOnCriticalPath(node.id)
+      const criticalPathPosition = isOnCriticalPath
+        ? getNodePosition(node.id)
+        : -1
+      const isFocused = node.id === focusedNodeId
+
+      // Skip if no modifications needed
+      if (!isFocused && !isOnCriticalPath) return node
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          ...(isFocused && { isFocused: true }),
+          ...(isOnCriticalPath && { isOnCriticalPath: true }),
+          ...(criticalPathPosition >= 0 && { criticalPathPosition }),
+        },
+      }
+    })
+  }, [
+    rfNodes,
+    focusedNodeId,
+    showCriticalPath,
+    criticalPath.hasPath,
+    checkIsOnCriticalPath,
+    getNodePosition,
+  ])
+
+  // Compute edges with critical path styling
+  const processedEdges = useMemo(() => {
+    if (!showCriticalPath || !criticalPath.hasPath) return rfEdges
+
+    return rfEdges.map((edge) => {
+      // Check if edge is on critical path using the edgeKeys set
+      const edgeKey = `${edge.source}->${edge.target}`
+      if (criticalPath.edgeKeys.has(edgeKey)) {
         return {
-          ...node,
+          ...edge,
           data: {
-            ...node.data,
-            isFocused: true,
+            ...edge.data,
+            isOnCriticalPath: true,
           },
         }
       }
-      return node
+      return edge
     })
-  }, [rfNodes, focusedNodeId])
+  }, [rfEdges, showCriticalPath, criticalPath.hasPath, criticalPath.edgeKeys])
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -584,8 +653,8 @@ function GraphViewInner({
       <GraphAnnouncer message={announcement} />
 
       <ReactFlow
-        nodes={nodesWithFocus}
-        edges={rfEdges}
+        nodes={processedNodes}
+        edges={processedEdges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onNodeClick={handleNodeClick}
