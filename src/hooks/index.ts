@@ -109,3 +109,25 @@ export type {
   UseGraphKeyboardNavigationProps,
   UseGraphKeyboardNavigationReturn,
 } from './useGraphKeyboardNavigation'
+
+// Blocked status hooks (dependency blocking and cascade)
+export {
+  useBlockedStatus,
+  useUnblockPreview,
+  useNodeBlockedStatus,
+} from './useBlockedStatus'
+export type {
+  UseBlockedStatusOptions,
+  UseBlockedStatusResult,
+} from './useBlockedStatus'
+
+// Critical path hooks
+export {
+  useCriticalPath,
+  useIsOnCriticalPath,
+  useNodeCriticalPathInfo,
+} from './useCriticalPath'
+export type {
+  UseCriticalPathOptions,
+  UseCriticalPathResult,
+} from './useCriticalPath'

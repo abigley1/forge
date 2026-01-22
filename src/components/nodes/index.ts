@@ -40,5 +40,17 @@ export type { CreateNodeDialogProps } from './CreateNodeDialog'
 export { DeleteNodeDialog } from './DeleteNodeDialog'
 export type { DeleteNodeDialogProps } from './DeleteNodeDialog'
 
+// Blocked status indicator
+export { BlockedIndicator } from './BlockedIndicator'
+export type { BlockedIndicatorProps } from './BlockedIndicator'
+
+// Unblock preview (shows what will be unblocked)
+export { UnblockPreview } from './UnblockPreview'
+export type { UnblockPreviewProps, UnblockableNode } from './UnblockPreview'
+
+// Critical path badge
+export { CriticalPathBadge } from './CriticalPathBadge'
+export type { CriticalPathBadgeProps } from './CriticalPathBadge'
+
 // Re-export hooks from hooks module for convenience
 export { useCreateNodeDialog, useDeleteNodeDialog } from '@/hooks'

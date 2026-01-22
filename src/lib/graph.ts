@@ -33,6 +33,10 @@ export interface GraphNodeData {
   status?: string
   tags: string[]
   forgeNode: ForgeNode
+  /** Whether this node is on the critical path */
+  isOnCriticalPath?: boolean
+  /** Position on the critical path (0-indexed, -1 if not on path) */
+  criticalPathPosition?: number
 }
 
 /**
@@ -40,6 +44,8 @@ export interface GraphNodeData {
  */
 export interface GraphEdgeData {
   linkType: 'reference' | 'dependency'
+  /** Whether this edge is on the critical path */
+  isOnCriticalPath?: boolean
 }
 
 /**
