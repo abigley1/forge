@@ -46,6 +46,8 @@ function createTestDecisionNode(): DecisionNode {
       { id: 'crit-1', name: 'Torque', weight: 8, unit: 'Nm' },
       { id: 'crit-2', name: 'Cost', weight: 5, unit: '$' },
     ],
+    rationale: null,
+    selectedDate: null,
   }
 }
 

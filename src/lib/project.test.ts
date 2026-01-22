@@ -69,6 +69,8 @@ function createTestDecisionNode(
     selected: null,
     options: [],
     criteria: [],
+    rationale: null,
+    selectedDate: null,
     ...overrides,
   }
 }

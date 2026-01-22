@@ -54,6 +54,8 @@ function createDecisionNode(id: string, title: string): DecisionNode {
     selected: null,
     options: [],
     criteria: [],
+    rationale: null,
+    selectedDate: null,
   }
 }
 

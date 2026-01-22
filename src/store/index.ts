@@ -59,6 +59,16 @@ export {
   selectRedoCount,
 } from './useUndoStore'
 
+// Templates store
+export { useTemplatesStore } from './useTemplatesStore'
+export type {
+  TemplatesState,
+  TemplatesActions,
+  TemplatesSelectors,
+  TemplatesStore,
+} from './useTemplatesStore'
+export { selectCustomTemplates, selectTemplateCount } from './useTemplatesStore'
+
 // Store type utilities
 export type { ExtractState, Selector, StateCreator, AsyncState } from './types'
 export { initialAsyncState } from './types'

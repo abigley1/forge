@@ -36,6 +36,8 @@ function createTestDecisionNode(id: string): DecisionNode {
     selected: null,
     options: [],
     criteria: [],
+    rationale: null,
+    selectedDate: null,
   }
 }
 

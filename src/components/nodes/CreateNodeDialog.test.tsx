@@ -241,7 +241,8 @@ describe('CreateNodeDialog', () => {
       renderWithToast(<CreateNodeDialog open onOpenChange={() => {}} />)
 
       const select = screen.getByLabelText('Template')
-      expect(select).toHaveValue('blank')
+      // Default type is Note, so blank template is 'note-blank'
+      expect(select).toHaveValue('note-blank')
     })
 
     it('shows different templates for each type', async () => {
@@ -270,7 +271,7 @@ describe('CreateNodeDialog', () => {
       )
 
       const select = screen.getByLabelText('Template')
-      await user.selectOptions(select, 'with-checklist')
+      await user.selectOptions(select, 'task-with-checklist')
 
       expect(screen.getByText('Task with subtasks')).toBeInTheDocument()
     })
@@ -288,14 +289,15 @@ describe('CreateNodeDialog', () => {
       )
 
       const select = screen.getByLabelText('Template')
-      await user.selectOptions(select, 'with-checklist')
-      expect(select).toHaveValue('with-checklist')
+      await user.selectOptions(select, 'task-with-checklist')
+      expect(select).toHaveValue('task-with-checklist')
 
       // Change type
       const noteButton = screen.getByRole('radio', { name: /Note/i })
       await user.click(noteButton)
 
-      expect(select).toHaveValue('blank')
+      // Now it should be the Note blank template
+      expect(select).toHaveValue('note-blank')
     })
   })
 
@@ -368,7 +370,7 @@ describe('CreateNodeDialog', () => {
       )
 
       const select = screen.getByLabelText('Template')
-      await user.selectOptions(select, 'with-checklist')
+      await user.selectOptions(select, 'task-with-checklist')
 
       const input = screen.getByLabelText('Title')
       await user.type(input, 'My Task')

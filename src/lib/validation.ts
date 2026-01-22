@@ -136,6 +136,19 @@ const taskStatusSchema = z.enum([
 const taskPrioritySchema = z.enum(['high', 'medium', 'low'])
 
 /**
+ * Schema for nullable date (parses from string/Date or null)
+ */
+const nullableDateSchema = z.preprocess((val) => {
+  if (val === undefined || val === null) return null
+  if (val instanceof Date) return val
+  if (typeof val === 'string' || typeof val === 'number') {
+    const parsed = new Date(val)
+    if (!isNaN(parsed.getTime())) return parsed
+  }
+  return null
+}, z.date().nullable())
+
+/**
  * Decision node frontmatter schema
  */
 export const decisionNodeSchema = baseNodeSchema.extend({
@@ -144,6 +157,8 @@ export const decisionNodeSchema = baseNodeSchema.extend({
   selected: z.string().nullable().default(null),
   options: z.array(decisionOptionSchema).default([]),
   criteria: z.array(decisionCriterionSchema).default([]),
+  rationale: z.string().nullable().default(null),
+  selectedDate: nullableDateSchema.default(null),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
 })
 
@@ -216,6 +231,11 @@ export const decisionFrontmatterSchema = baseFrontmatterSchema.extend({
   selected: z.string().nullable().optional(),
   options: z.array(decisionOptionSchema).optional(),
   criteria: z.array(decisionCriterionSchema).optional(),
+  rationale: z.string().nullable().optional(),
+  selected_date: z
+    .union([z.string(), z.date(), z.number()])
+    .nullable()
+    .optional(),
 })
 
 /**
@@ -388,11 +408,15 @@ export function validateNode(
     }
   }
 
-  // Transform snake_case fields to camelCase for task nodes
+  // Transform snake_case fields to camelCase
   const transformedData = { ...data }
   if (data.type === 'task' && 'depends_on' in data) {
     transformedData.dependsOn = data.depends_on
     delete transformedData.depends_on
+  }
+  if (data.type === 'decision' && 'selected_date' in data) {
+    transformedData.selectedDate = data.selected_date
+    delete transformedData.selected_date
   }
 
   // Add dates if not present

@@ -54,6 +54,8 @@ function createMockNode(
       selected: null,
       options: [],
       criteria: [],
+      rationale: null,
+      selectedDate: null,
     }
   }
 

@@ -43,6 +43,8 @@ function createTestNode(
         selected: null,
         options: [],
         criteria: [],
+        rationale: null,
+        selectedDate: null,
       }
     case 'component':
       return {

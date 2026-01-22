@@ -41,6 +41,8 @@ const createDecisionNode = (id: string, title: string): DecisionNode => ({
   selected: null,
   options: [],
   criteria: [],
+  rationale: null,
+  selectedDate: null,
 })
 
 const createNoteNode = (id: string, title: string): NoteNode => ({

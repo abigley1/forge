@@ -55,6 +55,8 @@ const createDecisionNode = (
   dates: { created: new Date(), modified: new Date() },
   options: [],
   criteria: [],
+  rationale: null,
+  selectedDate: null,
   ...overrides,
 })
 

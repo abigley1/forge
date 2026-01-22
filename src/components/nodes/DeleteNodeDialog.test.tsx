@@ -67,6 +67,8 @@ function createDecisionNode(
     selected: null,
     options: [],
     criteria: [],
+    rationale: null,
+    selectedDate: null,
     ...overrides,
   }
 }

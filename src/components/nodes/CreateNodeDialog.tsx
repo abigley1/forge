@@ -10,6 +10,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { Dialog, Button, useToast } from '@/components/ui'
 import { useUndoableAddNode, useHotkey, formatHotkey } from '@/hooks'
 import { useNodesStore } from '@/store/useNodesStore'
+import { useTemplatesStore } from '@/store/useTemplatesStore'
 import { generateNodeId } from '@/lib/project'
 import { cn } from '@/lib/utils'
 import {
@@ -21,6 +22,7 @@ import {
   type TaskNode,
   type NoteNode,
 } from '@/types/nodes'
+import type { TemplateFrontmatter } from '@/types/templates'
 import { NODE_TYPE_ICON_CONFIG, getNodeTypeLabel } from './config'
 
 // ============================================================================
@@ -40,190 +42,26 @@ export interface CreateNodeDialogProps {
   enableHotkey?: boolean
 }
 
-/** Template definition for node creation */
-interface NodeTemplate {
-  id: string
-  name: string
-  description: string
-  /** Initial content for the node */
-  content?: string
-}
-
-// ============================================================================
-// Templates
-// ============================================================================
-
-/** Basic templates for each node type */
-const NODE_TEMPLATES: Record<NodeType, NodeTemplate[]> = {
-  [NodeType.Decision]: [
-    {
-      id: 'blank',
-      name: 'Blank Decision',
-      description: 'Start with an empty decision',
-    },
-    {
-      id: 'component-selection',
-      name: 'Component Selection',
-      description: 'Compare components or parts',
-      content: `## Context
-
-Describe the problem or need this decision addresses.
-
-## Options
-
-List the options being considered.
-
-## Criteria
-
-What factors matter for this decision?
-
-## Conclusion
-
-Document the final decision and rationale.
-`,
-    },
-    {
-      id: 'design-choice',
-      name: 'Design Choice',
-      description: 'Evaluate design alternatives',
-      content: `## Background
-
-What design challenge are you solving?
-
-## Alternatives
-
-1. Option A
-2. Option B
-3. Option C
-
-## Analysis
-
-Compare the tradeoffs of each alternative.
-
-## Decision
-
-Selected approach and reasoning.
-`,
-    },
-  ],
-  [NodeType.Component]: [
-    {
-      id: 'blank',
-      name: 'Blank Component',
-      description: 'Start with an empty component',
-    },
-    {
-      id: 'electronic',
-      name: 'Electronic Part',
-      description: 'Template for electronic components',
-      content: `## Specifications
-
-- Voltage:
-- Current:
-- Package:
-
-## Datasheet
-
-[Link to datasheet]
-
-## Notes
-
-`,
-    },
-    {
-      id: 'mechanical',
-      name: 'Mechanical Part',
-      description: 'Template for mechanical parts',
-      content: `## Dimensions
-
-- Length:
-- Width:
-- Height:
-- Weight:
-
-## Material
-
-## Notes
-
-`,
-    },
-  ],
-  [NodeType.Task]: [
-    {
-      id: 'blank',
-      name: 'Blank Task',
-      description: 'Start with an empty task',
-    },
-    {
-      id: 'with-checklist',
-      name: 'Task with Checklist',
-      description: 'Task with subtasks',
-      content: `## Description
-
-What needs to be done?
-
-## Checklist
-
-- [ ] Step 1
-- [ ] Step 2
-- [ ] Step 3
-
-## Notes
-
-`,
-    },
-  ],
-  [NodeType.Note]: [
-    {
-      id: 'blank',
-      name: 'Blank Note',
-      description: 'Start with an empty note',
-    },
-    {
-      id: 'research',
-      name: 'Research Note',
-      description: 'Document research findings',
-      content: `## Summary
-
-Brief overview of the topic.
-
-## Key Findings
-
-- Finding 1
-- Finding 2
-
-## Sources
-
-- [Source 1]()
-- [Source 2]()
-
-## Related
-
-Link to related nodes.
-`,
-    },
-  ],
-}
-
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
 /**
- * Create a new node with the given parameters
+ * Create a new node with the given parameters and optional frontmatter from template
  */
 function createNode(
   type: NodeType,
   title: string,
   content: string,
-  id: string
+  id: string,
+  frontmatter?: TemplateFrontmatter
 ): ForgeNode {
   const dates = createNodeDates()
 
   const baseNode = {
     id,
     title,
-    tags: [],
+    tags: frontmatter?.tags ?? [],
     dates,
     content,
   }
@@ -233,20 +71,22 @@ function createNode(
       return {
         ...baseNode,
         type: NodeType.Decision,
-        status: 'pending',
+        status: frontmatter?.status ?? 'pending',
         selected: null,
         options: [],
         criteria: [],
+        rationale: null,
+        selectedDate: null,
       } satisfies DecisionNode
 
     case NodeType.Component:
       return {
         ...baseNode,
         type: NodeType.Component,
-        status: 'considering',
-        cost: null,
-        supplier: null,
-        partNumber: null,
+        status: frontmatter?.componentStatus ?? 'considering',
+        cost: frontmatter?.cost ?? null,
+        supplier: frontmatter?.supplier ?? null,
+        partNumber: frontmatter?.partNumber ?? null,
         customFields: {},
       } satisfies ComponentNode
 
@@ -254,8 +94,8 @@ function createNode(
       return {
         ...baseNode,
         type: NodeType.Task,
-        status: 'pending',
-        priority: 'medium',
+        status: frontmatter?.taskStatus ?? 'pending',
+        priority: frontmatter?.priority ?? 'medium',
         dependsOn: [],
         blocks: [],
         checklist: [],
@@ -310,27 +150,37 @@ export function CreateNodeDialog({
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
   const { error: showError } = useToast()
 
+  // Get templates from store
+  const getTemplatesForType = useTemplatesStore(
+    (state) => state.getTemplatesForType
+  )
+
+  // Get available templates for selected type
+  const availableTemplates = getTemplatesForType(selectedType)
+
+  // Get the default template ID (first one is always blank)
+  const defaultTemplateId = availableTemplates[0]?.id ?? ''
+
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
       setSelectedType(defaultType)
       setTitle('')
-      setSelectedTemplateId('blank')
+      // Reset to default template for the type
+      const templates = getTemplatesForType(defaultType)
+      setSelectedTemplateId(templates[0]?.id ?? '')
       setIsSubmitting(false)
       // Focus title input after dialog animation
       setTimeout(() => {
         titleInputRef.current?.focus()
       }, 100)
     }
-  }, [open, defaultType])
+  }, [open, defaultType, getTemplatesForType])
 
   // Update template selection when type changes
   useEffect(() => {
-    setSelectedTemplateId('blank')
-  }, [selectedType])
-
-  // Get available templates for selected type
-  const availableTemplates = NODE_TEMPLATES[selectedType]
+    setSelectedTemplateId(defaultTemplateId)
+  }, [selectedType, defaultTemplateId])
 
   // Get selected template
   const selectedTemplate = availableTemplates.find(
@@ -352,11 +202,18 @@ export function CreateNodeDialog({
         const existingIds = new Set(nodes.keys())
         const nodeId = generateNodeId(trimmedTitle, existingIds)
 
-        // Get content from template
+        // Get content and frontmatter from template
         const content = selectedTemplate?.content || ''
+        const frontmatter = selectedTemplate?.frontmatter
 
         // Create the node
-        const node = createNode(selectedType, trimmedTitle, content, nodeId)
+        const node = createNode(
+          selectedType,
+          trimmedTitle,
+          content,
+          nodeId,
+          frontmatter
+        )
 
         // Add to store (with undo support)
         addNode(node)
@@ -523,7 +380,7 @@ export function CreateNodeDialog({
                   </option>
                 ))}
               </select>
-              {selectedTemplate && selectedTemplate.id !== 'blank' && (
+              {selectedTemplate && !selectedTemplate.id.endsWith('-blank') && (
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {selectedTemplate.description}
                 </p>

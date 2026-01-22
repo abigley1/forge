@@ -115,6 +115,10 @@ export interface DecisionNode extends BaseNode {
   options: DecisionOption[]
   /** Criteria for evaluation */
   criteria: DecisionCriterion[]
+  /** Rationale for the selected option (null if not yet decided) */
+  rationale: string | null
+  /** Timestamp when the decision was selected (null if not yet decided) */
+  selectedDate: Date | null
 }
 
 /**
@@ -252,5 +256,31 @@ export function createDecisionCriterion(
     name,
     weight,
     unit,
+  }
+}
+
+/**
+ * Creates a new decision node with sensible defaults
+ */
+export function createDecisionNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<DecisionNode, 'type'>>
+): DecisionNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Decision,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'pending',
+    selected: null,
+    options: [],
+    criteria: [],
+    rationale: null,
+    selectedDate: null,
+    ...overrides,
   }
 }

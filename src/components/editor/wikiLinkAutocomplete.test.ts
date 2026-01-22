@@ -50,6 +50,8 @@ function createMockNode(id: string, title: string, type: NodeType): ForgeNode {
         selected: null,
         options: [],
         criteria: [],
+        rationale: null,
+        selectedDate: null,
       } as DecisionNode
     case 'task':
       return {

@@ -54,6 +54,8 @@ function createDecisionNode(
     selected: status === 'selected' ? 'option-1' : null,
     options: [],
     criteria: [],
+    rationale: null,
+    selectedDate: null,
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',

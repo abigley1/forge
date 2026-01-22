@@ -49,6 +49,8 @@ const createDecisionNode = (
   dates: createNodeDates(),
   options: [],
   criteria: [],
+  rationale: null,
+  selectedDate: null,
 })
 
 const createNoteNode = (
