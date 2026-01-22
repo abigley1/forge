@@ -28,6 +28,15 @@ export { parseChecklist, serializeChecklist } from '@/lib/checklist'
 export { ComponentFields } from './ComponentFields'
 export type { ComponentFieldsProps } from './ComponentFields'
 
+export { DependencyEditor } from './DependencyEditor'
+export type {
+  DependencyEditorProps,
+  DependencyNodeInfo,
+} from './DependencyEditor'
+
+export { MilestoneSelector, extractMilestones } from './MilestoneSelector'
+export type { MilestoneSelectorProps } from './MilestoneSelector'
+
 // Main frontmatter editor
 export { FrontmatterEditor } from './FrontmatterEditor'
 export type { FrontmatterEditorProps } from './FrontmatterEditor'

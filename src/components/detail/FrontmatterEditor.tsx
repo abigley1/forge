@@ -8,7 +8,7 @@
  * - Note: (no additional fields)
  */
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import {
   NodeType,
@@ -28,6 +28,8 @@ import { TagInput } from './TagInput'
 import { PrioritySelector } from './PrioritySelector'
 import { ChecklistEditor } from './ChecklistEditor'
 import { ComponentFields } from './ComponentFields'
+import { DependencyEditor } from './DependencyEditor'
+import { MilestoneSelector, extractMilestones } from './MilestoneSelector'
 
 export interface FrontmatterEditorProps {
   /** The node being edited */
@@ -36,6 +38,10 @@ export interface FrontmatterEditorProps {
   onChange: (updates: Partial<ForgeNode>) => void
   /** Available tags for autocomplete */
   availableTags?: string[]
+  /** All available nodes (for dependency editor) */
+  availableNodes?: Map<string, ForgeNode>
+  /** Called when clicking a node to navigate to it */
+  onNavigate?: (nodeId: string) => void
   /** Whether this is a new node (for auto-focus) */
   isNewNode?: boolean
   /** Whether the editor is disabled */
@@ -51,6 +57,8 @@ export function FrontmatterEditor({
   node,
   onChange,
   availableTags = [],
+  availableNodes = new Map(),
+  onNavigate,
   isNewNode = false,
   disabled = false,
   className,
@@ -110,6 +118,37 @@ export function FrontmatterEditor({
     [onChange]
   )
 
+  const handleDependsOnChange = useCallback(
+    (dependsOn: string[]) => {
+      onChange({ dependsOn } as Partial<ForgeNode>)
+    },
+    [onChange]
+  )
+
+  const handleMilestoneChange = useCallback(
+    (milestone: string | undefined) => {
+      onChange({ milestone } as Partial<ForgeNode>)
+    },
+    [onChange]
+  )
+
+  // Extract available milestones from task nodes
+  const availableMilestones = useMemo(() => {
+    const taskNodes = Array.from(availableNodes.values()).filter(isTaskNode)
+    return extractMilestones(taskNodes)
+  }, [availableNodes])
+
+  // Calculate which nodes are blocked by this node (have this node in their dependsOn)
+  const blockedByThis = useMemo(() => {
+    const blocked: string[] = []
+    for (const [id, n] of availableNodes) {
+      if (isTaskNode(n) && n.dependsOn.includes(node.id)) {
+        blocked.push(id)
+      }
+    }
+    return blocked
+  }, [availableNodes, node.id])
+
   return (
     <div className={cn('space-y-6', className)}>
       {/* Title - always shown */}
@@ -164,6 +203,12 @@ export function FrontmatterEditor({
           node={node}
           onPriorityChange={handlePriorityChange}
           onChecklistChange={handleChecklistChange}
+          onDependsOnChange={handleDependsOnChange}
+          onMilestoneChange={handleMilestoneChange}
+          availableNodes={availableNodes}
+          availableMilestones={availableMilestones}
+          blockedByThis={blockedByThis}
+          onNavigate={onNavigate}
           disabled={disabled}
         />
       )}
@@ -242,6 +287,12 @@ interface TaskFieldsProps {
   node: TaskNode
   onPriorityChange: (priority: TaskPriority) => void
   onChecklistChange: (checklist: ChecklistItem[]) => void
+  onDependsOnChange: (dependsOn: string[]) => void
+  onMilestoneChange: (milestone: string | undefined) => void
+  availableNodes: Map<string, ForgeNode>
+  availableMilestones: string[]
+  blockedByThis: string[]
+  onNavigate?: (nodeId: string) => void
   disabled?: boolean
 }
 
@@ -249,6 +300,12 @@ function TaskFields({
   node,
   onPriorityChange,
   onChecklistChange,
+  onDependsOnChange,
+  onMilestoneChange,
+  availableNodes,
+  availableMilestones,
+  blockedByThis,
+  onNavigate,
   disabled,
 }: TaskFieldsProps) {
   return (
@@ -260,28 +317,24 @@ function TaskFields({
         disabled={disabled}
       />
 
-      {/* Dependencies (simplified - just shows IDs for now) */}
-      {node.dependsOn.length > 0 && (
-        <div className="space-y-1.5">
-          <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Depends On
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {node.dependsOn.map((id) => (
-              <span
-                key={id}
-                className={cn(
-                  'inline-flex items-center rounded-md px-2 py-1',
-                  'bg-gray-100 text-sm text-gray-700',
-                  'dark:bg-gray-700 dark:text-gray-200'
-                )}
-              >
-                {id}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Milestone */}
+      <MilestoneSelector
+        value={node.milestone}
+        onChange={onMilestoneChange}
+        suggestions={availableMilestones}
+        disabled={disabled}
+      />
+
+      {/* Dependencies */}
+      <DependencyEditor
+        nodeId={node.id}
+        value={node.dependsOn}
+        onChange={onDependsOnChange}
+        availableNodes={availableNodes}
+        blockedByThis={blockedByThis}
+        onNavigate={onNavigate}
+        disabled={disabled}
+      />
 
       {/* Checklist */}
       <ChecklistEditor
