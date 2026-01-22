@@ -9,21 +9,29 @@ import type {
 /**
  * Frontmatter values that can be pre-filled by a template.
  * Uses Partial types to allow templates to specify only some fields.
+ *
+ * NOTE: Fields should match the template's node type:
+ * - Decision templates: use `status` (DecisionStatus)
+ * - Component templates: use `componentStatus`, `cost`, `supplier`, `partNumber`
+ * - Task templates: use `taskStatus`, `priority`
+ * - Note templates: only `tags` is applicable
+ *
+ * Mixing fields from different types is allowed but has no effect.
  */
 export interface TemplateFrontmatter {
   // Common fields
   tags?: string[]
 
-  // Decision-specific
+  // Decision-specific (use only for type: 'decision')
   status?: DecisionStatus
 
-  // Component-specific
+  // Component-specific (use only for type: 'component')
   componentStatus?: ComponentStatus
   cost?: number | null
   supplier?: string | null
   partNumber?: string | null
 
-  // Task-specific
+  // Task-specific (use only for type: 'task')
   taskStatus?: TaskStatus
   priority?: TaskPriority
 }
@@ -45,8 +53,8 @@ export interface NodeTemplate {
   content?: string
   /** Initial frontmatter values to pre-fill */
   frontmatter?: TemplateFrontmatter
-  /** Whether this is a built-in template (cannot be deleted) */
-  isBuiltIn?: boolean
+  /** Whether this is a built-in template (cannot be deleted or modified) */
+  isBuiltIn: boolean
 }
 
 /**

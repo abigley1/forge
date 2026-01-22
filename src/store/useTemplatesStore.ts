@@ -15,6 +15,8 @@ import type { NodeType } from '@/types/nodes'
 export interface TemplatesState {
   /** Custom templates created by the user (keyed by ID) */
   customTemplates: Map<string, NodeTemplate>
+  /** Error from localStorage persistence (load or save failure) */
+  persistenceError: string | null
 }
 
 export interface TemplatesActions {
@@ -26,6 +28,10 @@ export interface TemplatesActions {
   deleteTemplate: (id: string) => boolean
   /** Duplicate a template (creates a custom copy) */
   duplicateTemplate: (id: string) => NodeTemplate | null
+  /** Clear any persistence error */
+  clearPersistenceError: () => void
+  /** Set a persistence error (internal use) */
+  _setPersistenceError: (error: string | null) => void
 }
 
 export interface TemplatesSelectors {
@@ -49,6 +55,7 @@ export type TemplatesStore = TemplatesState &
 
 const initialState: TemplatesState = {
   customTemplates: new Map(),
+  persistenceError: null,
 }
 
 // ============================================================================
@@ -206,6 +213,14 @@ export const useTemplatesStore = create<TemplatesStore>()(
           return duplicate
         },
 
+        clearPersistenceError: () => {
+          set({ persistenceError: null }, false, 'clearPersistenceError')
+        },
+
+        _setPersistenceError: (error) => {
+          set({ persistenceError: error }, false, '_setPersistenceError')
+        },
+
         // Selectors
         getTemplatesForType: (type) => {
           const builtIn = BUILT_IN_TEMPLATES[type]
@@ -237,6 +252,24 @@ export const useTemplatesStore = create<TemplatesStore>()(
       }),
       {
         name: 'forge-templates',
+        // Don't persist the error state
+        partialize: (state) => ({
+          customTemplates: state.customTemplates,
+        }),
+        // Handle rehydration errors
+        onRehydrateStorage: () => (_state, error) => {
+          if (error) {
+            console.error('Failed to rehydrate templates store:', error)
+            // Defer setting error to avoid calling during rehydration
+            setTimeout(() => {
+              useTemplatesStore
+                .getState()
+                ._setPersistenceError(
+                  'Failed to load saved templates. Your custom templates may not be available.'
+                )
+            }, 0)
+          }
+        },
         // Custom serialization for Map with error handling
         storage: {
           getItem: (name) => {
@@ -252,11 +285,19 @@ export const useTemplatesStore = create<TemplatesStore>()(
                 },
               }
             } catch (error) {
-              // Log error for debugging but don't crash - return null to use defaults
+              // Log error for debugging - onRehydrateStorage will handle user notification
               console.error(
                 'Failed to load templates from localStorage:',
                 error
               )
+              // Defer setting error since store may not be ready
+              setTimeout(() => {
+                useTemplatesStore
+                  .getState()
+                  ._setPersistenceError(
+                    'Failed to load saved templates. Your custom templates may not be available.'
+                  )
+              }, 0)
               return null
             }
           },
@@ -272,9 +313,19 @@ export const useTemplatesStore = create<TemplatesStore>()(
                 },
               }
               localStorage.setItem(name, JSON.stringify(toStore))
+              // Clear any previous save error on success (only if there was one, to avoid infinite loop)
+              const currentError = useTemplatesStore.getState().persistenceError
+              if (currentError !== null) {
+                useTemplatesStore.getState()._setPersistenceError(null)
+              }
             } catch (error) {
-              // Log error - could be QuotaExceededError or SecurityError
               console.error('Failed to save templates to localStorage:', error)
+              const message =
+                error instanceof DOMException &&
+                error.name === 'QuotaExceededError'
+                  ? 'Storage full. Template changes may not be saved. Try deleting unused templates.'
+                  : 'Failed to save templates. Changes may be lost when you close the browser.'
+              useTemplatesStore.getState()._setPersistenceError(message)
             }
           },
           removeItem: (name) => {

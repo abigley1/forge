@@ -149,8 +149,19 @@ export function ImportDialog({
           confidence: 'medium',
           reason: 'Valid JSON file',
         }
-      } catch {
-        // Not JSON, check for markdown indicators
+      } catch (error) {
+        // Check if it looks like JSON but has syntax errors
+        const trimmed = content.trim()
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          const parseError =
+            error instanceof SyntaxError ? error.message : 'syntax error'
+          return {
+            format: 'json',
+            confidence: 'low',
+            reason: `Appears to be JSON but has errors: ${parseError}`,
+          }
+        }
+        // Not JSON, continue to markdown detection
       }
 
       // Check for markdown with frontmatter
@@ -198,8 +209,13 @@ export function ImportDialog({
           const content = await file.text()
           setFileContent(content)
           setDetectedFormat(detectFormat(content, file.name))
-        } catch {
-          setImportError('Failed to read file')
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error'
+          console.error(`Failed to read file "${file.name}":`, error)
+          setImportError(
+            `Failed to read "${file.name}": ${errorMessage}. Check the file is accessible and not corrupted.`
+          )
         }
       } else {
         // Multiple files - assume markdown directory structure
@@ -213,6 +229,14 @@ export function ImportDialog({
     },
     [detectFormat]
   )
+
+  // Handle keyboard activation of drop zone
+  const handleDropZoneKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      fileInputRef.current?.click()
+    }
+  }, [])
 
   // Handle drag events
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -386,7 +410,7 @@ export function ImportDialog({
       <Dialog.Portal>
         <Dialog.Backdrop />
         <Dialog.Popup className="max-w-xl">
-          <Dialog.Title>Import Project</Dialog.Title>
+          <Dialog.Title className="text-balance">Import Project</Dialog.Title>
           <Dialog.Description>
             Import project data from JSON or Markdown files
           </Dialog.Description>
@@ -395,13 +419,17 @@ export function ImportDialog({
             {/* Drop Zone */}
             <div
               ref={dropZoneRef}
+              role="button"
+              tabIndex={0}
+              aria-label="Drop zone for importing files. Press Enter to open file browser."
+              onKeyDown={handleDropZoneKeyDown}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               className={cn(
                 'relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8',
-                'transition-colors',
+                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none dark:focus-visible:ring-gray-300',
                 isDragging
                   ? 'border-gray-900 bg-gray-100 dark:border-gray-100 dark:bg-gray-800'
                   : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
@@ -412,7 +440,7 @@ export function ImportDialog({
               {importResult ? (
                 <>
                   <CheckCircle2
-                    className="h-12 w-12 text-green-500"
+                    className="size-12 text-green-500"
                     aria-hidden="true"
                   />
                   <p className="mt-2 text-sm font-medium text-green-700 dark:text-green-300">
@@ -426,7 +454,7 @@ export function ImportDialog({
                 <>
                   <Upload
                     className={cn(
-                      'h-12 w-12',
+                      'size-12',
                       isDragging
                         ? 'text-gray-900 dark:text-gray-100'
                         : 'text-gray-400 dark:text-gray-500'
@@ -438,7 +466,7 @@ export function ImportDialog({
                       ? 'Drop files here'
                       : 'Drag files here or click to browse'}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-pretty text-gray-500 dark:text-gray-400">
                     Supports .json and .md files, or paste (Cmd/Ctrl+V)
                   </p>
                   <div className="mt-4 flex gap-2">
@@ -447,7 +475,7 @@ export function ImportDialog({
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <FileJson className="mr-2 h-4 w-4" aria-hidden="true" />
+                      <FileJson className="mr-2 size-4" aria-hidden="true" />
                       Select File
                     </Button>
                     <Button
@@ -455,7 +483,7 @@ export function ImportDialog({
                       size="sm"
                       onClick={() => folderInputRef.current?.click()}
                     >
-                      <FolderOpen className="mr-2 h-4 w-4" aria-hidden="true" />
+                      <FolderOpen className="mr-2 size-4" aria-hidden="true" />
                       Select Folder
                     </Button>
                   </div>
@@ -490,7 +518,7 @@ export function ImportDialog({
             {importSummary && !importResult && (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                 <div className="flex items-center gap-2">
-                  <Files className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                  <Files className="size-4 text-gray-500" aria-hidden="true" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {importSummary}
                   </span>
@@ -499,12 +527,12 @@ export function ImportDialog({
                   <div className="mt-1 flex items-center gap-2">
                     {detectedFormat.format === 'json' ? (
                       <FileJson
-                        className="h-4 w-4 text-blue-500"
+                        className="size-4 text-blue-500"
                         aria-hidden="true"
                       />
                     ) : (
                       <FileText
-                        className="h-4 w-4 text-green-500"
+                        className="size-4 text-green-500"
                         aria-hidden="true"
                       />
                     )}
@@ -591,7 +619,7 @@ export function ImportDialog({
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
                 <div className="flex items-start gap-2">
                   <AlertCircle
-                    className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-400"
+                    className="mt-0.5 size-4 text-amber-600 dark:text-amber-400"
                     aria-hidden="true"
                   />
                   <div>
@@ -621,7 +649,7 @@ export function ImportDialog({
               >
                 <div className="flex items-start gap-2">
                   <AlertCircle
-                    className="mt-0.5 h-4 w-4 text-red-600 dark:text-red-400"
+                    className="mt-0.5 size-4 text-red-600 dark:text-red-400"
                     aria-hidden="true"
                   />
                   <div>
@@ -650,19 +678,19 @@ export function ImportDialog({
               {isImporting ? (
                 <>
                   <Loader2
-                    className="mr-2 h-4 w-4 animate-spin"
+                    className="mr-2 size-4 animate-spin"
                     aria-hidden="true"
                   />
-                  Importing...
+                  Importing…
                 </>
               ) : importResult ? (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <CheckCircle2 className="mr-2 size-4" aria-hidden="true" />
                   Done
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <Upload className="mr-2 size-4" aria-hidden="true" />
                   Import
                 </>
               )}
@@ -670,10 +698,10 @@ export function ImportDialog({
           </Dialog.Footer>
 
           <Dialog.Close
-            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus:ring-gray-300"
+            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white hover:opacity-100 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300"
             aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" aria-hidden="true" />
           </Dialog.Close>
         </Dialog.Popup>
       </Dialog.Portal>

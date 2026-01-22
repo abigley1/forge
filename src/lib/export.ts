@@ -37,9 +37,8 @@ export const EXPORT_APP_NAME = 'Forge'
  * Converts Date objects to ISO strings
  */
 function serializeNode(node: ForgeNode): SerializedNode {
-  const base: SerializedNode = {
+  const baseFields = {
     id: node.id,
-    type: node.type,
     title: node.title,
     content: node.content,
     tags: [...node.tags],
@@ -53,7 +52,8 @@ function serializeNode(node: ForgeNode): SerializedNode {
   switch (node.type) {
     case 'decision':
       return {
-        ...base,
+        ...baseFields,
+        type: 'decision' as const,
         status: node.status,
         selected: node.selected,
         selectedDate: node.selectedDate?.toISOString() ?? null,
@@ -63,7 +63,8 @@ function serializeNode(node: ForgeNode): SerializedNode {
       }
     case 'component':
       return {
-        ...base,
+        ...baseFields,
+        type: 'component' as const,
         status: node.status,
         cost: node.cost,
         supplier: node.supplier,
@@ -72,16 +73,20 @@ function serializeNode(node: ForgeNode): SerializedNode {
       }
     case 'task':
       return {
-        ...base,
+        ...baseFields,
+        type: 'task' as const,
         status: node.status,
         priority: node.priority,
         dependsOn: node.dependsOn,
         blocks: node.blocks,
         checklist: node.checklist,
-        milestone: node.milestone,
+        ...(node.milestone ? { milestone: node.milestone } : {}),
       }
     case 'note':
-      return base
+      return {
+        ...baseFields,
+        type: 'note' as const,
+      }
   }
 }
 
@@ -215,12 +220,14 @@ export function importFromJSON(json: string): ValidationResult<Project> {
   let parsedData: unknown
   try {
     parsedData = JSON.parse(json)
-  } catch {
+  } catch (error) {
+    const parseError =
+      error instanceof SyntaxError ? error.message : 'Unknown parse error'
     return {
       success: false,
       error: {
         code: 'PARSE_ERROR',
-        message: 'Invalid JSON: Failed to parse input',
+        message: `Invalid JSON: ${parseError}`,
       },
     }
   }
@@ -243,8 +250,7 @@ export function importFromJSON(json: string): ValidationResult<Project> {
 
   const exportData = structureResult.data
 
-  // Note: Version migrations would be handled here if needed
-  // For now we only have version 1.0.0, so no migrations needed
+  // Version migrations would be handled here if needed (currently v1.0.0)
 
   // Parse project metadata
   const projectData = exportData.project
@@ -907,7 +913,7 @@ export function exportBOM(project: Project): BOMExportResult {
       // Add to existing line item
       existing.quantity += 1
       existing.nodeIds.push(component.id)
-      // If costs differ, we take the first one (or could average)
+      // Uses unit cost from first component with this part number
       if (existing.extendedCost !== null && component.cost !== null) {
         existing.extendedCost = existing.quantity * existing.unitCost!
       }

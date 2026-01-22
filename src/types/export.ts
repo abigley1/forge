@@ -1,5 +1,14 @@
 import type { Project } from './project'
 import type { ValidationResult } from '@/lib/validation'
+import type {
+  DecisionStatus,
+  DecisionOption,
+  DecisionCriterion,
+  ComponentStatus,
+  TaskStatus,
+  TaskPriority,
+  ChecklistItem,
+} from './nodes'
 
 /**
  * Supported export formats
@@ -80,11 +89,10 @@ export interface JSONExport {
 }
 
 /**
- * A node serialized for export (dates as ISO strings)
+ * Base fields common to all serialized nodes
  */
-export interface SerializedNode {
+interface SerializedNodeBase {
   id: string
-  type: 'decision' | 'component' | 'task' | 'note'
   title: string
   content: string
   tags: string[]
@@ -92,9 +100,62 @@ export interface SerializedNode {
     created: string
     modified: string
   }
-  // Type-specific fields are included dynamically
-  [key: string]: unknown
 }
+
+/**
+ * Serialized Decision node
+ */
+export interface SerializedDecisionNode extends SerializedNodeBase {
+  type: 'decision'
+  status: DecisionStatus
+  selected: string | null
+  selectedDate: string | null
+  rationale: string | null
+  options: DecisionOption[]
+  criteria: DecisionCriterion[]
+}
+
+/**
+ * Serialized Component node
+ */
+export interface SerializedComponentNode extends SerializedNodeBase {
+  type: 'component'
+  status: ComponentStatus
+  cost: number | null
+  supplier: string | null
+  partNumber: string | null
+  customFields: Record<string, string | number>
+}
+
+/**
+ * Serialized Task node
+ */
+export interface SerializedTaskNode extends SerializedNodeBase {
+  type: 'task'
+  status: TaskStatus
+  priority: TaskPriority
+  dependsOn: string[]
+  blocks: string[]
+  checklist: ChecklistItem[]
+  milestone?: string
+}
+
+/**
+ * Serialized Note node
+ */
+export interface SerializedNoteNode extends SerializedNodeBase {
+  type: 'note'
+}
+
+/**
+ * A node serialized for export (dates as ISO strings).
+ * Discriminated union by `type` field ensures type-specific fields are correct.
+ */
+export type SerializedNode =
+  | SerializedDecisionNode
+  | SerializedComponentNode
+  | SerializedTaskNode
+  | SerializedNoteNode
 
 /**
  * Result of an export operation

@@ -203,11 +203,12 @@ function renderImplicationText(
         onClick={() => onNodeClick?.(link.id)}
         disabled={!link.exists || !onNodeClick}
         className={cn(
-          'inline-flex items-center gap-0.5 rounded px-0.5 font-medium',
+          // min-h-[44px] ensures touch target compliance while inline-flex keeps it in text flow
+          'inline-flex min-h-[44px] items-center gap-0.5 rounded px-1.5 font-medium',
           link.exists
             ? 'text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
             : 'cursor-not-allowed text-red-500 line-through dark:text-red-400',
-          'focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none'
+          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none'
         )}
         title={
           link.exists

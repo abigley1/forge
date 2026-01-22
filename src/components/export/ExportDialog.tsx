@@ -159,6 +159,7 @@ export function ExportDialog({
           return ''
       }
     } catch (error) {
+      console.error('Export preview generation failed:', error)
       return `Error generating preview: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   }, [
@@ -250,8 +251,13 @@ export function ExportDialog({
       await navigator.clipboard.writeText(exportPreview)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      setExportError('Failed to copy to clipboard')
+    } catch (error) {
+      console.error('Clipboard copy failed:', error)
+      const message =
+        error instanceof DOMException && error.name === 'NotAllowedError'
+          ? 'Clipboard access denied. Select text and copy manually (Ctrl+C / Cmd+C).'
+          : 'Failed to copy to clipboard. Select text and copy manually.'
+      setExportError(message)
     }
   }, [exportPreview])
 
@@ -285,7 +291,7 @@ export function ExportDialog({
       <Dialog.Portal>
         <Dialog.Backdrop />
         <Dialog.Popup className="max-w-2xl">
-          <Dialog.Title>Export Project</Dialog.Title>
+          <Dialog.Title className="text-balance">Export Project</Dialog.Title>
           <Dialog.Description>
             Export "{project.name}" with {nodeCounts.total} nodes
           </Dialog.Description>
@@ -320,7 +326,7 @@ export function ExportDialog({
                         onClick={() => setSelectedFormat(format)}
                         className={cn(
                           'flex flex-col items-center gap-2 rounded-lg border-2 p-4',
-                          'text-sm transition-colors',
+                          'text-sm',
                           'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
                           'dark:focus-visible:ring-gray-300',
                           isDisabled && 'cursor-not-allowed opacity-50',
@@ -330,7 +336,7 @@ export function ExportDialog({
                         )}
                       >
                         <Icon
-                          className="h-6 w-6 text-gray-600 dark:text-gray-400"
+                          className="size-6 text-gray-600 dark:text-gray-400"
                           aria-hidden="true"
                         />
                         <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -482,11 +488,11 @@ export function ExportDialog({
                 >
                   {copied ? (
                     <Check
-                      className="h-4 w-4 text-green-600"
+                      className="size-4 text-green-600"
                       aria-hidden="true"
                     />
                   ) : (
-                    <Copy className="h-4 w-4" aria-hidden="true" />
+                    <Copy className="size-4" aria-hidden="true" />
                   )}
                   <span className="ml-1">{copied ? 'Copied' : 'Copy'}</span>
                 </Button>
@@ -511,7 +517,7 @@ export function ExportDialog({
                 >
                   {exportPreview.slice(0, 5000)}
                   {exportPreview.length > 5000 &&
-                    '\n\n... (truncated for preview)'}
+                    '\n\n… (truncated for preview)'}
                 </pre>
               </div>
               {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
@@ -541,14 +547,14 @@ export function ExportDialog({
               {isExporting ? (
                 <>
                   <Loader2
-                    className="mr-2 h-4 w-4 animate-spin"
+                    className="mr-2 size-4 animate-spin"
                     aria-hidden="true"
                   />
-                  Exporting...
+                  Exporting…
                 </>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  <Download className="mr-2 size-4" aria-hidden="true" />
                   Download {FORMAT_CONFIG[selectedFormat].extension}
                 </>
               )}
@@ -556,10 +562,10 @@ export function ExportDialog({
           </Dialog.Footer>
 
           <Dialog.Close
-            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus:ring-gray-300"
+            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white hover:opacity-100 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300"
             aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" aria-hidden="true" />
           </Dialog.Close>
         </Dialog.Popup>
       </Dialog.Portal>

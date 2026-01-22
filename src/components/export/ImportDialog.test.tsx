@@ -134,6 +134,18 @@ function createMockFile(
 // Setup
 // ============================================================================
 
+// Polyfill File.prototype.text for jsdom (which doesn't implement it)
+if (!File.prototype.text) {
+  File.prototype.text = function () {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsText(this)
+    })
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -258,8 +270,9 @@ describe('ImportDialog', () => {
         fireEvent.change(input, { target: { files: [file] } })
       })
 
+      // Check that format detection shows file extension reason
       await waitFor(() => {
-        expect(screen.getByText(/\.json/i)).toBeInTheDocument()
+        expect(screen.getByText(/File extension \.json/i)).toBeInTheDocument()
       })
     })
 
@@ -281,8 +294,9 @@ Content here`
         fireEvent.change(input, { target: { files: [file] } })
       })
 
+      // Check that format detection shows file extension reason
       await waitFor(() => {
-        expect(screen.getByText(/\.md/i)).toBeInTheDocument()
+        expect(screen.getByText(/File extension \.md/i)).toBeInTheDocument()
       })
     })
   })
@@ -475,9 +489,9 @@ Content here`
         fireEvent.change(input, { target: { files: [file] } })
       })
 
-      // Should detect JSON format
+      // Should detect JSON format from file extension
       await waitFor(() => {
-        expect(screen.getByText(/\.json/i)).toBeInTheDocument()
+        expect(screen.getByText(/File extension \.json/i)).toBeInTheDocument()
       })
     })
 
