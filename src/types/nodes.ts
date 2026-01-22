@@ -149,6 +149,8 @@ export interface TaskNode extends BaseNode {
   blocks: string[]
   /** Subtasks as a checklist */
   checklist: ChecklistItem[]
+  /** Optional milestone for grouping related tasks */
+  milestone?: string
 }
 
 /**

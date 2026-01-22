@@ -12,3 +12,6 @@ export type { OutlineViewProps } from './OutlineView'
 
 export { ViewToggle } from './ViewToggle'
 export type { ViewMode, ViewToggleProps } from './ViewToggle'
+
+export { MilestoneOutlineView } from './MilestoneOutlineView'
+export type { MilestoneOutlineViewProps } from './MilestoneOutlineView'

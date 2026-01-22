@@ -171,6 +171,7 @@ export const taskNodeSchema = baseNodeSchema.extend({
   blocks: stringArraySchema,
   checklist: z.array(checklistItemSchema).default([]),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  milestone: z.string().optional(),
 })
 
 /**
@@ -237,6 +238,7 @@ export const taskFrontmatterSchema = baseFrontmatterSchema.extend({
   priority: taskPrioritySchema.optional(),
   depends_on: z.array(z.string()).optional(),
   blocks: z.array(z.string()).optional(),
+  milestone: z.string().optional(),
 })
 
 /**

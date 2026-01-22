@@ -41,6 +41,7 @@ const FIELD_ORDER = [
   'type',
   'status',
   'priority',
+  'milestone',
   'selected',
   'cost',
   'supplier',
