@@ -38,15 +38,27 @@ src/
 │   ├── nodes.ts     # ForgeNode discriminated union (Decision|Component|Task|Note)
 │   └── project.ts   # Project, Workspace, WorkspaceConfig
 ├── lib/             # Core logic (no React dependencies)
-│   ├── validation.ts    # Zod schemas, validateNode() returns Result type
-│   ├── frontmatter.ts   # YAML parsing (gray-matter), wiki-link extraction
-│   ├── project.ts       # loadProject(), saveNode(), initializeProject()
-│   └── filesystem/      # Adapter pattern for file I/O
+│   ├── validation.ts      # Zod schemas, validateNode() returns Result type
+│   ├── frontmatter.ts     # YAML parsing (gray-matter), wiki-link extraction
+│   ├── project.ts         # loadProject(), saveNode(), initializeProject()
+│   ├── links.ts           # Bidirectional wiki-link index (outgoing/incoming)
+│   ├── dependencyGraph.ts # DAG for task dependencies with cycle detection
+│   ├── blockedStatus.ts   # Calculate blocked status from dependencies
+│   ├── criticalPath.ts    # Longest path through incomplete tasks
+│   └── filesystem/        # Adapter pattern for file I/O
 │       ├── types.ts             # FileSystemAdapter interface
 │       ├── MemoryFileSystemAdapter.ts   # For tests
 │       └── BrowserFileSystemAdapter.ts  # File System Access API
 ├── store/           # Zustand stores with devtools
-│   └── useAppStore.ts   # UI state (sidebar, activeView)
+│   ├── useNodesStore.ts     # Node CRUD, dirty tracking, link index
+│   ├── useProjectStore.ts   # Project metadata and file system adapter
+│   ├── useAppStore.ts       # UI state (sidebar, activeView)
+│   └── useUndoStore.ts      # Undo/redo history
+├── hooks/           # React hooks for business logic
+│   ├── useBlockedStatus.ts  # Compute blocked status for nodes
+│   ├── useCriticalPath.ts   # Compute critical path through tasks
+│   ├── useFilters.ts        # URL-synced filtering (uses nuqs)
+│   └── useSorting.ts        # URL-synced sorting (uses nuqs)
 └── components/
     ├── ui/          # Base UI primitives (Dialog, Button, Toast, AlertDialog)
     └── layout/      # App shell, Sidebar, SkipLink
@@ -61,6 +73,10 @@ src/
 **Validation:** `validateNode()` in `src/lib/validation.ts` returns `ValidationResult<ForgeNode>` - a Result type that's either `{ success: true, data: ForgeNode }` or `{ success: false, error: ValidationError }`. Never throw on validation failure.
 
 **Frontmatter Conventions:** YAML uses snake_case (`depends_on`), TypeScript uses camelCase (`dependsOn`). The validation layer handles conversion.
+
+**URL State with nuqs:** Filter and sort state is synced to URL query params via `nuqs`. Hooks like `useFilters` and `useSorting` use `parseAsString`, `parseAsArrayOf` for type-safe URL state.
+
+**Dependency System:** Task dependencies use a DAG (`DependencyGraph` class) with cycle detection. The `dependsOn` field on TaskNode creates edges. `blockedStatus.ts` computes which nodes are blocked; `criticalPath.ts` finds the longest chain of incomplete tasks.
 
 ### Node Data Format
 
@@ -77,6 +93,10 @@ project-name/
 ### Path Alias
 
 `@/` maps to `src/` - use `import { cn } from '@/lib/utils'`
+
+### Z-Index Scale
+
+Import from `@/lib/z-index`: `Z_DROPDOWN=10`, `Z_STICKY=20`, `Z_MODAL=30`, `Z_POPOVER=40`, `Z_TOAST=50`, `Z_TOOLTIP=60`
 
 ## Test Patterns
 

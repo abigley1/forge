@@ -1,0 +1,187 @@
+# Sprint 2: Core UI Components
+
+## Completed Tasks
+
+- feat-2.1: Nodes Store (Zustand store for node CRUD operations with project integration)
+  - 2.1.1: Created `useNodesStore` with nodes Map and activeNodeId state
+  - 2.1.2: Implemented actions: addNode, updateNode, deleteNode, setActiveNode, setNodes, clearNodes
+  - 2.1.3: Implemented dirty state tracking: markDirty, markClean, clearDirty, dirtyNodeIds Set
+  - 2.1.4: Implemented selectors: getNodeById, getNodesByType, getAllNodes, hasNode, getNodeCountsByType
+  - 2.1.5: Implemented dirty selectors: isNodeDirty, hasDirtyNodes, getDirtyNodeIds
+  - 2.1.6: Created standalone selectors: selectNodes, selectActiveNodeId, selectActiveNode, selectNodeCount, selectHasDirtyNodes
+  - 2.1.7: Created `useProjectStore` with project, adapter, isDirty, isLoading, error, parseErrors state
+  - 2.1.8: Implemented loadProject(adapter, path) that integrates with file system adapter
+  - 2.1.9: Implemented saveNode, saveAllDirtyNodes, deleteNode with file system integration
+  - 2.1.10: Implemented updateMetadata, saveMetadata, closeProject, setAdapter actions
+  - 2.1.11: Implemented selectors: getProjectName, getProjectPath, hasProject, hasAdapter
+  - 2.1.12: Both stores use devtools middleware for Redux DevTools integration
+  - 2.1.13: Stores are properly integrated: loadProject updates both stores, deleteNode syncs both
+  - 2.1.14: Wrote 77 unit tests (41 for useNodesStore, 36 for useProjectStore)
+  - 2.1.15: All 430 tests passing, lint, type-check, and build all pass
+
+- feat-2.2: Undo/Redo System (Action history with keyboard shortcuts)
+  - 2.2.1: Created `useUndoStore` with undo/redo stacks and action recording
+  - 2.2.2: Implemented action types: addNode, updateNode, deleteNode with timestamps
+  - 2.2.3: Implemented undo/redo actions that push/pop between stacks
+  - 2.2.4: Implemented history size limit (default 50) with automatic trimming
+  - 2.2.5: Created selectors: canUndo, canRedo, undoCount, redoCount, getUndoDescription, getRedoDescription
+  - 2.2.6: Created `useHotkey` hook with modifier key support (ctrl/cmd, shift, alt)
+  - 2.2.7: Implemented platform detection (Mac vs Windows/Linux) for modifier keys
+  - 2.2.8: Created `useHotkeys` hook for registering multiple hotkeys at once
+  - 2.2.9: Created utility functions: formatHotkey(), getModifierKeyLabel(), isMac()
+  - 2.2.10: Created `useUndoRedo` hook integrating undo store with nodes store
+  - 2.2.11: Wired up keyboard shortcuts: Ctrl/Cmd+Z (undo), Ctrl/Cmd+Shift+Z (redo), Ctrl/Cmd+Y (redo)
+  - 2.2.12: Created undoable operation wrappers: useUndoableAddNode, useUndoableUpdateNode, useUndoableDeleteNode
+  - 2.2.13: Created `useUndoableNodeOperations` hook combining all undoable operations
+  - 2.2.14: Hotkeys skip when typing in input/textarea (except Escape)
+  - 2.2.15: Wrote 82 unit tests (33 for useUndoStore, 31 for useHotkey, 18 for useUndoRedo)
+  - 2.2.16: All 512 tests passing, lint, type-check, and build all pass
+
+- feat-2.3: Sidebar Navigation (Sidebar with project switcher, filters, tag cloud, and quick create)
+  - 2.3.1: Installed lucide-react for node type icons
+  - 2.3.2: Created `<Sidebar>` component with collapsible sections structure
+  - 2.3.3: Created `<SidebarSection>` component with expand/collapse toggle and aria-expanded
+  - 2.3.4: Created `<ProjectSwitcher>` placeholder component (full implementation in Sprint 11)
+  - 2.3.5: Created `<QuickCreateButton>` with node-type-specific icons and colors
+  - 2.3.6: Implemented +Decision, +Component, +Task, +Note quick create buttons
+  - 2.3.7: Quick create uses `useUndoableAddNode` for undo support and sets newly created node as active
+  - 2.3.8: Created `<FilterSection>` placeholder component (full implementation in Sprint 3)
+  - 2.3.9: Created `<TagCloud>` component that extracts tags from all nodes with counts
+  - 2.3.10: Tag cloud shows top 10 tags sorted by count, with clickable buttons
+  - 2.3.11: Updated `<AppShell>` with mobile responsive sidebar collapse behavior
+  - 2.3.12: Added mobile header with hamburger menu toggle button
+  - 2.3.13: Added backdrop overlay when sidebar open on mobile (click to close)
+  - 2.3.14: Sidebar uses CSS transform for slide-in/out animation (no layout shift)
+  - 2.3.15: Desktop: sidebar is static; Mobile: sidebar is fixed with transform
+  - 2.3.16: All icons have aria-hidden="true", buttons have descriptive aria-labels
+  - 2.3.17: Wrote 25 unit tests for Sidebar (rendering, sections, quick create, tag cloud, accessibility)
+  - 2.3.18: Wrote 8 additional unit tests for AppShell mobile responsive behavior
+  - 2.3.19: All 545 tests passing, lint, type-check, and build all pass
+
+- feat-2.4: Node List View (List with type icons, status badges, and keyboard navigation)
+  - 2.4.1: Created `src/components/nodes/config.ts` with shared configuration for node icons and status badges
+  - 2.4.2: Created `NODE_TYPE_ICON_CONFIG` mapping NodeType to lucide-react icon, color, and label
+  - 2.4.3: Created `STATUS_CONFIG` mapping all status types to label, bgColor, textColor, and dotColor
+  - 2.4.4: Created `<NodeTypeIcon>` component displaying correct lucide-react icon per node type
+  - 2.4.5: NodeTypeIcon has aria-hidden="true" for accessibility and supports sm/md/lg sizes
+  - 2.4.6: Created `<StatusBadge>` component with color dot AND text label (not color-only)
+  - 2.4.7: StatusBadge supports all status types: pending, selected, considering, rejected, in_progress, blocked, complete
+  - 2.4.8: StatusBadge handles unknown status gracefully with gray fallback styling
+  - 2.4.9: Created `<EmptyState>` component with icon, title, description, and optional CTA button
+  - 2.4.10: Created `<NodeListItem>` component displaying icon, title, and status badge
+  - 2.4.11: NodeListItem uses forwardRef for keyboard navigation, supports active state with distinct styling
+  - 2.4.12: Active NodeListItem has ring-2 ring-inset and bg-gray-100 with aria-current="true"
+  - 2.4.13: Created `<NodeList>` component with full keyboard navigation support
+  - 2.4.14: Keyboard navigation: Arrow Up/Down (with wrap-around), Home/End (first/last), Enter (select)
+  - 2.4.15: NodeList has role="listbox" with aria-label and aria-activedescendant
+  - 2.4.16: NodeList shows EmptyState when no nodes, with optional onCreateNode CTA
+  - 2.4.17: Created `src/components/nodes/index.ts` with clean public exports
+  - 2.4.18: Wrote 34 unit tests covering all components (NodeTypeIcon, StatusBadge, EmptyState, NodeListItem, NodeList)
+  - 2.4.19: All 579 tests passing, lint, type-check, and build all pass
+
+- feat-2.5: Markdown Editor (CodeMirror-based markdown editing with syntax highlighting)
+  - 2.5.1: Installed CodeMirror packages (@codemirror/state, @codemirror/view, @codemirror/lang-markdown, @codemirror/language, @uiw/react-codemirror, @lezer/highlight)
+  - 2.5.2: Created `src/components/editor/` directory for editor components
+  - 2.5.3: Created `theme.ts` with light and dark themes matching app's Tailwind color scheme
+  - 2.5.4: Light theme uses gray-50/900 palette, dark theme uses gray-950/100 palette
+  - 2.5.5: Syntax highlighting for headings, emphasis, strong, links, code, quotes, lists
+  - 2.5.6: Created `<MarkdownEditor>` component wrapping CodeMirror with React integration
+  - 2.5.7: Component props: value, onChange, placeholder, readOnly, darkMode, lineNumbers, minHeight, maxHeight, autoFocus
+  - 2.5.8: Full ARIA support: aria-label, aria-labelledby, aria-describedby, aria-readonly, aria-multiline
+  - 2.5.9: Focus-within ring styling consistent with other app components
+  - 2.5.10: Markdown language support with syntax highlighting via @codemirror/lang-markdown
+  - 2.5.11: Line wrapping enabled by default, optional line numbers
+  - 2.5.12: Created `index.ts` with clean exports: MarkdownEditor, lightTheme, darkTheme, getEditorTheme
+  - 2.5.13: Wrote 42 unit tests covering rendering, props, themes, accessibility, content, and exports
+  - 2.5.14: All 621 tests passing, lint, type-check, and build all pass
+
+- feat-2.6: Node Detail Panel (Slide-out panel for node editing with frontmatter fields)
+  - 2.6.1: Created `src/components/detail/` directory for panel components
+  - 2.6.2: Created `<NodeDetailPanel>` component as slide-out panel with slide-in animation
+  - 2.6.3: Panel renders as slide-out from right with responsive width (full on mobile, 480px sm, 560px lg)
+  - 2.6.4: Close button works, Escape key closes panel via useHotkey hook
+  - 2.6.5: Implemented focus trapping - focus stays within panel when open
+  - 2.6.6: Focus returns to previously focused element when panel closes
+  - 2.6.7: Added `overscroll-behavior: contain` to prevent scroll bleed
+  - 2.6.8: Created `<NodeTitleEditor>` with large heading input (text-2xl font-semibold)
+  - 2.6.9: NodeTitleEditor supports focusOnMount prop for auto-focus on new nodes
+  - 2.6.10: Created `<StatusSelect>` using Base UI Select component
+  - 2.6.11: StatusSelect shows node-type-appropriate statuses with color dots
+  - 2.6.12: StatusSelect is fully keyboard accessible (arrow keys, Enter, Escape)
+  - 2.6.13: Created `<TagInput>` with Enter to add, Backspace to remove last tag
+  - 2.6.14: TagInput shows autocomplete suggestions from available tags
+  - 2.6.15: TagInput uses comma as alternate add trigger, filters duplicates
+  - 2.6.16: Created `<PrioritySelector>` as segmented control (High/Medium/Low)
+  - 2.6.17: PrioritySelector supports keyboard navigation with arrow keys
+  - 2.6.18: Created `<ChecklistEditor>` for task checklists with keyboard controls
+  - 2.6.19: ChecklistEditor: Space at start to toggle, Enter to add, Backspace on empty to delete
+  - 2.6.20: Created `parseChecklist()` and `serializeChecklist()` in `src/lib/checklist.ts`
+  - 2.6.21: Checklist parser handles `- [ ]` and `- [x]` syntax (case-insensitive)
+  - 2.6.22: Created `<ComponentFields>` for cost, supplier, part number, custom key-value fields
+  - 2.6.23: ComponentFields supports adding/removing custom fields dynamically
+  - 2.6.24: Created `<FrontmatterEditor>` that renders type-specific fields
+  - 2.6.25: FrontmatterEditor shows Decision fields: status, selected option dropdown
+  - 2.6.26: FrontmatterEditor shows Component fields: cost ($), supplier, part number, custom fields
+  - 2.6.27: FrontmatterEditor shows Task fields: status, priority, depends-on chips, checklist
+  - 2.6.28: FrontmatterEditor shows Note fields: (title and tags only, no additional fields)
+  - 2.6.29: Created `src/components/detail/index.ts` with clean exports for all components
+  - 2.6.30: Wrote 53 unit tests for detail components (panel, title, status, tags, priority, checklist, etc.)
+  - 2.6.31: Wrote 17 unit tests for checklist parsing/serialization utilities
+  - 2.6.32: All 691 tests passing, lint, type-check, and build all pass
+
+- feat-2.7: Node Creation Dialog (Dialog for creating new nodes with type selection)
+  - 2.7.1: Created `<CreateNodeDialog>` component using Base UI Dialog
+  - 2.7.2: Implemented node type selector with 2x2 grid of radio buttons (Decision, Component, Task, Note)
+  - 2.7.3: Type selector uses proper fieldset/legend for accessibility
+  - 2.7.4: Each type button shows icon from NODE_TYPE_ICON_CONFIG with correct color
+  - 2.7.5: Created title input with auto-focus when dialog opens
+  - 2.7.6: Title input shows type-appropriate placeholder (e.g., "My Decision")
+  - 2.7.7: Created template dropdown with type-specific templates
+  - 2.7.8: Templates include: Blank, Component Selection, Design Choice (Decision); Blank, Electronic Part, Mechanical Part (Component); Blank, Task with Checklist (Task); Blank, Research Note (Note)
+  - 2.7.9: Template selection shows description for non-blank templates
+  - 2.7.10: Template resets to Blank when node type changes
+  - 2.7.11: Create button disabled when title is empty
+  - 2.7.12: Created node uses `generateNodeId()` for unique slug-based ID
+  - 2.7.13: Node creation uses `useUndoableAddNode` for undo support
+  - 2.7.14: Created node is set as active via `setActiveNode`
+  - 2.7.15: Dialog closes after successful creation
+  - 2.7.16: Form resets when dialog reopens
+  - 2.7.17: Wired up Ctrl/Cmd+Shift+N keyboard shortcut to open dialog
+  - 2.7.18: Keyboard shortcut hint displayed at bottom of dialog
+  - 2.7.19: Integrated `<CreateNodeDialog>` into `<AppShell>` for global hotkey
+  - 2.7.20: Created `useCreateNodeDialog` hook for external control of dialog state
+  - 2.7.21: Hook moved to `src/hooks/useCreateNodeDialog.ts` for fast-refresh compliance
+  - 2.7.22: Proper accessibility: radiogroup with aria-label, labels for all inputs, dialog role
+  - 2.7.23: Wrote 46 unit tests covering rendering, type selection, title input, templates, creation, controls, keyboard shortcuts, accessibility
+  - 2.7.24: All 737 tests passing, lint, type-check, and build all pass
+
+- feat-2.8: Node Deletion & Auto-Save (Delete confirmation and debounced auto-save)
+  - 2.8.1: Created `<DeleteNodeDialog>` component using AlertDialog
+  - 2.8.2: Dialog shows node title, type icon, and type label
+  - 2.8.3: Dialog warns about broken links - shows list of nodes that link to the node being deleted
+  - 2.8.4: Broken links warning truncates to 3 items with "and X more..." for long lists
+  - 2.8.5: Delete action shows undo toast with restore capability
+  - 2.8.6: Undo toast restores deleted node and sets it as active
+  - 2.8.7: Created `useDeleteNodeDialog` hook for controlling dialog state
+  - 2.8.8: Hook moved to `src/hooks/useDeleteNodeDialog.ts` for fast-refresh compliance
+  - 2.8.9: Created `useAutoSave` hook with configurable delay (default 2 seconds)
+  - 2.8.10: Auto-save monitors dirty state from useNodesStore
+  - 2.8.11: Auto-save only triggers when adapter and project are available
+  - 2.8.12: Auto-save provides callbacks: onSaveStart, onSaveSuccess, onSaveError
+  - 2.8.13: Created `saveNow()` function for manual immediate save
+  - 2.8.14: Created `<SaveIndicator>` component showing save status
+  - 2.8.15: SaveIndicator shows: idle, saving (with spinner), saved (with checkmark), unsaved, error
+  - 2.8.16: SaveIndicator has role="status" with aria-live="polite" for accessibility
+  - 2.8.17: Created `useSaveIndicator` hook combining auto-save with status tracking
+  - 2.8.18: "Saved" status auto-hides after configurable duration (default 2 seconds)
+  - 2.8.19: Created `useBeforeUnload` hook for unsaved changes warning
+  - 2.8.20: useBeforeUnload shows browser's native "Leave site?" dialog
+  - 2.8.21: Created `useUnsavedChangesWarning` convenience hook using nodes store dirty state
+  - 2.8.22: Exported all new components and hooks from their respective index files
+  - 2.8.23: Wrote 34 unit tests for DeleteNodeDialog (rendering, broken links, interactions, accessibility)
+  - 2.8.24: Wrote 17 unit tests for useAutoSave (initialization, auto-save behavior, saveNow, callbacks, isSaving)
+  - 2.8.25: Wrote 11 unit tests for useBeforeUnload (event listener management, handler behavior)
+  - 2.8.26: Wrote 27 unit tests for SaveIndicator (rendering, styling, accessibility, useSaveIndicator)
+  - 2.8.27: Wrote 9 unit tests for useDeleteNodeDialog (initialization, openForNode, close, state transitions)
+  - 2.8.28: All 819 tests passing, lint, type-check, and build all pass
+

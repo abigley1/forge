@@ -414,6 +414,8 @@ export function Sidebar({ className }: SidebarProps) {
             selected: null,
             options: [],
             criteria: [],
+            rationale: null,
+            selectedDate: null,
           } satisfies DecisionNode
           break
         case NodeType.Component:

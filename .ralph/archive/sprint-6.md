@@ -1,0 +1,107 @@
+# Sprint 6: Dependencies & Critical Path
+
+## Completed Tasks
+
+- feat-6.1: Dependency Graph Data Structure (DAG with cycle detection and topological sort)
+  - 6.1.1: Created `DependencyGraph` class with addNode, addEdge, removeNode, removeEdge, getEdges methods
+  - 6.1.2: Implemented adjacency list representation with both outgoing and incoming edge maps
+  - 6.1.3: Created `CycleError` class for cycle detection errors with cycle path information
+  - 6.1.4: Implemented `checkCycle(fromId, toId)` method using DFS to detect if edge would create cycle
+  - 6.1.5: Graph validates DAG on addEdge() - throws CycleError if cycle detected
+  - 6.1.6: Created `wouldCreateCycle(graph, fromId, toId)` standalone function for cycle checking
+  - 6.1.7: Created `topologicalSort(graph)` using Kahn's algorithm, handles disconnected subgraphs
+  - 6.1.8: Topological sort returns dependencies before dependents (proper execution order)
+  - 6.1.9: Created `buildDependencyGraph(dependencies)` factory from Map or Record
+  - 6.1.10: Created `getTransitiveDependencies(graph, nodeId)` for all ancestors
+  - 6.1.11: Created `getTransitiveDependents(graph, nodeId)` for all descendants
+  - 6.1.12: Additional methods: clone(), clear(), isEmpty(), nodeCount, edgeCount, getDependencies(), getDependents()
+  - 6.1.13: Wrote 77 unit tests covering all functionality, edge cases, and complex scenarios
+  - 6.1.14: All 1654 tests passing (77 new), lint, type-check, and build all pass
+
+- feat-6.2: Blocked Status & Propagation (Status change cascades with toast notifications)
+  - 6.2.1: Created `calculateBlockedStatus(node, allNodes)` returning BlockedStatusResult with isBlocked, blockingNodeIds, blockingNodes
+  - 6.2.2: Created `isDependencyResolved(node)` checking Task complete or Decision selected status
+  - 6.2.3: Created `shouldBeBlocked(node, allNodes)` utility for determining if node should be blocked
+  - 6.2.4: Created `calculateNodesToUnblock(nodeId, allNodes)` for previewing unblock effects
+  - 6.2.5: Created `calculateStatusCascade(nodeId, newStatus, allNodes)` for cascade propagation
+  - 6.2.6: Created `getBlockedNodes(allNodes)` returning Set of all currently blocked node IDs
+  - 6.2.7: Created `getBlockingNodes(allNodes)` returning Set of all nodes blocking others
+  - 6.2.8: Created `BlockingNodeInfo` interface with id, title, type, status, requiredStatus
+  - 6.2.9: Created `<BlockedIndicator>` component with red badge and tooltip showing blocking nodes
+  - 6.2.10: Tooltip lists each blocking node with current status → required status
+  - 6.2.11: Click on blocking node in tooltip navigates to it (onBlockingNodeClick callback)
+  - 6.2.12: Size variants (sm/md/lg) and full accessibility (aria-label, aria-expanded, aria-haspopup)
+  - 6.2.13: Created `<UnblockPreview>` component showing nodes that will be unblocked
+  - 6.2.14: UnblockPreview has 'badge' and 'tooltip' variants for different UI contexts
+  - 6.2.15: UnblockPreview shows green unlock icon with node count and hover tooltip
+  - 6.2.16: Tooltip lists nodes that will be unblocked with NodeTypeIcon and clickable navigation
+  - 6.2.17: Created `useBlockedStatus` hook integrating with NodesStore
+  - 6.2.18: Hook provides blockedStatus for a specific node (via nodeId option)
+  - 6.2.19: Hook provides getBlockedStatusForNode(id) for any node
+  - 6.2.20: Hook provides getNodesToUnblock(id) for cascade preview
+  - 6.2.21: Hook provides blockedNodeIds and blockingNodeIds for graph-level queries
+  - 6.2.22: Hook provides checkShouldBeBlocked(id) utility
+  - 6.2.23: Hook provides updateStatusWithCascade(id, status) that updates node and cascades
+  - 6.2.24: Status cascade automatically updates blocked nodes to 'pending' when unblocked
+  - 6.2.25: Toast notification shows newly unblocked nodes ("Node unblocked: X is now ready")
+  - 6.2.26: Multiple unblocked nodes show count toast ("3 nodes unblocked: X, Y, Z...")
+  - 6.2.27: Toast truncates to 3 nodes with "and N more" for long lists
+  - 6.2.28: Created `useUnblockPreview` hook for convenient unblock preview data
+  - 6.2.29: Created `useNodeBlockedStatus` hook for single-node blocked status
+  - 6.2.30: Wrote 46 unit tests for src/lib/blockedStatus.ts
+  - 6.2.31: Wrote 25 unit tests for src/hooks/useBlockedStatus.ts
+  - 6.2.32: Wrote 28 unit tests for BlockedIndicator and UnblockPreview components
+  - 6.2.33: All 1753 tests passing (99 new), lint, type-check, and build all pass
+
+- feat-6.3: Critical Path Visualization (Show longest chain through incomplete tasks)
+  - 6.3.1: Created `CriticalPathResult` interface with nodes, nodeIds, edgeKeys, length, hasPath
+  - 6.3.2: Created `calculateCriticalPath(nodes)` using dynamic programming on topologically sorted graph
+  - 6.3.3: Created `isOnCriticalPath(nodeId, result)` helper function
+  - 6.3.4: Created `isEdgeOnCriticalPath(sourceId, targetId, result)` helper function
+  - 6.3.5: Created `getCriticalPathPosition(nodeId, result)` to get position in path (0-indexed)
+  - 6.3.6: Created `calculateSlack(nodes, criticalPath)` for slack analysis
+  - 6.3.7: Created `getNonCriticalIncompleteNodes(nodes, criticalPath)` for filtering
+  - 6.3.8: Created `useCriticalPath()` React hook integrating with NodesStore
+  - 6.3.9: Hook provides: criticalPath, checkIsOnCriticalPath, checkIsEdgeOnCriticalPath, getNodePosition
+  - 6.3.10: Hook memoizes results based on nodes Map changes
+  - 6.3.11: Created `<CriticalPathBadge>` component with amber styling
+  - 6.3.12: Badge shows tooltip with full path and clickable navigation
+  - 6.3.13: Updated `ForgeGraphNode` component to support isOnCriticalPath and criticalPathPosition data
+  - 6.3.14: Updated `DependencyEdge` component to support isOnCriticalPath styling
+  - 6.3.15: Added amber color (#f59e0b) and thicker stroke (3px) for critical path edges
+  - 6.3.16: Integrated critical path into GraphView with showCriticalPath prop (default: true)
+  - 6.3.17: Fixed infinite render loop in GraphView by adding ID-based comparison for React Flow sync
+  - 6.3.18: Updated processedNodes useMemo to add isOnCriticalPath and criticalPathPosition to nodes
+  - 6.3.19: Updated processedEdges useMemo to add isOnCriticalPath to edges
+  - 6.3.20: Added exports to src/hooks/index.ts and src/components/nodes/index.ts
+  - 6.3.21: Wrote 47 unit tests for src/lib/criticalPath.ts (was 49, removed 2 invalid tests)
+  - 6.3.22: All 1808 tests passing, lint, type-check, and build all pass
+
+- feat-6.5: Milestones (Optional milestone field with grouping and progress)
+  - 6.5.1: Added optional `milestone?: string` field to TaskNode interface in src/types/nodes.ts
+  - 6.5.2: Added milestone to taskFrontmatterSchema in src/lib/validation.ts
+  - 6.5.3: Added milestone to taskNodeSchema in src/lib/validation.ts
+  - 6.5.4: Added milestone to FIELD_ORDER in src/lib/frontmatter.ts for proper serialization ordering
+  - 6.5.5: Created `MilestoneSelector` component with autocomplete dropdown
+  - 6.5.6: MilestoneSelector supports selecting from existing milestones or creating new inline
+  - 6.5.7: MilestoneSelector has clear button, keyboard navigation (arrow keys, Enter, Escape)
+  - 6.5.8: MilestoneSelector fully accessible with ARIA combobox pattern
+  - 6.5.9: Created `extractMilestones()` utility function to get unique milestones from nodes
+  - 6.5.10: Integrated MilestoneSelector into FrontmatterEditor for task nodes
+  - 6.5.11: Added MilestoneSelector and extractMilestones exports to src/components/detail/index.ts
+  - 6.5.12: Created `MilestoneProgress` interface for progress tracking
+  - 6.5.13: Created `MilestoneGroup` interface for milestone grouping
+  - 6.5.14: Created `calculateMilestoneProgress()` function for completion statistics
+  - 6.5.15: Created `groupTasksByMilestone()` function with alphabetical sorting and "No Milestone" last
+  - 6.5.16: Created `getAllMilestones()` function to extract unique milestones from nodes
+  - 6.5.17: Created milestone collapse state persistence functions (localStorage)
+  - 6.5.18: Created `MilestoneOutlineView` component showing tasks grouped by milestone
+  - 6.5.19: MilestoneOutlineView has collapsible sections with progress indicators
+  - 6.5.20: Progress indicator shows bar and completed/total count
+  - 6.5.21: Full keyboard navigation support (Arrow Up/Down, Home/End, Enter)
+  - 6.5.22: Collapse state persists to localStorage
+  - 6.5.23: Added MilestoneOutlineView export to src/components/outline/index.ts
+  - 6.5.24: Wrote 17 unit tests for MilestoneSelector component
+  - 6.5.25: Wrote 25 unit tests for milestone grouping functions
+  - 6.5.26: All 1878 tests passing, lint clean, type-check clean, build succeeds
+

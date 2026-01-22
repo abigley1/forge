@@ -1,0 +1,143 @@
+# Sprint 4: Wiki-Links & Backlinks
+
+## Completed Tasks
+
+- feat-4.1: Link Index (Bidirectional link index for outgoing and backlinks)
+  - 4.1.1: Created `LinkIndex` interface with outgoing and incoming Maps (Set<string>)
+  - 4.1.2: Created `createEmptyLinkIndex()` factory function
+  - 4.1.3: Created `resolveLinkTarget()` for resolving wiki-link targets by ID or title
+  - 4.1.4: Created `buildLinkIndex(nodes)` that extracts wiki-links and builds bidirectional index
+  - 4.1.5: Links resolved by exact ID match, case-insensitive title match, or case-insensitive ID match
+  - 4.1.6: Self-links and broken links (non-existent targets) are excluded from index
+  - 4.1.7: Created helper functions: getOutgoingLinks(), getIncomingLinks(), getRelatedNodes()
+  - 4.1.8: Created utility functions: hasLinks(), getOutgoingLinkCount(), getIncomingLinkCount()
+  - 4.1.9: Created `findBrokenLinks()` for detecting unresolved link targets
+  - 4.1.10: Created `isValidLink()` for checking if a link target exists
+  - 4.1.11: Added `linkIndex` to NodesState interface in useNodesStore
+  - 4.1.12: Added `rebuildLinkIndex()` action for manual rebuilding
+  - 4.1.13: Added `getOutgoingLinks()` and `getIncomingLinks()` selectors to store
+  - 4.1.14: Store automatically rebuilds linkIndex on addNode, deleteNode, setNodes, clearNodes
+  - 4.1.15: Store only rebuilds linkIndex on updateNode when content changes (optimization)
+  - 4.1.16: Added `selectLinkIndex` standalone selector for shallow comparison
+  - 4.1.17: Updated store exports in index.ts
+  - 4.1.18: Wrote 42 unit tests for src/lib/links.ts covering all functions
+  - 4.1.19: Wrote 12 additional unit tests for store linkIndex integration
+  - 4.1.20: All 1146 tests passing, lint, type-check, and build all pass
+
+- feat-4.2: Wiki-Link Autocomplete (Autocomplete for [[wiki-links]] in editor)
+  - 4.2.1: Created `createWikiLinkAutocomplete()` function returning CodeMirror extensions
+  - 4.2.2: Autocomplete triggers on `[[` character sequence
+  - 4.2.3: Suggestions filter by typed text after `[[` using fuzzy matching
+  - 4.2.4: Fuzzy matching ranks exact > prefix > word-start > contains matches
+  - 4.2.5: Enter key inserts selected suggestion as `[[node-title]]`
+  - 4.2.6: Escape key dismisses autocomplete menu
+  - 4.2.7: Created `NodeSuggestion` type with id, title, and type properties
+  - 4.2.8: Created `nodeToSuggestion()` converter function for ForgeNode to NodeSuggestion
+  - 4.2.9: Created `nodesToSuggestions()` batch converter for Map<string, ForgeNode>
+  - 4.2.10: Autocomplete menu styled with node type icons and colors
+  - 4.2.11: Created custom theme extension for autocomplete tooltip styling
+  - 4.2.12: Created keymap extension for Enter/Escape handling
+  - 4.2.13: Created trigger plugin that detects `[[` and starts completion
+  - 4.2.14: Exported startCompletion and closeCompletion for programmatic control
+  - 4.2.15: Created `<WikiLinkAnnouncer>` component with aria-live="polite"
+  - 4.2.16: Announcer uses role="status" and aria-atomic="true" for screen readers
+  - 4.2.17: Announcer supports configurable politeness level (polite/assertive)
+  - 4.2.18: Announcer uses sr-only class for visual hiding
+  - 4.2.19: Created `useWikiLinkAutocomplete` hook for store integration
+  - 4.2.20: Hook excludes current node from suggestions via currentNodeId option
+  - 4.2.21: Hook provides onLinkInserted callback that sets announcement
+  - 4.2.22: Hook provides onAutocompleteNavigate for announcing current selection
+  - 4.2.23: Hook provides onAutocompleteResultCountChange for announcing result counts
+  - 4.2.24: Announcements include: "Link inserted to {title}", "{title}, {type}, N results", "N suggestions available", "No matching nodes found"
+  - 4.2.25: Announcement auto-clears after 1 second timeout
+  - 4.2.26: Hook returns lastInsertedLinkId for tracking recently inserted links
+  - 4.2.27: Updated MarkdownEditor with enableWikiLinks, nodes, onLinkInserted, onAutocompleteNavigate, onAutocompleteResultCountChange, maxAutocompleteSuggestions props
+  - 4.2.28: MarkdownEditor memoizes nodes array for stable getNodes function reference
+  - 4.2.29: MarkdownEditor enables completionKeymap when wiki-links enabled
+  - 4.2.30: Exported WikiLinkAnnouncer and WikiLinkAnnouncerProps from editor index
+  - 4.2.31: Exported useWikiLinkAutocomplete and types from hooks index
+  - 4.2.32: Wrote 26 unit tests for wikiLinkAutocomplete (conversion, extension, type tests)
+  - 4.2.33: Wrote 21 unit tests for WikiLinkAnnouncer (rendering, accessibility, content)
+  - 4.2.34: Wrote 20 unit tests for useWikiLinkAutocomplete (initialization, store, callbacks, announcements)
+  - 4.2.35: All 1213 tests passing, lint, type-check, and build all pass
+
+- feat-4.4: Backlinks Panel (Panel showing all nodes linking to current node)
+  - 4.4.1: Created `extractLinkContexts(content, linkTarget, contextChars)` for extracting context snippets
+  - 4.4.2: Context extraction shows ~50 chars before/after [[wiki-links]] with ellipsis truncation
+  - 4.4.3: Created `findLinkContext(sourceNode, targetNode)` that tries ID match then title match
+  - 4.4.4: Created `<BacklinksPanel>` collapsible panel component
+  - 4.4.5: Panel header shows count badge with expand/collapse toggle
+  - 4.4.6: Each backlink shows NodeTypeIcon, title, and highlighted context snippets
+  - 4.4.7: Context snippets highlight [[wiki-links]] with amber background
+  - 4.4.8: Maximum 2 context snippets shown per backlink with "+N more mentions" indicator
+  - 4.4.9: Empty state with Link2 icon and helpful message
+  - 4.4.10: Full keyboard accessibility (Enter/Space toggle, focus management)
+  - 4.4.11: Click on backlink item calls onNavigate callback
+  - 4.4.12: Created `<RelatedNodes>` component showing both directions
+  - 4.4.13: "Links from here" section shows outgoing links (nodes this node links TO)
+  - 4.4.14: "Links to here" section shows incoming links/backlinks (nodes linking TO this node)
+  - 4.4.15: Each section independently collapsible with chevron icons
+  - 4.4.16: RelatedNodeItem shows direction arrow, type icon, title, and type label on hover
+  - 4.4.17: Empty state when no related nodes with wiki-link hint
+  - 4.4.18: Created `src/components/links/linkContext.ts` with context extraction utilities
+  - 4.4.19: Created `src/components/links/index.ts` with clean exports
+  - 4.4.20: Wrote 42 unit tests covering all components and utilities
+  - 4.4.21: All 1318 tests passing, lint, type-check, and build all pass
+
+- feat-4.3: Clickable Links & Navigation (Navigate via Cmd+Click with preview)
+  - 4.3.1: Created `createWikiLinkDecorations()` CodeMirror extension factory
+  - 4.3.2: Implemented wiki-link decorations with underline styling and pointer cursor
+  - 4.3.3: Valid links styled blue (#2563eb), broken links styled red dashed (#dc2626)
+  - 4.3.4: Dark mode variants: blue-400 for valid, red-400 for broken
+  - 4.3.5: Implemented Cmd/Ctrl+Click navigation handler that navigates to linked nodes
+  - 4.3.6: Click handler resolves link target and calls onLinkClick or onBrokenLinkClick
+  - 4.3.7: Created `<WikiLinkPreview>` hover preview tooltip component
+  - 4.3.8: Preview shows node title, type badge with icon (using NODE_TYPE_ICON_CONFIG)
+  - 4.3.9: Preview shows first 100 chars of content via createContentPreview()
+  - 4.3.10: Preview shows keyboard shortcut hint (Cmd+Click / Ctrl+Click)
+  - 4.3.11: Broken link preview shows "Create Linked Node" button
+  - 4.3.12: Hover preview positioned below link (or above if insufficient space)
+  - 4.3.13: Preview dismissible via Escape key
+  - 4.3.14: Created `useWikiLinkNavigation` hook for complete integration
+  - 4.3.15: Hook provides decorationOptions for createWikiLinkDecorations
+  - 4.3.16: Hook manages preview state (visible, linkInfo, anchorRect)
+  - 4.3.17: Hook integrates with useNodeNavigation for Cmd+Click navigation
+  - 4.3.18: Hook integrates with resolveLinkTarget from src/lib/links.ts
+  - 4.3.19: Hook provides handleNavigate, handleCreate, dismissPreview handlers
+  - 4.3.20: Hook supports currentNodeId option to prevent self-navigation
+  - 4.3.21: Hook provides onCreateNode callback for broken link "Create" action
+  - 4.3.22: Updated MarkdownEditor with enableWikiLinkDecorations and wikiLinkDecorationOptions props
+  - 4.3.23: findWikiLinks() extracts links, excludes code blocks and inline code
+  - 4.3.24: isInsideCode() checks fenced blocks, indented blocks, and inline code
+  - 4.3.25: Exported all new types and functions from editor/index.ts
+  - 4.3.26: Exported useWikiLinkNavigation from hooks/index.ts
+  - 4.3.27: Wrote 24 unit tests for wikiLinkDecorations (extraction, preview, types)
+  - 4.3.28: Wrote 22 unit tests for WikiLinkPreview (rendering, interactions, accessibility)
+  - 4.3.29: Wrote 17 unit tests for useWikiLinkNavigation (resolution, handlers, state)
+  - 4.3.30: All 1276 tests passing, lint, type-check, and build all pass
+
+- feat-4.5: Link Validation (Broken link detection, warning badge, renaming dialog)
+  - 4.5.1: Verified broken links already styled red dashed underline (from task 4.3)
+  - 4.5.2: Created `useBrokenLinks` hook to detect broken [[wiki-links]] in content
+  - 4.5.3: Created `<BrokenLinksBadge>` component showing broken link count with warning icon
+  - 4.5.4: Badge displays on hover dropdown listing all broken links
+  - 4.5.5: Each broken link clickable (onBrokenLinkClick callback for navigation/creation)
+  - 4.5.6: Created `<LinkRenamingDialog>` component for title change detection
+  - 4.5.7: Dialog shows old title -> new title preview with arrow
+  - 4.5.8: Dialog lists all nodes that reference the renamed node with counts
+  - 4.5.9: "Update All" button updates all [[wiki-links]] across referencing nodes
+  - 4.5.10: "Skip" button closes dialog without updating references
+  - 4.5.11: Created `useLinkRenaming` hook for managing renaming state
+  - 4.5.12: Hook detects title changes via checkTitleChange(oldTitle, newTitle)
+  - 4.5.13: Hook provides updateAllReferences() for batch content updates
+  - 4.5.14: Created `updateWikiLinkReferences()` utility for content replacement
+  - 4.5.15: Created `countWikiLinkReferences()` utility for counting references
+  - 4.5.16: Reference replacement is case-insensitive, handles special characters
+  - 4.5.17: Updated nodes marked as dirty and tracked for auto-save
+  - 4.5.18: All components fully accessible (aria-labels, tooltips, keyboard nav)
+  - 4.5.19: Wrote 12 unit tests for useBrokenLinks hook
+  - 4.5.20: Wrote 19 unit tests for BrokenLinksBadge component
+  - 4.5.21: Wrote 22 unit tests for LinkRenamingDialog component
+  - 4.5.22: Wrote 23 unit tests for useLinkRenaming hook and utilities
+  - 4.5.23: All 1394 tests passing, lint, type-check, and build all pass
+

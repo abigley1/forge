@@ -853,7 +853,7 @@
       "sprint": 10,
       "title": "Accessibility Audit & Fixes",
       "description": "WCAG 2.1 compliance verification and fixes",
-      "tools": ["rams", "playwright"],
+      "tools": ["/rams", "/playwright"],
       "acceptanceCriteria": [
         "axe-core audit completed on all views",
         "Screen reader testing documented (VoiceOver, NVDA)",
@@ -874,7 +874,7 @@
       "sprint": 10,
       "title": "Dark Mode",
       "description": "Dark theme with system preference",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "Dark mode theme using Tailwind dark: prefix",
         "All components visible in dark mode",
@@ -887,7 +887,7 @@
       "sprint": 10,
       "title": "Reduced Motion & Loading States",
       "description": "Motion preferences and loading UI",
-      "tools": ["frontend-design", "rams"],
+      "tools": ["/frontend-design", "/rams"],
       "acceptanceCriteria": [
         "prefers-reduced-motion disables animations",
         "Loading states use structural skeletons with aria-busy"
@@ -898,7 +898,7 @@
       "sprint": 10,
       "title": "Onboarding & Help",
       "description": "First-run experience and keyboard shortcuts reference",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "First-run welcome dialog with quick tips for new users",
         "Keyboard shortcuts reference accessible via ? shortcut"
@@ -909,7 +909,7 @@
       "sprint": 10,
       "title": "Cross-Browser Testing",
       "description": "Verify core functionality across browsers",
-      "tools": ["playwright"],
+      "tools": ["/playwright"],
       "acceptanceCriteria": [
         "Core functionality works in Chrome, Firefox, Safari, Edge"
       ]
@@ -919,7 +919,7 @@
       "sprint": 11,
       "title": "Workspace Management",
       "description": "Multi-project workspace with switcher and settings",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "Workspace loader reads .forge/config.json, handles missing/corrupted config",
         "ProjectSwitcher dropdown with project list, active indicator, search/filter",
@@ -932,7 +932,7 @@
       "sprint": 11,
       "title": "Git Integration",
       "description": "Git status and optional auto-commit",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "Git status detection: repo, branch name, uncommitted changes",
         "Git status indicator: branch name, changes count, clean/dirty icon",

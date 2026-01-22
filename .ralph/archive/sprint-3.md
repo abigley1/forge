@@ -1,0 +1,143 @@
+# Sprint 3: Filtering, Sorting & Navigation
+
+## Completed Tasks
+
+- feat-3.1: Outline View (Hierarchical collapsible outline by node type with keyboard navigation)
+  - 3.1.1: Created `groupNodesByType(nodes)` utility function in `src/lib/outline.ts`
+  - 3.1.2: Handles empty groups, returns groups in consistent NODE_TYPE_ORDER
+  - 3.1.3: Created `<CollapsibleSection>` component with animated height transition
+  - 3.1.4: Animates height using transform-based CSS transitions (200ms ease-in-out)
+  - 3.1.5: Enter/Space toggle on section headers
+  - 3.1.6: Respects prefers-reduced-motion media query
+  - 3.1.7: Created `<OutlineView>` component with collapsible sections by node type
+  - 3.1.8: Collapse state persists in localStorage via `getPersistedCollapseState()` and `persistCollapseState()`
+  - 3.1.9: Full keyboard navigation: Arrow up/down, Home/End, Enter to select
+  - 3.1.10: Type-ahead search - typing characters focuses first matching node title
+  - 3.1.11: Quick status toggle on task nodes: pending -> in_progress -> complete cycle
+  - 3.1.12: Status toggle button shows Circle/CircleDot/CheckCircle2 icons
+  - 3.1.13: Created `<ViewToggle>` component to switch between Outline/Graph views
+  - 3.1.14: Ctrl/Cmd+1 switches to Outline view, Ctrl/Cmd+2 switches to Graph view
+  - 3.1.15: ViewToggle shows keyboard shortcut hints (⌘1, ⌘2)
+  - 3.1.16: Tab-style segmented control with aria-selected states
+  - 3.1.17: Added matchMedia mock to test setup for prefers-reduced-motion testing
+  - 3.1.18: Wrote 56 unit tests (18 for outline utilities, 38 for outline components)
+  - 3.1.19: All 892 tests passing, lint, type-check, and build all pass
+
+- feat-3.2: Filtering System (Filter by type, tag, status with URL sync)
+  - 3.2.1: Installed nuqs v2+ and configured NuqsAdapter at app root in main.tsx
+  - 3.2.2: Created `useFilters` hook with URL-synced state via nuqs
+  - 3.2.3: Hook manages types, tags, statuses, and search filters in URL query params
+  - 3.2.4: Created `<TypeFilter>` with toggle buttons (aria-pressed) for node types
+  - 3.2.5: Toggle buttons show selected state, stored in URL (?types=task,decision)
+  - 3.2.6: Created `<TagFilter>` with multi-select AND logic
+  - 3.2.7: Selected tags shown as removable chips, available tags as clickable buttons
+  - 3.2.8: AND logic hint displayed when multiple tags selected
+  - 3.2.9: Created `<StatusFilter>` with checkboxes organized by category (Task, Decision/Component)
+  - 3.2.10: All statuses have colored dots and labels for accessibility
+  - 3.2.11: Created `<NodeSearchInput>` with 150ms debounce via custom useDebounce hook
+  - 3.2.12: Search input has clear button (X), Escape key clears, type="search" for semantics
+  - 3.2.13: Created `<FilterResultsAnnouncer>` with aria-live="polite" for screen reader announcements
+  - 3.2.14: Announces result counts on filter changes with 300ms debounce
+  - 3.2.15: Created `<FilterResultsCount>` visual display with "Clear filters" button
+  - 3.2.16: Updated `<TagCloud>` to integrate with filters - click toggles tag filter
+  - 3.2.17: TagCloud shows selected tags with different styling (aria-pressed)
+  - 3.2.18: Updated `<FilterSection>` in Sidebar to use all filter components
+  - 3.2.19: Filters section title shows count when filters active
+  - 3.2.20: filterNodes() function supports all filter combinations (type OR, tag AND, status OR, search)
+  - 3.2.21: Created `src/components/filters/` directory with index.ts exports
+  - 3.2.22: Updated `src/hooks/index.ts` to export useFilters hook
+  - 3.2.23: Wrote 48 unit tests for filter components (TypeFilter, TagFilter, StatusFilter, NodeSearchInput, FilterResultsAnnouncer, FilterResultsCount)
+  - 3.2.24: Wrote 15 unit tests for useFilters filterNodes logic
+  - 3.2.25: Updated Sidebar.test.tsx and AppShell.test.tsx with NuqsTestingAdapter wrapper
+  - 3.2.26: All 940 tests passing, lint, type-check, and build all pass
+
+- feat-3.3: Sorting (Sort by type, status, modified, title, created with URL sync)
+  - 3.3.1: Created `sortNodes(nodes, sortBy, direction)` utility function in `src/lib/sorting.ts`
+  - 3.3.2: Implements stable sort preserving original order for equal elements
+  - 3.3.3: Sort options: type, status, modified, created, title
+  - 3.3.4: Type sort order: Decision > Component > Task > Note
+  - 3.3.5: Status sort order: in_progress > pending > blocked > complete > considering > selected > rejected
+  - 3.3.6: Created `DEFAULT_SORT` config (modified, desc) and `SORT_OPTIONS` array
+  - 3.3.7: Created `<SortDropdown>` component with select and direction toggle button
+  - 3.3.8: Direction toggle shows ArrowUp/ArrowDown icons with accessible labels
+  - 3.3.9: Created `useSorting` hook with URL-synced state via nuqs
+  - 3.3.10: Sort criteria stored in URL (?sort=title&dir=asc)
+  - 3.3.11: Default values don't appear in URL (modified, desc)
+  - 3.3.12: Integrated SortDropdown into Sidebar FilterSectionContent
+  - 3.3.13: Updated hooks/index.ts to export useSorting hook
+  - 3.3.14: Updated filters/index.ts to export SortDropdown component
+  - 3.3.15: Wrote 21 unit tests for sorting utility (stable sort, all criteria, edge cases)
+  - 3.3.16: Wrote 13 unit tests for useSorting hook
+  - 3.3.17: Wrote 9 unit tests for SortDropdown component
+  - 3.3.18: All 983 tests passing, lint, type-check, and build all pass
+
+- feat-3.4: Drag and Drop Reordering (Manual node ordering with persistence)
+  - 3.4.1: Installed @dnd-kit packages (@dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, @dnd-kit/modifiers)
+  - 3.4.2: Created `<SortableNodeListItem>` component wrapping node items with drag functionality
+  - 3.4.3: SortableNodeListItem uses useSortable hook for drag state and transform handling
+  - 3.4.4: Separate drag handle (GripVertical icon) and main clickable content area
+  - 3.4.5: Visual feedback during drag: shadow, ring-2, opacity-90, z-50
+  - 3.4.6: Drag handle has aria-label for accessibility ("Drag to reorder {title}")
+  - 3.4.7: Created `<SortableNodeList>` component with DnD context provider
+  - 3.4.8: Uses PointerSensor with 5px distance activation constraint
+  - 3.4.9: Uses KeyboardSensor with sortableKeyboardCoordinates for keyboard drag
+  - 3.4.10: Implements closestCenter collision detection strategy
+  - 3.4.11: DragOverlay renders dragged item preview
+  - 3.4.12: Keyboard navigation: Arrow up/down, Home/End for list navigation
+  - 3.4.13: Created `useNodeOrder` hook for managing order state with persistence
+  - 3.4.14: Hook reads nodeOrder from project.metadata.nodeOrder
+  - 3.4.15: orderedNodes computed property sorts nodes by stored order
+  - 3.4.16: New nodes not in stored order appended at end
+  - 3.4.17: reorder(newOrder) updates project metadata and auto-saves
+  - 3.4.18: resetOrder() clears custom order (returns to default)
+  - 3.4.19: hasCustomOrder boolean indicates if custom order exists
+  - 3.4.20: Created `applyNodeOrder(nodes, order)` utility for sorting filtered nodes
+  - 3.4.21: Created `reconcileNodeOrder(nodes, storedOrder)` for handling additions/deletions
+  - 3.4.22: Exported new components from `src/components/nodes/index.ts`
+  - 3.4.23: Exported useNodeOrder from `src/hooks/index.ts`
+  - 3.4.24: Wrote 23 unit tests for SortableNodeList and SortableNodeListItem
+  - 3.4.25: Wrote 19 unit tests for useNodeOrder hook and utility functions
+  - 3.4.26: All 1025 tests passing, lint, type-check, and build all pass
+
+- feat-3.5: URL-Based Navigation (Deep linking with nuqs for node selection and breadcrumbs)
+  - 3.5.1: Created `useNodeNavigation` hook in `src/hooks/useNodeNavigation.ts`
+  - 3.5.2: Hook syncs activeNodeId with URL query parameter (?node=id) via nuqs
+  - 3.5.3: `navigateToNode(id)` function updates both URL and Zustand store
+  - 3.5.4: Validates node exists before navigation (warns for non-existent nodes)
+  - 3.5.5: Browser back/forward navigation works via URL sync with nuqs
+  - 3.5.6: `goBack()` and `goForward()` helper functions for programmatic navigation
+  - 3.5.7: `canGoBack` and `canGoForward` boolean properties
+  - 3.5.8: Created `<Breadcrumbs>` component in `src/components/navigation/Breadcrumbs.tsx`
+  - 3.5.9: Breadcrumbs shows Project > Node Type > Node path
+  - 3.5.10: Project segment is always clickable, navigates to null (clears node)
+  - 3.5.11: Node type segment shows pluralized label (Tasks, Decisions, Components, Notes)
+  - 3.5.12: Type segment clickable when `onTypeClick` prop provided (for filtering)
+  - 3.5.13: Current node segment has `aria-current="page"` for accessibility
+  - 3.5.14: Home icon in project segment, chevron separators between segments
+  - 3.5.15: Long titles truncated with CSS (max-w-[150px]/[200px])
+  - 3.5.16: Created `src/components/navigation/index.ts` with clean exports
+  - 3.5.17: Exported `useNodeNavigation` from `src/hooks/index.ts`
+  - 3.5.18: Wrote 16 unit tests for useNodeNavigation hook
+  - 3.5.19: Wrote 23 unit tests for Breadcrumbs component
+  - 3.5.20: All 1064 tests passing, lint, type-check, and build all pass
+
+- feat-3.6: List Virtualization (Virtualize node lists for performance)
+  - 3.6.1: Installed @tanstack/react-virtual package
+  - 3.6.2: Created `<VirtualizedNodeList>` component using useVirtualizer hook
+  - 3.6.3: Virtualizer renders only visible items plus overscan buffer (5 items)
+  - 3.6.4: Estimated item height of 44px for smooth scrolling
+  - 3.6.5: Full keyboard navigation support (Arrow Up/Down, Home/End, Enter)
+  - 3.6.6: Active node automatically scrolled into view when changed
+  - 3.6.7: Focus state maintained across virtual renders using data-node-id attribute
+  - 3.6.8: Container uses `contain: strict` for layout isolation performance
+  - 3.6.9: Created `<AutoNodeList>` component that auto-switches based on count
+  - 3.6.10: VIRTUALIZATION_THRESHOLD constant set to 50 items
+  - 3.6.11: AutoNodeList uses regular NodeList for <=50 items, VirtualizedNodeList for >50
+  - 3.6.12: `forceVirtualized` prop available to always use virtualization
+  - 3.6.13: Empty state rendering supported with onCreateNode callback
+  - 3.6.14: Updated NodeListItem to accept additional HTML attributes via spread
+  - 3.6.15: Exported VirtualizedNodeList, AutoNodeList, VIRTUALIZATION_THRESHOLD from index
+  - 3.6.16: Wrote 28 unit tests covering rendering, keyboard nav, performance
+  - 3.6.17: Performance tests verify 200+ nodes render in <500ms
+  - 3.6.18: All 1092 tests passing, lint, type-check, and build all pass
+
