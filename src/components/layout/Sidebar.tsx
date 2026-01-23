@@ -2,7 +2,7 @@
  * Sidebar Navigation Component
  *
  * Main navigation sidebar with:
- * - Project switcher (header)
+ * - Project switcher (header) with dropdown for switching projects
  * - Quick create buttons for all node types
  * - Filters section (type, status, search)
  * - Tag cloud from nodes
@@ -18,7 +18,6 @@ import {
   Plus,
   ChevronDown,
   ChevronRight,
-  FolderOpen,
   Filter,
   Tags,
   Download,
@@ -35,7 +34,7 @@ import type {
   ComponentNode,
   NoteNode,
 } from '@/types/nodes'
-import { useNodesStore, useProjectStore } from '@/store'
+import { useNodesStore } from '@/store'
 import { generateNodeId } from '@/lib/project'
 import { useUndoableAddNode, useFilters, useSorting } from '@/hooks'
 import {
@@ -47,6 +46,11 @@ import {
 } from '@/components/filters'
 import { ExportDialog } from '@/components/export/ExportDialog'
 import { ImportDialog } from '@/components/export/ImportDialog'
+import {
+  ProjectSwitcher,
+  CreateProjectDialog,
+  ProjectSettingsDialog,
+} from '@/components/workspace'
 import type { Project } from '@/types/project'
 import { createProjectMetadata } from '@/types/project'
 
@@ -206,34 +210,6 @@ function QuickCreateButton({ nodeType, onClick }: QuickCreateButtonProps) {
       />
       <span className="truncate">{config.label}</span>
     </button>
-  )
-}
-
-// ============================================================================
-// ProjectSwitcher Component
-// ============================================================================
-
-/**
- * Project switcher showing current project name and node count
- */
-function ProjectSwitcher() {
-  const project = useProjectStore((state) => state.project)
-  const nodes = useNodesStore((state) => state.nodes)
-
-  return (
-    <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-      <FolderOpen className="h-5 w-5 text-gray-500" aria-hidden="true" />
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">
-          {project?.name || 'Forge'}
-        </h1>
-        <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-          {project
-            ? `${nodes.size} node${nodes.size === 1 ? '' : 's'}`
-            : 'No project loaded'}
-        </p>
-      </div>
-    </div>
   )
 }
 
@@ -404,6 +380,10 @@ export function Sidebar({ className }: SidebarProps) {
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
 
+  // Project management dialog state
+  const [createProjectOpen, setCreateProjectOpen] = useState(false)
+  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false)
+
   // Create a Project object from current nodes for export
   const currentProject = useMemo((): Project => {
     return {
@@ -520,7 +500,10 @@ export function Sidebar({ className }: SidebarProps) {
       aria-label="Main navigation"
     >
       {/* Project Switcher Header */}
-      <ProjectSwitcher />
+      <ProjectSwitcher
+        onSettingsClick={() => setProjectSettingsOpen(true)}
+        onCreateClick={() => setCreateProjectOpen(true)}
+      />
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -630,6 +613,18 @@ export function Sidebar({ className }: SidebarProps) {
         onOpenChange={setImportDialogOpen}
         onImportSuccess={handleImportSuccess}
         currentProject={currentProject}
+      />
+
+      {/* Create Project Dialog */}
+      <CreateProjectDialog
+        open={createProjectOpen}
+        onOpenChange={setCreateProjectOpen}
+      />
+
+      {/* Project Settings Dialog */}
+      <ProjectSettingsDialog
+        open={projectSettingsOpen}
+        onOpenChange={setProjectSettingsOpen}
       />
     </nav>
   )

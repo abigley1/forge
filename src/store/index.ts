@@ -79,6 +79,21 @@ export type {
 } from './useCommandRegistry'
 export { selectCommands, selectCommandCount } from './useCommandRegistry'
 
+// Workspace store
+export { useWorkspaceStore } from './useWorkspaceStore'
+export type {
+  WorkspaceState,
+  WorkspaceActions,
+  WorkspaceSelectors,
+  WorkspaceStore,
+  ProjectSummary,
+} from './useWorkspaceStore'
+export {
+  selectProjects,
+  selectActiveProjectId,
+  selectConfig,
+} from './useWorkspaceStore'
+
 // Store type utilities
 export type { ExtractState, Selector, StateCreator, AsyncState } from './types'
 export { initialAsyncState } from './types'

@@ -429,18 +429,77 @@
   - Fixed dialog label changes when node title is modified
 - **475 E2E tests passing**
 
-## Current Focus
-Sprint 10 in progress - All tasks complete:
-- Task 10.1 complete: Full accessibility audit with axe-core, 31 E2E accessibility tests passing
-- Task 10.5 complete: Comprehensive E2E testing infrastructure with Playwright
-- Task E2E.1 complete: 475 E2E tests covering all major features
-- All 2469 unit tests passing
+## Sprint 11: Multi-Project Workspace
 
-Next tasks in Sprint 10:
+### Task 11.1: Workspace Management ✓
+- Created `useWorkspaceStore` Zustand store with persistence:
+  - `ProjectSummary` type with id, name, nodeCount, description, modifiedAt
+  - `projects` array with CRUD operations (addProject, updateProject, removeProject)
+  - `activeProjectId` tracking with `setActiveProject()`
+  - `recentProjectIds` for recently accessed projects
+  - `getSortedProjects()` returns projects with recent first
+  - LocalStorage persistence with Date serialization handling
+- Created `ProjectSwitcher` component:
+  - Dropdown in sidebar header showing current project name and node count
+  - Project list with search/filter functionality using fuzzy search
+  - Visual indicator (checkmark) for active project
+  - Settings button for opening project settings
+  - "Create New Project" button in dropdown footer
+- Created `QuickProjectSwitcher` component:
+  - Command palette-style dialog opened with Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows)
+  - Fuzzy search across project names with highlighted matches
+  - Recent projects shown first with "Recent" badge
+  - Full keyboard navigation (Arrow keys, Enter, Escape, Home/End)
+  - Result count and keyboard hints in footer
+- Created `CreateProjectDialog` component:
+  - Project name input with validation (required)
+  - Description field (optional)
+  - Folder selection button using File System Access API
+  - Shows selected folder path
+  - Create button disabled until name is entered
+- Created `ProjectSettingsDialog` component:
+  - Edit project name and description
+  - Project info display (node count, created date, modified date)
+  - Delete project with AlertDialog confirmation
+  - Cancel/Save buttons with dirty state tracking
+- Integrated workspace components into app:
+  - ProjectSwitcher in Sidebar header
+  - CreateProjectDialog and ProjectSettingsDialog wired to sidebar
+  - QuickProjectSwitcher in App.tsx with global keyboard shortcut
+  - WelcomeScreen uses CreateProjectDialog for new projects
+- 33 E2E tests passing covering:
+  - Workspace config (welcome screen, missing config, remember last project)
+  - Project switcher dropdown (visibility, list, search, selection, indicators)
+  - Quick project switcher (keyboard shortcut, recent projects, fuzzy search)
+  - Create project dialog (folder selection, validation, name/description fields)
+  - Project settings (edit name/description, delete with confirmation)
+  - Cross-project quick capture (target project selection)
+  - Keyboard navigation and accessibility (ARIA attributes, focus management)
+
+**Files created:**
+- src/store/useWorkspaceStore.ts
+- src/components/workspace/ProjectSwitcher.tsx
+- src/components/workspace/QuickProjectSwitcher.tsx
+- src/components/workspace/CreateProjectDialog.tsx
+- src/components/workspace/ProjectSettingsDialog.tsx
+- src/components/workspace/index.ts
+- e2e/workspace-management.spec.ts
+
+**Files modified:**
+- src/components/layout/Sidebar.tsx - Integrated workspace components
+- src/App.tsx - Added QuickProjectSwitcher, updated WelcomeScreen
+- src/store/index.ts - Export useWorkspaceStore
+
+## Current Focus
+Sprint 11 in progress:
+- Task 11.1 complete: Workspace Management with 33 E2E tests passing
+- All E2E tests passing (475+ tests)
+
+Next tasks:
+- Task 11.2: Project switching with actual file system operations
 - Task 10.2: Dark Mode
 - Task 10.3: Reduced Motion & Loading States
 - Task 10.4: Onboarding & Help
-- Task 10.6: Cross-Browser Testing (Firefox, Safari, Edge)
 
 [RALPH_COMPLETE]
 

@@ -45,7 +45,7 @@ describe('Sidebar', () => {
     it('renders project switcher section', () => {
       renderWithNuqs(<Sidebar />)
 
-      expect(screen.getByText('Forge')).toBeInTheDocument()
+      expect(screen.getByText('No Project')).toBeInTheDocument()
       expect(screen.getByText('No project loaded')).toBeInTheDocument()
     })
 

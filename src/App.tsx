@@ -1,16 +1,14 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Trash2 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import {
-  Button,
-  Dialog,
-  SaveIndicator,
-  useSaveIndicator,
-} from '@/components/ui'
+import { Button, SaveIndicator, useSaveIndicator } from '@/components/ui'
 import { useProjectStore, useNodesStore, useAppStore } from '@/store'
 import { useUndoRedo } from '@/hooks'
+import {
+  QuickProjectSwitcher,
+  CreateProjectDialog,
+} from '@/components/workspace'
 import { BrowserFileSystemAdapter } from '@/lib/filesystem/BrowserFileSystemAdapter'
-import { initializeProject, slugify } from '@/lib/project'
 import { OutlineView, ViewToggle } from '@/components/outline'
 import { GraphView } from '@/components/graph'
 import { NodeDetailPanel, FrontmatterEditor } from '@/components/detail'
@@ -27,58 +25,11 @@ import { isDecisionNode, type DecisionNode } from '@/types/nodes'
  * Welcome screen shown when no project is loaded
  */
 function WelcomeScreen() {
-  const [projectName, setProjectName] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
   const [isOpening, setIsOpening] = useState(false)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const loadProject = useProjectStore((state) => state.loadProject)
-  const setAdapter = useProjectStore((state) => state.setAdapter)
-
-  const handleCreate = async () => {
-    if (!projectName.trim()) return
-
-    setIsCreating(true)
-    setError(null)
-
-    try {
-      const adapter = new BrowserFileSystemAdapter()
-      await adapter.requestDirectoryAccess()
-
-      const rootPath = adapter.getRootPath()
-      const projectPath = `${rootPath}/${slugify(projectName)}`
-
-      const project = await initializeProject(
-        adapter,
-        projectPath,
-        projectName.trim()
-      )
-
-      setAdapter(adapter)
-      useProjectStore.setState({
-        project,
-        isDirty: false,
-        error: null,
-        parseErrors: [],
-      })
-      useNodesStore.getState().setNodes(project.nodes)
-
-      setDialogOpen(false)
-      setProjectName('')
-    } catch (err) {
-      if (
-        err instanceof Error &&
-        err.message === 'User cancelled directory selection'
-      ) {
-        // User cancelled - not an error
-        return
-      }
-      setError(err instanceof Error ? err.message : 'Failed to create project')
-    } finally {
-      setIsCreating(false)
-    }
-  }
 
   const handleOpen = async () => {
     setIsOpening(true)
@@ -131,57 +82,19 @@ function WelcomeScreen() {
       )}
 
       <div className="flex gap-4">
-        <Button onClick={handleOpen} disabled={isOpening || isCreating}>
+        <Button onClick={handleOpen} disabled={isOpening}>
           {isOpening ? 'Opening...' : 'Open Project'}
         </Button>
 
-        <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
-          <Dialog.Trigger disabled={isOpening || isCreating}>
-            Create New Project
-          </Dialog.Trigger>
-          <Dialog.Portal>
-            <Dialog.Backdrop />
-            <Dialog.Popup>
-              <Dialog.Title>Create New Project</Dialog.Title>
-              <Dialog.Description>
-                Enter a name for your new project. You can change this later.
-              </Dialog.Description>
-              <div className="mt-4">
-                <label
-                  htmlFor="project-name"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Project Name
-                </label>
-                <input
-                  id="project-name"
-                  type="text"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && projectName.trim()) {
-                      handleCreate()
-                    }
-                  }}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
-                  placeholder="My Hardware Project"
-                  autoComplete="off"
-                  disabled={isCreating}
-                />
-              </div>
-              <Dialog.Footer>
-                <Dialog.Close disabled={isCreating}>Cancel</Dialog.Close>
-                <Button
-                  onClick={handleCreate}
-                  disabled={!projectName.trim() || isCreating}
-                >
-                  {isCreating ? 'Creating...' : 'Create'}
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Popup>
-          </Dialog.Portal>
-        </Dialog.Root>
+        <Button onClick={() => setCreateDialogOpen(true)} disabled={isOpening}>
+          Create New Project
+        </Button>
       </div>
+
+      <CreateProjectDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </div>
   )
 }
@@ -391,14 +304,35 @@ function ProjectWorkspace() {
 
 function App() {
   const project = useProjectStore((state) => state.project)
+  const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
 
   // Enable global undo/redo keyboard shortcuts (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
   useUndoRedo({ enableHotkeys: true })
+
+  // Keyboard shortcut for quick project switcher (Cmd+Shift+P / Ctrl+Shift+P)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const modifier = isMac ? event.metaKey : event.ctrlKey
+
+      if (modifier && event.shiftKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault()
+        setQuickSwitcherOpen(true)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   return (
     <AppShell>
       {project ? <ProjectWorkspace /> : <WelcomeScreen />}
       <CommandPalette />
+      <QuickProjectSwitcher
+        open={quickSwitcherOpen}
+        onOpenChange={setQuickSwitcherOpen}
+      />
     </AppShell>
   )
 }

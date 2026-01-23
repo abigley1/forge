@@ -8,10 +8,11 @@
  * - e2e-setup-nodes: Set up nodes from provided data
  * - e2e-clear-nodes: Clear all nodes
  * - e2e-get-node-count: Get current node count
+ * - e2e-setup-workspace: Set up workspace with multiple projects
  */
 
 import { useEffect } from 'react'
-import { useNodesStore, useProjectStore } from '@/store'
+import { useNodesStore, useProjectStore, useWorkspaceStore } from '@/store'
 import type { ForgeNode } from '@/types/nodes'
 
 // Extend Window interface for E2E communication
@@ -46,6 +47,20 @@ interface E2ENodeData {
   dependsOn?: string[]
   blocks?: string[]
   checklist?: Array<{ text: string; completed: boolean }>
+}
+
+interface E2EProjectData {
+  id: string
+  name: string
+  path: string
+  nodeCount: number
+  modifiedAt: string
+  description?: string
+}
+
+interface E2EWorkspaceData {
+  projects: E2EProjectData[]
+  activeProjectId: string
 }
 
 export function E2ETestHooks(): null {
@@ -114,6 +129,27 @@ export function E2ETestHooks(): null {
       window.__e2eNodeCount = nodes.size
     }
 
+    const handleSetupWorkspace = (event: CustomEvent<E2EWorkspaceData>) => {
+      const { projects, activeProjectId } = event.detail
+
+      // Convert project data to ProjectSummary format
+      const projectSummaries = projects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        path: p.path,
+        nodeCount: p.nodeCount,
+        modifiedAt: new Date(p.modifiedAt),
+        description: p.description,
+      }))
+
+      // Set workspace store state
+      useWorkspaceStore.setState({
+        projects: projectSummaries,
+        activeProjectId,
+        recentProjectIds: [activeProjectId],
+      })
+    }
+
     // Add event listeners
     window.addEventListener(
       'e2e-setup-nodes',
@@ -121,6 +157,10 @@ export function E2ETestHooks(): null {
     )
     window.addEventListener('e2e-clear-nodes', handleClearNodes)
     window.addEventListener('e2e-get-node-count', handleGetNodeCount)
+    window.addEventListener(
+      'e2e-setup-workspace',
+      handleSetupWorkspace as EventListener
+    )
 
     // Mark app as ready for E2E tests
     window.__e2eReady = true
@@ -132,6 +172,10 @@ export function E2ETestHooks(): null {
       )
       window.removeEventListener('e2e-clear-nodes', handleClearNodes)
       window.removeEventListener('e2e-get-node-count', handleGetNodeCount)
+      window.removeEventListener(
+        'e2e-setup-workspace',
+        handleSetupWorkspace as EventListener
+      )
       window.__e2eReady = false
     }
   }, [setNodes, clearNodes, nodes.size])
