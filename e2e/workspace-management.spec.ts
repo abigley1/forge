@@ -52,8 +52,8 @@ test.describe('Workspace Management (11.1)', () => {
         .getByRole('heading', { level: 1 })
       await expect(sidebarHeader).toBeVisible()
 
-      // The sidebar shows "Forge" heading and project status
-      await expect(sidebarHeader).toContainText('Forge')
+      // After setupTestDataViaActions, the project name is "E2E Test Project"
+      await expect(sidebarHeader).toContainText('E2E Test Project')
     })
 
     test('can search/filter projects in switcher', async ({ page }) => {

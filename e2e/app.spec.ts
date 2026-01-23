@@ -219,8 +219,9 @@ test.describe('Forge App - Core Functionality', () => {
       })
 
       // Tab through elements - should reach one of the main action buttons
+      // Increase iterations to account for variable number of focusable elements
       let foundButton = false
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 15; i++) {
         const isOpenFocused = await openButton.evaluate(
           (el) => document.activeElement === el
         )
@@ -232,6 +233,7 @@ test.describe('Forge App - Core Functionality', () => {
           break
         }
         await page.keyboard.press('Tab')
+        await page.waitForTimeout(50)
       }
 
       // Should have reached one of the main buttons

@@ -725,6 +725,7 @@ describe('ViewToggle', () => {
         <ViewToggle value="outline" onChange={() => {}} />
       )
 
+      // Tabs use aria-selected, not aria-current (per WAI-ARIA tabs pattern)
       expect(screen.getByRole('tab', { name: /outline/i })).toHaveAttribute(
         'aria-selected',
         'true'

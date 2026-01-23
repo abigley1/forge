@@ -84,8 +84,10 @@ test.describe('Node Operations - Outline View', () => {
   })
 
   test('outline view shows all nodes', async ({ page }) => {
-    // Should show node count in header
-    await expect(page.getByText(/\d+ nodes?/i)).toBeVisible()
+    // Should show node count in header (use heading to avoid matching sidebar text)
+    await expect(
+      page.getByRole('heading', { name: /\d+ nodes?/i })
+    ).toBeVisible()
   })
 
   test('outline view displays node titles', async ({ page }) => {
@@ -356,8 +358,10 @@ test.describe('Node Operations - Create and Delete', () => {
   })
 
   test('confirming delete removes the node', async ({ page }) => {
-    // Verify project loaded
-    await expect(page.getByText(/\d+ nodes?/i)).toBeVisible()
+    // Verify project loaded (use heading to avoid matching sidebar text)
+    await expect(
+      page.getByRole('heading', { name: /\d+ nodes?/i })
+    ).toBeVisible()
 
     const initialCount = await getNodeCount(page)
 
@@ -392,8 +396,10 @@ test.describe('Node Operations - Create and Delete', () => {
   })
 
   test('deleting closes the detail panel', async ({ page }) => {
-    // Verify project loaded
-    await expect(page.getByText(/\d+ nodes?/i)).toBeVisible()
+    // Verify project loaded (use heading to avoid matching sidebar text)
+    await expect(
+      page.getByRole('heading', { name: /\d+ nodes?/i })
+    ).toBeVisible()
 
     // Select a node
     await page.getByText('Motor Selection').click()
@@ -497,8 +503,10 @@ test.describe('Node Operations - Edit Panel Content', () => {
   })
 
   test('edit panel can edit title', async ({ page }) => {
-    // Verify project loaded
-    await expect(page.getByText(/\d+ nodes?/i)).toBeVisible()
+    // Verify project loaded (use heading to avoid matching sidebar text)
+    await expect(
+      page.getByRole('heading', { name: /\d+ nodes?/i })
+    ).toBeVisible()
 
     await page.getByText('Motor Selection').click()
 
@@ -530,8 +538,10 @@ test.describe('Node Operations - Save Indicator', () => {
   })
 
   test('save indicator is present in header', async ({ page }) => {
-    // Verify project loaded
-    await expect(page.getByText(/\d+ nodes?/i)).toBeVisible()
+    // Verify project loaded (use heading to avoid matching sidebar text)
+    await expect(
+      page.getByRole('heading', { name: /\d+ nodes?/i })
+    ).toBeVisible()
 
     // The save indicator should be present (may show nothing when idle)
     // After making changes, it should show status

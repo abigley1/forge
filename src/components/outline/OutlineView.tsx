@@ -136,9 +136,9 @@ function OutlineItem({
   )
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- keyboard support via tabIndex and onKeyDown
     <div
       id={id}
-      role="button"
       aria-current={isActive ? 'true' : undefined}
       className={cn(
         'group flex items-center gap-2 rounded-md px-2 py-1.5',

@@ -117,9 +117,9 @@ function MilestoneItem({
   )
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- keyboard support via tabIndex and onKeyDown
     <div
       id={id}
-      role="button"
       aria-current={isActive ? 'true' : undefined}
       tabIndex={tabIndex}
       onClick={onClick}

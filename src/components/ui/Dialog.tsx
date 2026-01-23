@@ -6,8 +6,12 @@ const Z_MODAL = 30
 
 type DialogRootProps = ComponentPropsWithoutRef<typeof BaseDialog.Root>
 
-function DialogRoot({ children, ...props }: DialogRootProps) {
-  return <BaseDialog.Root {...props}>{children}</BaseDialog.Root>
+function DialogRoot({ children, modal = true, ...props }: DialogRootProps) {
+  return (
+    <BaseDialog.Root modal={modal} {...props}>
+      {children}
+    </BaseDialog.Root>
+  )
 }
 
 type DialogTriggerProps = ComponentPropsWithoutRef<

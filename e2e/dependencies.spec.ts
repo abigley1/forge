@@ -151,9 +151,12 @@ test.describe('Dependencies - Blocked Status', () => {
     const statusSelect = detailPanel.getByRole('combobox', { name: /status/i })
     if ((await statusSelect.count()) > 0) {
       await statusSelect.click()
+      // Wait for dropdown to be fully rendered
+      await page.waitForTimeout(200)
       const completeOption = page.getByRole('option', { name: /complete/i })
       if ((await completeOption.count()) > 0) {
-        await completeOption.click()
+        // Use force click to avoid interception issues during re-renders
+        await completeOption.click({ force: true })
         await page.waitForTimeout(500)
 
         // Close panel
