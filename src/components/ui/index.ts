@@ -10,3 +10,4 @@ export type {
   SaveIndicatorProps,
   UseSaveIndicatorReturn,
 } from './SaveIndicator'
+export { LiveAnnouncerProvider, useLiveAnnouncer } from './LiveAnnouncer'

@@ -103,6 +103,7 @@ export function ViewToggle({
         return (
           <button
             key={mode}
+            id={`${mode}-tab`}
             type="button"
             role="tab"
             aria-selected={isSelected}
@@ -124,8 +125,8 @@ export function ViewToggle({
                 className={cn(
                   'ml-1 hidden rounded px-1 py-0.5 text-xs font-normal sm:inline-block',
                   isSelected
-                    ? 'bg-gray-100 text-gray-500 dark:bg-gray-600 dark:text-gray-400'
-                    : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-500'
+                    ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                 )}
               >
                 {config.shortcutLabel}

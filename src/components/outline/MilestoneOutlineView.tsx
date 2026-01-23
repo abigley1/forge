@@ -119,8 +119,8 @@ function MilestoneItem({
   return (
     <div
       id={id}
-      role="option"
-      aria-selected={isActive}
+      role="button"
+      aria-current={isActive ? 'true' : undefined}
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={(e) => {
@@ -399,15 +399,14 @@ export function MilestoneOutlineView({
   }
 
   return (
-    <div
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <nav
       ref={containerRef}
       className={cn('flex flex-col focus:outline-none', className)}
-      role="listbox"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       aria-label="Tasks by milestone"
-      aria-activedescendant={
-        activeNodeId ? `milestone-item-${activeNodeId}` : undefined
-      }
+      aria-roledescription="navigable outline"
       onKeyDown={handleKeyDown}
     >
       {groups.map((group) => (
@@ -421,6 +420,6 @@ export function MilestoneOutlineView({
           onTaskStatusToggle={onTaskStatusToggle}
         />
       ))}
-    </div>
+    </nav>
   )
 }

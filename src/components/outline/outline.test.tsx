@@ -325,7 +325,9 @@ describe('OutlineView', () => {
         />
       )
 
-      const activeItem = screen.getByRole('option', { selected: true })
+      // Item with aria-current="true" indicates active state
+      const activeItem = document.getElementById('outline-item-task1')
+      expect(activeItem).toHaveAttribute('aria-current', 'true')
       expect(activeItem).toHaveTextContent('Task 1')
     })
   })
@@ -474,7 +476,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const firstItem = screen.getByRole('option', { name: /task 1/i })
+      const firstItem = document.getElementById('outline-item-task1')!
       firstItem.focus()
 
       await user.keyboard('{ArrowDown}')
@@ -497,7 +499,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const secondItem = screen.getByRole('option', { name: /task 2/i })
+      const secondItem = document.getElementById('outline-item-task2')!
       secondItem.focus()
 
       await user.keyboard('{ArrowUp}')
@@ -521,7 +523,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const lastItem = screen.getByRole('option', { name: /task 3/i })
+      const lastItem = document.getElementById('outline-item-task3')!
       lastItem.focus()
 
       await user.keyboard('{Home}')
@@ -545,7 +547,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const firstItem = screen.getByRole('option', { name: /task 1/i })
+      const firstItem = document.getElementById('outline-item-task1')!
       firstItem.focus()
 
       await user.keyboard('{End}')
@@ -568,7 +570,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const item = screen.getByRole('option', { name: /task 1/i })
+      const item = document.getElementById('outline-item-task1')!
       item.focus()
 
       await user.keyboard('{Enter}')
@@ -591,7 +593,7 @@ describe('OutlineView', () => {
         />
       )
 
-      const lastItem = screen.getByRole('option', { name: /task 2/i })
+      const lastItem = document.getElementById('outline-item-task2')!
       lastItem.focus()
 
       await user.keyboard('{ArrowDown}')
@@ -640,10 +642,11 @@ describe('OutlineView', () => {
         />
       )
 
-      expect(screen.getByRole('listbox')).toBeInTheDocument()
+      // Container has accessible label
+      expect(screen.getByLabelText('Project outline')).toBeInTheDocument()
     })
 
-    it('has aria-activedescendant when node is active', () => {
+    it('has aria-roledescription for assistive technology', () => {
       const nodes = new Map<string, ForgeNode>([
         ['task1', createTaskNode('task1', 'Task 1')],
       ])
@@ -656,14 +659,14 @@ describe('OutlineView', () => {
         />
       )
 
-      const listbox = screen.getByRole('listbox')
-      expect(listbox).toHaveAttribute(
-        'aria-activedescendant',
-        'outline-item-task1'
+      const container = screen.getByLabelText('Project outline')
+      expect(container).toHaveAttribute(
+        'aria-roledescription',
+        'navigable outline'
       )
     })
 
-    it('items have option role with aria-selected', () => {
+    it('active item has aria-current', () => {
       const nodes = new Map<string, ForgeNode>([
         ['task1', createTaskNode('task1', 'Task 1')],
         ['task2', createTaskNode('task2', 'Task 2')],
@@ -677,13 +680,13 @@ describe('OutlineView', () => {
         />
       )
 
-      const selectedOption = screen.getByRole('option', { selected: true })
-      expect(selectedOption).toHaveTextContent('Task 1')
+      // Active item should have aria-current
+      const activeItem = document.getElementById('outline-item-task1')
+      expect(activeItem).toHaveAttribute('aria-current', 'true')
 
-      const unselectedOptions = screen.getAllByRole('option', {
-        selected: false,
-      })
-      expect(unselectedOptions.length).toBeGreaterThan(0)
+      // Non-active item should not have aria-current
+      const otherItem = document.getElementById('outline-item-task2')
+      expect(otherItem).not.toHaveAttribute('aria-current')
     })
   })
 })

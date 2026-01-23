@@ -44,7 +44,7 @@ const STATUS_CONFIG: Record<
     icon: null,
     label: '',
     iconClass: '',
-    textClass: 'text-gray-400 dark:text-gray-500',
+    textClass: 'text-gray-500 dark:text-gray-400',
   },
   saving: {
     icon: Loader2,
@@ -62,8 +62,8 @@ const STATUS_CONFIG: Record<
   unsaved: {
     icon: AlertCircle,
     label: 'Unsaved changes',
-    iconClass: 'text-yellow-500',
-    textClass: 'text-yellow-600 dark:text-yellow-400',
+    iconClass: 'text-amber-600',
+    textClass: 'text-amber-700 dark:text-amber-400',
   },
   error: {
     icon: AlertCircle,

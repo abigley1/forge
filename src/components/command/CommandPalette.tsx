@@ -332,6 +332,7 @@ export function CommandPalette({
         <Dialog.Popup
           className="fixed top-[15%] left-1/2 w-full max-w-xl -translate-x-1/2 p-0"
           aria-label="Command palette"
+          aria-modal="true"
         >
           {/* Search input */}
           <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-700">
@@ -455,22 +456,22 @@ export function CommandPalette({
           </div>
 
           {/* Footer with keyboard hints */}
-          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono dark:bg-gray-700">
+                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                   ↑↓
                 </kbd>
                 <span>navigate</span>
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono dark:bg-gray-700">
+                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                   ↵
                 </kbd>
                 <span>open</span>
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono dark:bg-gray-700">
+                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                   esc
                 </kbd>
                 <span>close</span>

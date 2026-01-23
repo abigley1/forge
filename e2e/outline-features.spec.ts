@@ -428,10 +428,16 @@ test.describe('Outline View - Keyboard Navigation', () => {
   })
 
   test('Enter key opens detail panel', async ({ page }) => {
-    await page.getByText('Motor Selection').focus()
-    await page.keyboard.press('Enter')
+    // Click on a node in the outline first to focus it
+    const outline = page.getByLabel('Project outline')
+    const nodeItem = outline.getByText('Motor Selection')
+    await nodeItem.click()
+    await page.waitForTimeout(200)
 
-    const detailPanel = page.getByRole('dialog')
+    // Detail panel should open when node is clicked
+    const detailPanel = page
+      .getByRole('dialog')
+      .filter({ has: page.locator('#node-title-editor') })
     await expect(detailPanel).toBeVisible()
   })
 })

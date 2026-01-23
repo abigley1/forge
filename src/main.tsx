@@ -3,14 +3,18 @@ import { createRoot } from 'react-dom/client'
 import { NuqsAdapter } from 'nuqs/adapters/react'
 import './index.css'
 import App from './App.tsx'
-import { ToastProvider } from '@/components/ui'
+import { ToastProvider, LiveAnnouncerProvider } from '@/components/ui'
+import { E2ETestHooks } from '@/components/debug'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <NuqsAdapter>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <LiveAnnouncerProvider>
+        <ToastProvider>
+          <App />
+          {import.meta.env.DEV && <E2ETestHooks />}
+        </ToastProvider>
+      </LiveAnnouncerProvider>
     </NuqsAdapter>
   </StrictMode>
 )

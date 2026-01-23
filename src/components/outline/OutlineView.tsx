@@ -138,8 +138,8 @@ function OutlineItem({
   return (
     <div
       id={id}
-      role="option"
-      aria-selected={isActive}
+      role="button"
+      aria-current={isActive ? 'true' : undefined}
       className={cn(
         'group flex items-center gap-2 rounded-md px-2 py-1.5',
         'cursor-pointer transition-colors duration-150',
@@ -421,15 +421,14 @@ export function OutlineView({
   }
 
   return (
-    <div
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <nav
       ref={containerRef}
       className={cn('flex flex-col focus:outline-none', className)}
-      role="listbox"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       aria-label="Project outline"
-      aria-activedescendant={
-        activeNodeId ? `outline-item-${activeNodeId}` : undefined
-      }
+      aria-roledescription="navigable outline"
       onKeyDown={handleKeyDown}
     >
       {groups.map((group) => (
@@ -467,7 +466,7 @@ export function OutlineView({
           )}
         </CollapsibleSection>
       ))}
-    </div>
+    </nav>
   )
 }
 

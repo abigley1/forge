@@ -93,7 +93,8 @@ describe('SaveIndicator', () => {
       render(<SaveIndicator status="unsaved" />)
 
       const indicator = screen.getByRole('status')
-      expect(indicator).toHaveClass('text-yellow-600')
+      // Using amber-700 for better color contrast (WCAG 4.5:1)
+      expect(indicator).toHaveClass('text-amber-700')
     })
 
     it('applies error status styling', () => {
