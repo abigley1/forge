@@ -11,6 +11,7 @@ import ReactFlow, {
   MiniMap,
   Background,
   BackgroundVariant,
+  ReactFlowProvider,
   useNodesState,
   useEdgesState,
   useReactFlow,
@@ -351,6 +352,37 @@ function GraphViewInner({
       enabled: enableKeyboardNavigation,
     })
 
+  // Document-level Escape key handler for deselecting nodes
+  // This is needed because React Flow captures focus internally after clicking a node
+  // and the detail panel may also take focus
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && activeNodeId) {
+        // Check if the graph container is visible (not in a different view)
+        const isGraphVisible = containerRef.current?.offsetParent !== null
+        if (isGraphVisible) {
+          event.preventDefault()
+          setActiveNode(null)
+          onNodeSelect?.(null)
+          announceNodeDeselected()
+          // Also clear React Flow's internal selection state
+          setRfNodes((nodes) =>
+            nodes.map((node) => ({ ...node, selected: false }))
+          )
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [
+    activeNodeId,
+    setActiveNode,
+    onNodeSelect,
+    announceNodeDeselected,
+    setRfNodes,
+  ])
+
   // Handle node position changes for persistence
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
@@ -677,6 +709,8 @@ function GraphViewInner({
         proOptions={{
           hideAttribution: true,
         }}
+        // Accessibility
+        aria-label="Interactive node graph. Use Tab to navigate between nodes, Enter to select, and arrow keys to move between connected nodes."
         // Disable animations when reduced motion is preferred
         minZoom={0.1}
         maxZoom={2}
@@ -775,6 +809,9 @@ function GraphViewInner({
  */
 export function GraphView(props: GraphViewProps) {
   // The inner component requires ReactFlowProvider context
-  // which is already provided by useReactFlow hook usage
-  return <GraphViewInner {...props} />
+  return (
+    <ReactFlowProvider>
+      <GraphViewInner {...props} />
+    </ReactFlowProvider>
+  )
 }

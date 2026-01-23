@@ -43,6 +43,7 @@ function MenuItem({
   return (
     <button
       type="button"
+      role="menuitem"
       onClick={onClick}
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
