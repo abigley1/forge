@@ -15,6 +15,9 @@ npm run dev          # Start Vite dev server
 npm run build        # TypeScript build + Vite production build
 npm run test         # Run all Vitest tests once
 npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+npm run test:e2e     # Run Playwright E2E tests
+npm run test:e2e:ui  # Run E2E tests with Playwright UI
 npm run lint         # ESLint check
 npm run lint:fix     # ESLint with auto-fix
 npm run type-check   # TypeScript type check (no emit)
@@ -26,6 +29,7 @@ Run a single test file:
 ```bash
 npx vitest run src/lib/validation.test.ts
 npx vitest src/lib/validation.test.ts  # watch mode for single file
+npx playwright test e2e/node-operations.spec.ts  # single E2E test
 ```
 
 ## Architecture
@@ -50,10 +54,12 @@ src/
 │       ├── MemoryFileSystemAdapter.ts   # For tests
 │       └── BrowserFileSystemAdapter.ts  # File System Access API
 ├── store/           # Zustand stores with devtools
-│   ├── useNodesStore.ts     # Node CRUD, dirty tracking, link index
-│   ├── useProjectStore.ts   # Project metadata and file system adapter
-│   ├── useAppStore.ts       # UI state (sidebar, activeView)
-│   └── useUndoStore.ts      # Undo/redo history
+│   ├── useNodesStore.ts      # Node CRUD, dirty tracking, link index
+│   ├── useProjectStore.ts    # Project metadata and file system adapter
+│   ├── useAppStore.ts        # UI state (sidebar, activeView)
+│   ├── useUndoStore.ts       # Undo/redo history
+│   ├── useTemplatesStore.ts  # Node templates management
+│   └── useCommandRegistry.ts # Command palette commands
 ├── hooks/           # React hooks for business logic
 │   ├── useBlockedStatus.ts  # Compute blocked status for nodes
 │   ├── useCriticalPath.ts   # Compute critical path through tasks
@@ -100,6 +106,8 @@ Import from `@/lib/z-index`: `Z_DROPDOWN=10`, `Z_STICKY=20`, `Z_MODAL=30`, `Z_PO
 
 ## Test Patterns
 
+### Unit Tests (Vitest)
+
 Tests use `MemoryFileSystemAdapter` for isolation. Test fixtures can be created inline:
 ```typescript
 const adapter = new MemoryFileSystemAdapter()
@@ -110,6 +118,16 @@ status: pending
 # My Task
 Content here`)
 ```
+
+### E2E Tests (Playwright)
+
+E2E tests are in `e2e/` and use helper utilities from `e2e/test-utils.ts`. Key helpers:
+- `waitForAppReady(page)` - Wait for app initialization
+- `setupTestDataViaActions(page)` - Populate stores with test nodes
+- `openCommandPalette(page)` - Opens command palette (Cmd/Ctrl+K)
+- `TEST_NODES` - Pre-defined test fixtures for decisions, components, tasks, notes
+
+E2E tests communicate with Zustand stores via custom events (`e2e-setup-nodes`, `e2e-clear-nodes`).
 
 ## Ralph Loop (Automated Development)
 

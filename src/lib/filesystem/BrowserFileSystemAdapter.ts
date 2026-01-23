@@ -535,7 +535,11 @@ export class BrowserFileSystemAdapter implements FileSystemAdapter {
   }
 
   getRootPath(): string | null {
-    return this.rootHandle ? `/${this.rootPath}` : null
+    return this.rootHandle ? '/' : null
+  }
+
+  getRootName(): string | null {
+    return this.rootPath || null
   }
 
   /**

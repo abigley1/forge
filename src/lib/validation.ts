@@ -67,6 +67,7 @@ const decisionOptionSchema = z.object({
   id: z.string(),
   name: z.string(),
   values: z.record(z.union([z.string(), z.number()])).default({}),
+  linkedNodeId: z.string().optional(),
 })
 
 /**

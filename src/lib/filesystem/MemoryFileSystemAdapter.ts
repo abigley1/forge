@@ -390,6 +390,10 @@ export class MemoryFileSystemAdapter implements FileSystemAdapter {
     return '/'
   }
 
+  getRootName(): string | null {
+    return null
+  }
+
   /**
    * Clear all files and directories (for testing)
    */

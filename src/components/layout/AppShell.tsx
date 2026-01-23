@@ -49,6 +49,7 @@ export function AppShell({ children, sidebar, className }: AppShellProps) {
             className="fixed inset-0 z-20 bg-black/50 md:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
+            data-testid="sidebar-backdrop"
           />
         )}
 

@@ -243,9 +243,9 @@ describe('Breadcrumbs', () => {
     it('renders chevron separators between segments', () => {
       render(<Breadcrumbs />, { wrapper })
 
-      // Chevrons have class text-gray-400, Home icon does not
+      // Chevrons have class text-gray-500, Home icon does not
       const container = screen.getByRole('navigation')
-      const chevrons = container.querySelectorAll('svg.text-gray-400')
+      const chevrons = container.querySelectorAll('svg.text-gray-500')
 
       // There should be two separators (project > type > node)
       expect(chevrons.length).toBe(2)

@@ -167,7 +167,7 @@ export function DecisionTimeline({ node, className }: DecisionTimelineProps) {
                         'text-xs',
                         event.isActive
                           ? 'text-gray-600 dark:text-gray-300'
-                          : 'text-gray-400 dark:text-gray-500'
+                          : 'text-gray-500 dark:text-gray-400'
                       )}
                     >
                       {event.isActive ? dateStr : event.description}

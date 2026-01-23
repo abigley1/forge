@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "status": "active",
-  "lastUpdated": "2026-01-20T00:00:00Z",
+  "lastUpdated": "2026-01-22T00:00:00Z",
   "projectName": "Forge",
   "description": "A personal project brainstorming, planning, and tracking tool for complex hardware and engineering projects.",
   "metadata": {
@@ -110,6 +110,20 @@
       "title": "Self-Hosted Deployment (Tailscale + Home Assistant)",
       "description": "Deploy Forge as a self-hosted application accessible via Tailscale VPN on Home Assistant",
       "demoGoal": "Access Forge from any Tailscale-connected device, data persists on Home Assistant storage"
+    },
+    {
+      "id": "obj-13",
+      "sprint": 13,
+      "title": "Container Node Types (Subsystem, Assembly, Module)",
+      "description": "Add three new node types for organizing large-scale project parts. Subsystems, Assemblies, and Modules act as logical containers that other nodes can be linked to via a parent field.",
+      "demoGoal": "Create a Subsystem for 'Cannon', link tasks and components to it, filter view by container"
+    },
+    {
+      "id": "obj-14",
+      "sprint": 14,
+      "title": "Hybrid Persistence Layer (IndexedDB + File System Sync)",
+      "description": "Implement IndexedDB as primary storage for instant persistence across page reloads, with bidirectional sync to the file system. Users can work offline with automatic reconnection to their project directory.",
+      "demoGoal": "Close browser, reopen, see all data instantly without re-selecting folder. Make external edit to .md file, see it sync into app."
     }
   ],
   "tasks": [
@@ -813,7 +827,7 @@
       "sprint": 9,
       "title": "Command Palette",
       "description": "Cmd+K command palette with fuzzy search",
-      "tools": ["frontend-design"],
+      "tools": ["/frontend-design", "/ui-skills", "web-interface-guidelines"],
       "acceptanceCriteria": [
         "CommandPalette using Base UI Dialog with input, results list, keyboard navigation",
         "useHotkey(key, callback, options) hook for Cmd+K / Ctrl+K",
@@ -907,6 +921,14 @@
     {
       "id": "10.5",
       "sprint": 10,
+      "title": "Browser Testing",
+      "description": "Verify core functionality in browsers using Playwright",
+      "tools": ["/playwright"],
+      "acceptanceCriteria": ["Core functionality works in Chrome"]
+    },
+    {
+      "id": "10.6",
+      "sprint": 10,
       "title": "Cross-Browser Testing",
       "description": "Verify core functionality across browsers",
       "tools": ["/playwright"],
@@ -918,13 +940,20 @@
       "id": "11.1",
       "sprint": 11,
       "title": "Workspace Management",
-      "description": "Multi-project workspace with switcher and settings",
+      "description": "Multi-project workspace with quick switching for users working on multiple projects simultaneously",
       "tools": ["/frontend-design"],
       "acceptanceCriteria": [
         "Workspace loader reads .forge/config.json, handles missing/corrupted config",
         "ProjectSwitcher dropdown with project list, active indicator, search/filter",
+        "Quick project switcher via Cmd+Shift+P (similar to Cmd+K palette style)",
+        "Quick switcher shows recent projects first, supports fuzzy search",
+        "Cross-project quick capture: create node dialog allows selecting target project",
+        "Quick note to any project without fully switching context",
+        "Persistent project list visible in sidebar with one-click switching",
+        "Visual indicator of which project is currently active",
         "CreateProjectDialog with name input, folder selection, initialize structure",
-        "Project settings panel: edit name/description, delete with confirmation"
+        "Project settings panel: edit name/description, delete with confirmation",
+        "Remember last active project on app restart"
       ]
     },
     {
@@ -1020,6 +1049,723 @@
         "Optional: sync to remote git repository on schedule",
         "Backup status indicator in settings"
       ]
+    },
+    {
+      "id": "10.7",
+      "sprint": 10,
+      "title": "Fix CodeMirror Accessibility - ARIA Label",
+      "description": "CodeMirror's internal .cm-content element has role='textbox' but no accessible name. Need to pass aria-label through to the CodeMirror component.",
+      "tools": ["playwright", "rams"],
+      "acceptanceCriteria": [
+        "CodeMirror .cm-content element has aria-label attribute",
+        "axe-core aria-input-field-name violation resolved",
+        "e2e/accessibility.spec.ts:144 test passes"
+      ]
+    },
+    {
+      "id": "10.8",
+      "sprint": 10,
+      "title": "Fix Color Contrast - SaveIndicator Unsaved State",
+      "description": "The 'Unsaved changes' text uses text-yellow-600 (#d08700) which has contrast ratio 2.93 against white. WCAG requires 4.5:1 minimum.",
+      "tools": ["playwright", "rams"],
+      "acceptanceCriteria": [
+        "Unsaved changes text meets 4.5:1 contrast ratio",
+        "Use text-amber-700 or darker yellow shade",
+        "Visual distinction still clear between states",
+        "axe-core color-contrast violation resolved"
+      ]
+    },
+    {
+      "id": "10.9",
+      "sprint": 10,
+      "title": "Fix Color Contrast - CodeMirror Placeholder",
+      "description": "CodeMirror placeholder text (#888888 on #f9fafb) has contrast ratio 3.39. WCAG requires 4.5:1 minimum for text.",
+      "tools": ["playwright", "rams"],
+      "acceptanceCriteria": [
+        "CodeMirror placeholder meets 4.5:1 contrast ratio",
+        "Placeholder color adjusted in editor theme",
+        "Still visually distinct as placeholder",
+        "axe-core color-contrast violation resolved"
+      ]
+    },
+    {
+      "id": "10.10",
+      "sprint": 10,
+      "title": "Fix Command Palette Focus Trapping",
+      "description": "Command palette dialog has focus trapping issues - Tab key navigation escapes the dialog in some scenarios.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Focus remains trapped within command palette when open",
+        "Tab cycles through search input and results only",
+        "Shift+Tab cycles backwards correctly",
+        "e2e/command-palette.spec.ts:227 test passes"
+      ]
+    },
+    {
+      "id": "10.11",
+      "sprint": 10,
+      "title": "Fix Command Palette Click-Outside Behavior",
+      "description": "Command palette should close when clicking outside, but e2e test is timing out. May need backdrop click handling fix.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Clicking outside command palette closes it",
+        "Backdrop properly handles click events",
+        "e2e/command-palette.spec.ts:36 test passes"
+      ]
+    },
+    {
+      "id": "10.12",
+      "sprint": 10,
+      "title": "Fix Mobile Sidebar Tests",
+      "description": "Multiple mobile sidebar tests are timing out - hamburger menu button visibility, sidebar open/close on mobile viewport.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Hamburger menu button visible on mobile viewport",
+        "Click hamburger opens sidebar with animation",
+        "Close button closes sidebar on mobile",
+        "Backdrop click closes sidebar",
+        "e2e/sidebar.spec.ts mobile tests pass"
+      ]
+    },
+    {
+      "id": "10.13",
+      "sprint": 10,
+      "title": "Fix Keyboard Navigation - Detail Panel Escape",
+      "description": "Escape key should close detail panel but test is timing out. May need keyboard event handler fix.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Escape key closes detail panel when focused",
+        "Focus returns to previously focused element",
+        "e2e/keyboard-navigation.spec.ts:285 test passes"
+      ]
+    },
+    {
+      "id": "10.14",
+      "sprint": 10,
+      "title": "Fix Keyboard Navigation - Checkbox Space Activation",
+      "description": "Space key should toggle focused checkbox but test is timing out. May be issue with task checkbox component.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Space key toggles task status checkbox",
+        "Visual feedback immediate on toggle",
+        "e2e/keyboard-navigation.spec.ts:105 test passes"
+      ]
+    },
+    {
+      "id": "8.5",
+      "sprint": 8,
+      "title": "Implement Export/Import UI",
+      "description": "Export and import functionality is missing. Tests show no export button accessible in UI, export dialog doesn't open, and import dialog is missing.",
+      "tools": ["playwright", "frontend-design"],
+      "acceptanceCriteria": [
+        "Export button accessible in toolbar/menu",
+        "Export dialog opens with format selection (JSON, Markdown, CSV)",
+        "JSON export includes all node data and can be downloaded",
+        "Markdown export preserves frontmatter and directory structure",
+        "CSV export available for components with cost/supplier columns",
+        "Import button accessible in toolbar/menu",
+        "Import dialog opens with file picker and format auto-detection",
+        "Import validates JSON structure before importing",
+        "Import handles malformed markdown gracefully",
+        "Conflict resolution options for existing nodes",
+        "Drag and drop zone visible in import dialog",
+        "Export/import dialogs are keyboard navigable",
+        "Escape closes export/import dialogs",
+        "e2e/import-export.spec.ts tests pass"
+      ]
+    },
+    {
+      "id": "7.5",
+      "sprint": 7,
+      "title": "Fix Decision Comparison Table Rendering",
+      "description": "Decision comparison table tests are timing out - table may not be rendering or has different structure than expected.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Decision node detail panel shows comparison table section",
+        "Comparison table shows options as columns",
+        "Table renders within reasonable time (no timeout)",
+        "e2e/decision-comparison.spec.ts:25 and :37 tests pass"
+      ]
+    },
+    {
+      "id": "5.6",
+      "sprint": 5,
+      "title": "Fix Graph View Zoom Out Button",
+      "description": "Zoom out button does not decrease zoom level as expected. Test e2e/graph-view.spec.ts:243 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Zoom out button decreases graph zoom level",
+        "Zoom level correctly reflects button clicks",
+        "e2e/graph-view.spec.ts:243 test passes"
+      ]
+    },
+    {
+      "id": "5.7",
+      "sprint": 5,
+      "title": "Fix Graph View Minimap Toggle",
+      "description": "Minimap toggle functionality not working. Test e2e/graph-view.spec.ts:367 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Minimap toggle button is visible",
+        "Clicking toggle shows/hides minimap",
+        "e2e/graph-view.spec.ts:367 test passes"
+      ]
+    },
+    {
+      "id": "5.8",
+      "sprint": 5,
+      "title": "Fix Graph View Edge Rendering",
+      "description": "Edges connecting related nodes timing out. Test e2e/graph-view.spec.ts:323 fails with timeout.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Edges render between connected nodes",
+        "Edge rendering completes within reasonable time",
+        "e2e/graph-view.spec.ts:323 test passes"
+      ]
+    },
+    {
+      "id": "5.9",
+      "sprint": 5,
+      "title": "Fix Graph View Accessibility - Container Name",
+      "description": "Graph container missing accessible name. Test e2e/graph-view.spec.ts:607 fails.",
+      "tools": ["playwright", "rams"],
+      "acceptanceCriteria": [
+        "Graph container has aria-label or accessible name",
+        "Screen readers can identify the graph region",
+        "e2e/graph-view.spec.ts:607 test passes"
+      ]
+    },
+    {
+      "id": "5.10",
+      "sprint": 5,
+      "title": "Fix Graph View Context Menu Options",
+      "description": "Context menu Edit and Delete options not found. Tests e2e/graph-view.spec.ts:418 and :429 fail with timeout.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Right-click on node shows context menu",
+        "Context menu includes Edit option",
+        "Context menu includes Delete option",
+        "e2e/graph-view.spec.ts:418 and :429 tests pass"
+      ]
+    },
+    {
+      "id": "5.11",
+      "sprint": 5,
+      "title": "Fix Graph View Escape Key Behavior",
+      "description": "Escape key does not deselect node in graph view. Test e2e/graph-view.spec.ts:489 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Pressing Escape key deselects currently selected node",
+        "Graph view handles keyboard events correctly",
+        "e2e/graph-view.spec.ts:489 test passes"
+      ]
+    },
+    {
+      "id": "5.12",
+      "sprint": 5,
+      "title": "Fix Graph View Node Position Persistence",
+      "description": "Node positions don't persist after view switch. Test e2e/graph-view.spec.ts:169 fails with timeout.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Dragged node positions are saved",
+        "Switching to outline and back preserves positions",
+        "Positions stored in project metadata",
+        "e2e/graph-view.spec.ts:169 test passes"
+      ]
+    },
+    {
+      "id": "6.6",
+      "sprint": 6,
+      "title": "Fix Dependency Link Click Navigation",
+      "description": "Dependency links in task detail are not clickable to navigate. Test e2e/dependencies.spec.ts:51 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Dependency chip/link is clickable",
+        "Clicking navigates to the dependent node",
+        "e2e/dependencies.spec.ts:51 test passes"
+      ]
+    },
+    {
+      "id": "3.7",
+      "sprint": 3,
+      "title": "Fix Outline Status Cycling Button",
+      "description": "Status cycling button (pending -> in_progress -> complete) not found in outline view. Test e2e/outline-features.spec.ts:278 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Task nodes in outline have status toggle button",
+        "Clicking cycles through pending -> in_progress -> complete",
+        "Visual feedback shows current status",
+        "e2e/outline-features.spec.ts:278 test passes"
+      ]
+    },
+    {
+      "id": "3.8",
+      "sprint": 3,
+      "title": "Fix Outline Arrow Key Navigation",
+      "description": "Arrow up/down keys don't navigate between nodes in outline view. Test e2e/outline-features.spec.ts:334 fails.",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Arrow down moves focus to next node",
+        "Arrow up moves focus to previous node",
+        "Focus indicator visible on focused node",
+        "e2e/outline-features.spec.ts:334 test passes"
+      ]
+    },
+    {
+      "id": "E2E.1",
+      "sprint": 10,
+      "title": "E2E Test Coverage Gaps - Comprehensive",
+      "description": "This task tracks all features that should have E2E Playwright tests but currently lack coverage. Tests should be created in e2e/ directory.",
+      "tools": ["playwright"],
+      "sections": [
+        {
+          "name": "Toast Notifications (0.10)",
+          "file": "e2e/toast-notifications.spec.ts",
+          "tests": [
+            "Toast appears on successful action",
+            "Toast auto-dismisses after timeout",
+            "Success variant styled correctly (green)",
+            "Error variant styled correctly (red)",
+            "Info variant styled correctly (blue)",
+            "Undo variant has clickable undo button",
+            "Multiple toasts stack correctly",
+            "Toast has proper ARIA role='status'"
+          ]
+        },
+        {
+          "name": "Error Boundaries (0.9)",
+          "file": "e2e/error-boundaries.spec.ts",
+          "tests": [
+            "Error boundary catches render error and shows fallback",
+            "Fallback UI displays error message",
+            "Sidebar error doesn't crash main content",
+            "Editor error doesn't crash sidebar",
+            "Error is logged to console"
+          ]
+        },
+        {
+          "name": "List Virtualization (3.6)",
+          "file": "e2e/performance.spec.ts",
+          "tests": [
+            "Node list virtualizes with 200+ items",
+            "Scrolling through virtualized list is smooth",
+            "No frame drops when scrolling large lists",
+            "Virtualized items render correctly on scroll"
+          ]
+        },
+        {
+          "name": "Breadcrumbs Navigation (3.5)",
+          "file": "e2e/breadcrumbs.spec.ts",
+          "tests": [
+            "Breadcrumbs show Project > Node Type > Node",
+            "Clicking project segment navigates to project root",
+            "Clicking node type segment filters to that type",
+            "Breadcrumbs update when node is selected",
+            "Breadcrumbs are keyboard accessible"
+          ]
+        },
+        {
+          "name": "Browser History Navigation (3.5)",
+          "file": "e2e/browser-navigation.spec.ts",
+          "tests": [
+            "Browser back button navigates to previous node",
+            "Browser forward button navigates forward",
+            "Deep link URL loads correct node on page load",
+            "Filter state persists in URL across page reload"
+          ]
+        },
+        {
+          "name": "Auto Layout (5.4)",
+          "file": "e2e/graph-layout.spec.ts",
+          "tests": [
+            "Reset Layout button is visible in graph view",
+            "Clicking Reset Layout repositions all nodes",
+            "Layout respects DAG hierarchy",
+            "Layout animation respects reduced motion"
+          ]
+        },
+        {
+          "name": "Templates (7.4)",
+          "file": "e2e/templates.spec.ts",
+          "tests": [
+            "Template dropdown appears in create node dialog",
+            "Selecting template pre-fills node content",
+            "Component Selection template available for decisions",
+            "Design Choice template available for decisions",
+            "Vendor Selection template available for decisions",
+            "Template manager accessible from settings",
+            "Can create new template from existing node",
+            "Can edit template name and content",
+            "Can delete template with confirmation",
+            "Can duplicate existing template"
+          ]
+        },
+        {
+          "name": "Full-Text Search (9.2)",
+          "file": "e2e/full-text-search.spec.ts",
+          "tests": [
+            "Search indexes node titles",
+            "Search indexes node body content",
+            "Search results show context snippet",
+            "Matched characters are highlighted in results",
+            "Search updates when node content changes",
+            "Empty search shows recent/all nodes"
+          ]
+        },
+        {
+          "name": "Command Categories (9.3)",
+          "file": "e2e/command-categories.spec.ts",
+          "tests": [
+            "Commands grouped by category (Navigation, Create, View, Actions)",
+            "Filter commands available (filter by type, tag, status)",
+            "Platform-aware shortcut display (⌘ on Mac, Ctrl on Windows)",
+            "Recent commands show when query empty",
+            "Recent commands persist across sessions"
+          ]
+        },
+        {
+          "name": "Dark Mode (10.2)",
+          "file": "e2e/dark-mode.spec.ts",
+          "tests": [
+            "Dark mode toggle is accessible",
+            "Clicking toggle switches theme",
+            "Dark mode preference persists in localStorage",
+            "System preference is respected on first load",
+            "All components visible in dark mode",
+            "Color contrast meets WCAG in dark mode",
+            "Theme-color meta tag updates with theme"
+          ]
+        },
+        {
+          "name": "Loading States (10.3)",
+          "file": "e2e/loading-states.spec.ts",
+          "tests": [
+            "Skeleton loaders show during project load",
+            "Skeletons have aria-busy attribute",
+            "Loading state respects reduced motion",
+            "Content replaces skeleton after load"
+          ]
+        },
+        {
+          "name": "Onboarding & Help (10.4)",
+          "file": "e2e/onboarding.spec.ts",
+          "tests": [
+            "First-run welcome dialog appears for new users",
+            "Welcome dialog has quick tips",
+            "Welcome dialog can be dismissed",
+            "Welcome dialog doesn't show on subsequent visits",
+            "? shortcut opens keyboard shortcuts reference",
+            "Shortcuts reference lists all keyboard shortcuts",
+            "Shortcuts reference is searchable",
+            "Shortcuts reference dialog is keyboard accessible"
+          ]
+        },
+        {
+          "name": "Workspace Management (11.1)",
+          "file": "e2e/workspace-management.spec.ts",
+          "tests": [
+            "Project switcher dropdown visible in sidebar",
+            "Project switcher shows list of projects",
+            "Active project has visual indicator",
+            "Can search/filter projects in switcher",
+            "Selecting project switches workspace",
+            "Create project dialog initializes folder structure",
+            "Project settings panel accessible",
+            "Can edit project name and description",
+            "Can delete project with confirmation",
+            "Handles missing/corrupted workspace config"
+          ]
+        },
+        {
+          "name": "Git Integration (11.2)",
+          "file": "e2e/git-integration.spec.ts",
+          "tests": [
+            "Git status indicator shows branch name",
+            "Git status shows uncommitted changes count",
+            "Clean/dirty icon reflects repo state",
+            "Auto-commit toggle in git settings",
+            "Enabling auto-commit commits on save",
+            "Can view recent commits",
+            "Can trigger manual commit"
+          ]
+        },
+        {
+          "name": "Backup & Restore (12.6)",
+          "file": "e2e/backup-restore.spec.ts",
+          "tests": [
+            "Manual backup exports all projects as .zip",
+            "Backup download triggers correctly",
+            "Restore from backup option available",
+            "Restore validates backup format",
+            "Restore replaces current project data",
+            "Backup status indicator in settings"
+          ]
+        }
+      ],
+      "acceptanceCriteria": [
+        "All listed test files created in e2e/ directory",
+        "Each test file covers all listed test cases",
+        "Tests use Playwright best practices (locators, assertions)",
+        "Tests are independent and can run in isolation",
+        "Tests pass in CI pipeline"
+      ]
+    },
+    {
+      "id": "13.1",
+      "sprint": 13,
+      "title": "Container Node Type System",
+      "description": "Add Subsystem, Assembly, and Module node types with shared structure for organizing large-scale project parts",
+      "acceptanceCriteria": [
+        "NodeType enum extended: subsystem, assembly, module",
+        "SubsystemNode extends BaseNode with status, description, requirements (optional string[])",
+        "AssemblyNode extends BaseNode with status, description, requirements (optional string[])",
+        "ModuleNode extends BaseNode with status, description, requirements (optional string[])",
+        "Type guards: isSubsystemNode(), isAssemblyNode(), isModuleNode(), isContainerNode()",
+        "Container status options: planning, in_progress, complete, on_hold",
+        "ForgeNode discriminated union updated to include all seven node types"
+      ]
+    },
+    {
+      "id": "13.2",
+      "sprint": 13,
+      "title": "Parent Linking Field",
+      "description": "Add optional parent field to Task, Component, Decision, and Note nodes for linking to container nodes",
+      "acceptanceCriteria": [
+        "Optional parent field added to TaskNode, ComponentNode, DecisionNode, NoteNode types",
+        "parent field accepts id of any Subsystem, Assembly, or Module node",
+        "Zod schemas updated to validate parent references",
+        "YAML frontmatter supports parent: container-id syntax",
+        "Validation warns if parent references non-existent or non-container node"
+      ]
+    },
+    {
+      "id": "13.3",
+      "sprint": 13,
+      "title": "Container Node File System",
+      "description": "Add file system support for container node types",
+      "acceptanceCriteria": [
+        "New directories: subsystems/, assemblies/, modules/ in project structure",
+        "loadProject() scans all seven node type directories",
+        "saveNode() correctly routes container nodes to their directories",
+        "Sample fixtures include at least one of each container type"
+      ]
+    },
+    {
+      "id": "13.4",
+      "sprint": 13,
+      "title": "Container Node CRUD & Store",
+      "description": "Extend nodes store with container node operations and child lookups",
+      "acceptanceCriteria": [
+        "useNodesStore supports add/update/delete for container nodes",
+        "getNodesByType() works for subsystem, assembly, module types",
+        "getChildNodes(containerId) returns all nodes with matching parent field",
+        "Container node deletion warns about orphaned child references",
+        "Quick create buttons for + Subsystem, + Assembly, + Module in sidebar"
+      ]
+    },
+    {
+      "id": "13.5",
+      "sprint": 13,
+      "title": "Container Node Detail Panel",
+      "description": "Detail panel for viewing and editing container nodes",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "ContainerDetailPanel renders for Subsystem, Assembly, Module nodes",
+        "Shows title, status, description fields",
+        "Requirements displayed as editable list (add/remove/reorder)",
+        "Child nodes section shows linked tasks, components, decisions, notes",
+        "Child nodes grouped by type with counts",
+        "Click child node navigates to it"
+      ]
+    },
+    {
+      "id": "13.6",
+      "sprint": 13,
+      "title": "Parent Selector UI",
+      "description": "UI for assigning and changing parent on child nodes",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "ParentSelector dropdown in Task, Component, Decision, Note detail panels",
+        "Dropdown shows all container nodes grouped by type",
+        "Search/filter within dropdown",
+        "Clear button to remove parent assignment",
+        "Shows current parent with type badge and link to navigate"
+      ]
+    },
+    {
+      "id": "13.7",
+      "sprint": 13,
+      "title": "Container Filtering & Outline",
+      "description": "Filter and group nodes by container in outline view",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "ContainerFilter in sidebar filters to show only nodes under selected container",
+        "Outline view can group by container (alternative to grouping by type)",
+        "Container sections collapsible with node counts",
+        "Nodes without parent shown in 'Unassigned' section",
+        "URL state includes container filter (?container=cannon-subsystem)"
+      ]
+    },
+    {
+      "id": "13.8",
+      "sprint": 13,
+      "title": "Container Nodes in Graph View",
+      "description": "Display container nodes and parent relationships in graph",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Container nodes render with distinct visual style (larger, different shape or border)",
+        "Parent-child edges shown as containment lines (different from dependency/reference)",
+        "Filter graph to show only nodes within a container",
+        "Container node context menu includes 'Show Children Only' option",
+        "Graph layout respects container grouping (children clustered near parent)"
+      ]
+    },
+    {
+      "id": "14.1",
+      "sprint": 14,
+      "title": "IndexedDB Storage Layer",
+      "description": "Implement IndexedDB adapter as primary persistence layer using idb library for cleaner async/await API",
+      "acceptanceCriteria": [
+        "idb package installed (lightweight IndexedDB wrapper)",
+        "IndexedDBAdapter implements FileSystemAdapter interface",
+        "Database schema: projects store (id, name, metadata), nodes store (id, projectId, type, data)",
+        "CRUD operations: readFile, writeFile, deleteFile, listDirectory map to IndexedDB operations",
+        "Data persists across browser sessions and page reloads",
+        "Database versioning supports schema migrations",
+        "Unit tests verify persistence across simulated page reloads"
+      ]
+    },
+    {
+      "id": "14.2",
+      "sprint": 14,
+      "title": "Directory Handle Persistence",
+      "description": "Store File System Access API directory handles in IndexedDB for automatic reconnection",
+      "acceptanceCriteria": [
+        "Directory handles stored in IndexedDB when user selects folder",
+        "On app load, attempt to retrieve stored handle and request permission",
+        "If permission granted, automatically reconnect to file system",
+        "If permission denied or handle invalid, show reconnect prompt",
+        "Handle storage includes project path and last sync timestamp",
+        "Clear stored handle when user explicitly closes project"
+      ]
+    },
+    {
+      "id": "14.3",
+      "sprint": 14,
+      "title": "Sync Service Architecture",
+      "description": "Create bidirectional sync service that coordinates between IndexedDB and file system",
+      "acceptanceCriteria": [
+        "SyncService class manages sync state and operations",
+        "Sync modes: 'idle', 'syncing', 'error', 'disconnected'",
+        "syncToFileSystem(nodes) writes IndexedDB state to file system",
+        "syncFromFileSystem() reads file system into IndexedDB",
+        "Sync operations are atomic (all-or-nothing per node)",
+        "Sync errors don't corrupt either data source",
+        "Sync service exposes observable state for UI binding"
+      ]
+    },
+    {
+      "id": "14.4",
+      "sprint": 14,
+      "title": "Change Tracking & Dirty Detection",
+      "description": "Track changes in both IndexedDB and file system to enable smart sync",
+      "acceptanceCriteria": [
+        "Each node stores lastModified timestamp in IndexedDB",
+        "Each node stores lastSyncedAt timestamp (when last written to file system)",
+        "Dirty detection: node is dirty if lastModified > lastSyncedAt",
+        "File system watcher detects external changes (if browser supports)",
+        "External changes marked with externallyModified flag",
+        "Change tracking persists across page reloads"
+      ]
+    },
+    {
+      "id": "14.5",
+      "sprint": 14,
+      "title": "Conflict Detection & Resolution",
+      "description": "Detect and resolve conflicts when both IndexedDB and file system have changes",
+      "acceptanceCriteria": [
+        "Conflict detected when: IndexedDB dirty AND file system modified since last sync",
+        "ConflictResolutionDialog shows both versions with diff view",
+        "Resolution options: 'Keep Local', 'Keep External', 'Merge' (manual)",
+        "Merge option opens side-by-side editor for manual resolution",
+        "Resolution choice can be applied to all similar conflicts",
+        "Conflict history logged for debugging"
+      ]
+    },
+    {
+      "id": "14.6",
+      "sprint": 14,
+      "title": "Sync Status UI",
+      "description": "Visual indicators for sync status throughout the app",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "SyncStatusIndicator in header/toolbar shows current sync state",
+        "States: 'Synced' (green check), 'Syncing' (spinner), 'Offline' (gray), 'Error' (red)",
+        "Clicking indicator opens sync details popover",
+        "Popover shows: last sync time, pending changes count, connection status",
+        "Manual 'Sync Now' button triggers immediate sync",
+        "'Reconnect' button appears when disconnected from file system",
+        "Toast notifications for sync success/failure"
+      ]
+    },
+    {
+      "id": "14.7",
+      "sprint": 14,
+      "title": "Automatic Sync Strategy",
+      "description": "Implement configurable automatic sync behavior",
+      "acceptanceCriteria": [
+        "Sync triggers: on save (debounced), on app focus, on manual request",
+        "Configurable sync interval for background sync (default: 30 seconds when idle)",
+        "Sync pauses when app is in background (Page Visibility API)",
+        "Sync resumes when app regains focus",
+        "Settings UI for sync preferences: auto-sync on/off, sync interval",
+        "Offline mode: continue working, queue changes, sync when reconnected"
+      ]
+    },
+    {
+      "id": "14.8",
+      "sprint": 14,
+      "title": "Store Migration & Initialization",
+      "description": "Update Zustand stores to use IndexedDB as primary source with file system as secondary",
+      "acceptanceCriteria": [
+        "useNodesStore initializes from IndexedDB on app load (fast)",
+        "File system sync happens in background after initial load",
+        "useProjectStore tracks both IndexedDB and file system connection state",
+        "First-time setup: if IndexedDB empty but file system has data, import",
+        "Migration path: existing BrowserFileSystemAdapter users get data imported to IndexedDB",
+        "Clear IndexedDB option in settings for troubleshooting"
+      ]
+    },
+    {
+      "id": "14.9",
+      "sprint": 14,
+      "title": "Reconnection Flow UX",
+      "description": "Smooth user experience for reconnecting to file system after page reload",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "On reload: app loads instantly from IndexedDB, shows 'Reconnecting...' status",
+        "Browser permission prompt appears for stored directory handle",
+        "If user grants permission: sync status updates, sync begins automatically",
+        "If user denies permission: show 'Offline Mode' banner with 'Reconnect' button",
+        "Reconnect button re-prompts for directory selection",
+        "Data never lost: IndexedDB always has the latest state"
+      ]
+    },
+    {
+      "id": "14.10",
+      "sprint": 14,
+      "title": "E2E Tests for Hybrid Persistence",
+      "description": "End-to-end tests verifying persistence and sync behavior",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Test: data persists in IndexedDB after page reload",
+        "Test: app loads data from IndexedDB without file system access",
+        "Test: sync indicator shows correct state",
+        "Test: manual sync button triggers sync",
+        "Test: conflict dialog appears for conflicting changes",
+        "Test: offline mode allows continued editing",
+        "Test: reconnection flow works after permission re-grant"
+      ]
     }
   ],
   "technicalDecisions": {
@@ -1072,6 +1818,21 @@
         "lightBg": "gray-50",
         "darkBg": "gray-900",
         "accent": "gray-500"
+      },
+      "subsystem": {
+        "lightBg": "purple-50",
+        "darkBg": "purple-950",
+        "accent": "purple-500"
+      },
+      "assembly": {
+        "lightBg": "cyan-50",
+        "darkBg": "cyan-950",
+        "accent": "cyan-500"
+      },
+      "module": {
+        "lightBg": "rose-50",
+        "darkBg": "rose-950",
+        "accent": "rose-500"
       }
     }
   },

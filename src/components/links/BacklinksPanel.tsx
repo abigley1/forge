@@ -78,7 +78,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
         <ArrowUpRight
           className={cn(
             'h-3.5 w-3.5 shrink-0',
-            'text-gray-400 dark:text-gray-500',
+            'text-gray-500 dark:text-gray-400',
             'opacity-0 transition-opacity duration-150',
             'group-hover:opacity-100 group-focus-visible:opacity-100'
           )}
@@ -102,7 +102,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
             </p>
           ))}
           {contexts.length > 2 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               +{contexts.length - 2} more mentions
             </p>
           )}
@@ -163,7 +163,7 @@ function EmptyBacklinks() {
         )}
       >
         <Link2
-          className="h-5 w-5 text-gray-400 dark:text-gray-500"
+          className="h-5 w-5 text-gray-500 dark:text-gray-400"
           aria-hidden="true"
         />
       </div>

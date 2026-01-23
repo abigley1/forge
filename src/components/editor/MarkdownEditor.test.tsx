@@ -90,10 +90,11 @@ describe('MarkdownEditor', () => {
       expect(container.firstChild).toBeInTheDocument()
     })
 
-    it('renders container with textbox role', () => {
+    it('CodeMirror content has textbox role', () => {
       const { container } = render(<MarkdownEditor value="# Hello World" />)
-      const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('role', 'textbox')
+      // CodeMirror's internal content element has role="textbox"
+      const cmContent = container.querySelector('.cm-content')
+      expect(cmContent).toHaveAttribute('role', 'textbox')
     })
 
     it('applies custom className to container', () => {
@@ -123,23 +124,25 @@ describe('MarkdownEditor', () => {
   // ============================================================================
 
   describe('props', () => {
-    it('sets readOnly on container', () => {
+    it('applies read-only styling when readOnly is true', () => {
       const { container } = render(
         <MarkdownEditor value="Read only content" readOnly />
       )
+      // Read-only state is indicated by background styling on wrapper
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('aria-readonly', 'true')
+      expect(wrapper).toHaveClass('bg-gray-50')
     })
 
-    it('applies aria-label to container', () => {
+    it('applies aria-label to CodeMirror content element', () => {
       const { container } = render(
         <MarkdownEditor value="" aria-label="Markdown content" />
       )
-      const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('aria-label', 'Markdown content')
+      // aria-label is applied to CodeMirror's internal content element
+      const cmContent = container.querySelector('.cm-content')
+      expect(cmContent).toHaveAttribute('aria-label', 'Markdown content')
     })
 
-    it('applies aria-labelledby to container', () => {
+    it('applies aria-labelledby to CodeMirror content element', () => {
       const { container } = render(
         <>
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
@@ -147,9 +150,9 @@ describe('MarkdownEditor', () => {
           <MarkdownEditor value="" aria-labelledby="editor-label" />
         </>
       )
-      // Our wrapper is the second child (after the label)
-      const wrapper = container.querySelector('[role="textbox"]') as HTMLElement
-      expect(wrapper).toHaveAttribute('aria-labelledby', 'editor-label')
+      // aria-labelledby is applied to CodeMirror's internal content element
+      const cmContent = container.querySelector('.cm-content')
+      expect(cmContent).toHaveAttribute('aria-labelledby', 'editor-label')
     })
 
     it('applies aria-describedby to container', () => {
@@ -165,16 +168,24 @@ describe('MarkdownEditor', () => {
       expect(wrapper).toBeInTheDocument()
     })
 
-    it('sets aria-multiline to true', () => {
-      const { container } = render(<MarkdownEditor value="" />)
-      const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('aria-multiline', 'true')
+    it('CodeMirror content has aria-multiline', () => {
+      const { container } = render(
+        <MarkdownEditor value="" aria-label="Test" />
+      )
+      // CodeMirror's internal content element has aria-multiline
+      const cmContent = container.querySelector('.cm-content')
+      expect(cmContent).toHaveAttribute('aria-multiline', 'true')
     })
 
-    it('does not set aria-readonly when readOnly is false', () => {
-      const { container } = render(<MarkdownEditor value="" readOnly={false} />)
+    it('wrapper does not have redundant ARIA attributes', () => {
+      // ARIA attributes are now on CodeMirror's internal element, not wrapper
+      const { container } = render(
+        <MarkdownEditor value="" readOnly={false} aria-label="Test" />
+      )
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('aria-readonly', 'false')
+      // Wrapper should not have role or aria-readonly (CodeMirror handles these)
+      expect(wrapper).not.toHaveAttribute('role')
+      expect(wrapper).not.toHaveAttribute('aria-readonly')
     })
   })
 
@@ -212,10 +223,13 @@ describe('MarkdownEditor', () => {
   // ============================================================================
 
   describe('accessibility', () => {
-    it('has textbox role on container', () => {
-      const { container } = render(<MarkdownEditor value="" />)
-      const wrapper = getWrapper(container)
-      expect(wrapper).toHaveAttribute('role', 'textbox')
+    it('has textbox role on CodeMirror content element', () => {
+      const { container } = render(
+        <MarkdownEditor value="" aria-label="Test editor" />
+      )
+      // CodeMirror's internal content element has role="textbox"
+      const cmContent = container.querySelector('.cm-content')
+      expect(cmContent).toHaveAttribute('role', 'textbox')
     })
 
     it('has focus-within ring style on container', () => {

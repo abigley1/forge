@@ -64,7 +64,7 @@ export function EmptyState({
       <div className="mb-4 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
         {icon ?? (
           <FileQuestion
-            className="h-8 w-8 text-gray-400 dark:text-gray-500"
+            className="h-8 w-8 text-gray-500 dark:text-gray-400"
             aria-hidden="true"
           />
         )}

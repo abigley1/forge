@@ -179,6 +179,16 @@ export const MarkdownEditor = forwardRef<
       getEditorTheme(darkMode),
     ]
 
+    // Add aria-label to the content element for accessibility
+    // This ensures axe-core recognizes the textbox has an accessible name
+    if (ariaLabel) {
+      exts.push(EditorView.contentAttributes.of({ 'aria-label': ariaLabel }))
+    } else if (ariaLabelledBy) {
+      exts.push(
+        EditorView.contentAttributes.of({ 'aria-labelledby': ariaLabelledBy })
+      )
+    }
+
     // Add wiki-link autocomplete if enabled
     if (enableWikiLinks) {
       exts.push(
@@ -200,6 +210,8 @@ export const MarkdownEditor = forwardRef<
     return exts
   }, [
     darkMode,
+    ariaLabel,
+    ariaLabelledBy,
     enableWikiLinks,
     memoizedNodes,
     onLinkInserted,
@@ -260,12 +272,7 @@ export const MarkdownEditor = forwardRef<
         readOnly && 'bg-gray-50 dark:bg-gray-900',
         className
       )}
-      role="textbox"
-      aria-label={ariaLabel}
-      aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
-      aria-readonly={readOnly}
-      aria-multiline="true"
     >
       <CodeMirror
         ref={ref}

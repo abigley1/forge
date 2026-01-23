@@ -53,6 +53,8 @@ export interface DecisionOption {
   name: string
   /** Values for each criterion, keyed by criterion id */
   values: Record<string, string | number>
+  /** Optional link to a Component node - when set, option syncs from component */
+  linkedNodeId?: string
 }
 
 /**
@@ -235,11 +237,29 @@ export function createChecklistItem(text: string): ChecklistItem {
 /**
  * Creates a new decision option
  */
-export function createDecisionOption(name: string): DecisionOption {
+export function createDecisionOption(
+  name: string,
+  linkedNodeId?: string
+): DecisionOption {
   return {
     id: crypto.randomUUID(),
     name,
     values: {},
+    ...(linkedNodeId && { linkedNodeId }),
+  }
+}
+
+/**
+ * Create a decision option linked to a component node
+ */
+export function createLinkedDecisionOption(
+  componentNode: ComponentNode
+): DecisionOption {
+  return {
+    id: crypto.randomUUID(),
+    name: componentNode.title,
+    values: {},
+    linkedNodeId: componentNode.id,
   }
 }
 

@@ -154,6 +154,12 @@ export interface FileSystemAdapter {
    * @returns The root path or null if not applicable
    */
   getRootPath(): string | null
+
+  /**
+   * Get the name of the root directory (for display purposes)
+   * @returns The root directory name or null if not applicable
+   */
+  getRootName(): string | null
 }
 
 /**

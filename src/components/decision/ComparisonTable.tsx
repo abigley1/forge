@@ -3,11 +3,23 @@ import {
   useCallback,
   useRef,
   useEffect,
+  useMemo,
   type KeyboardEvent,
 } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
-import type { DecisionNode } from '@/types/nodes'
-import { createDecisionOption, createDecisionCriterion } from '@/types/nodes'
+import { Plus, Trash2, Link2, X } from 'lucide-react'
+import type {
+  DecisionNode,
+  DecisionOption,
+  DecisionCriterion,
+  ComponentNode,
+  ForgeNode,
+} from '@/types/nodes'
+import {
+  createDecisionOption,
+  createDecisionCriterion,
+  createLinkedDecisionOption,
+  isComponentNode,
+} from '@/types/nodes'
 import { cn } from '@/lib/utils'
 import { AlertDialog } from '@/components/ui'
 
@@ -33,6 +45,10 @@ export interface ComparisonTableProps {
   onChange: (updates: Partial<DecisionNode>) => void
   disabled?: boolean
   className?: string
+  /** All available nodes (for linking components) */
+  availableNodes?: Map<string, ForgeNode>
+  /** Called when clicking a linked component to navigate */
+  onNavigate?: (nodeId: string) => void
 }
 
 interface EditingCell {
@@ -40,11 +56,75 @@ interface EditingCell {
   criterionId: string
 }
 
+interface ResolvedValue {
+  value: string | number | undefined
+  source: 'component' | 'override' | 'empty'
+  componentValue?: string | number
+}
+
+/**
+ * Get the resolved value for a criterion on a linked option
+ */
+function getResolvedValue(
+  option: DecisionOption,
+  criterion: DecisionCriterion,
+  linkedComponent: ComponentNode | undefined
+): ResolvedValue {
+  const criterionName = criterion.name.toLowerCase()
+  const override = option.values[criterion.id]
+
+  // Find matching component field
+  let componentValue: string | number | undefined
+
+  if (linkedComponent) {
+    if (criterionName === 'cost' && linkedComponent.cost !== null) {
+      componentValue = linkedComponent.cost
+    } else if (criterionName === 'supplier' && linkedComponent.supplier) {
+      componentValue = linkedComponent.supplier
+    } else if (
+      (criterionName === 'part number' || criterionName === 'partnumber') &&
+      linkedComponent.partNumber
+    ) {
+      componentValue = linkedComponent.partNumber
+    } else if (linkedComponent.customFields) {
+      // Check customFields with case-insensitive matching
+      const matchingKey = Object.keys(linkedComponent.customFields).find(
+        (key) => key.toLowerCase() === criterionName
+      )
+      if (matchingKey) {
+        componentValue = linkedComponent.customFields[matchingKey]
+      }
+    }
+  }
+
+  // Determine source and value
+  if (override !== undefined) {
+    return {
+      value: override,
+      source: 'override',
+      componentValue,
+    }
+  } else if (componentValue !== undefined) {
+    return {
+      value: componentValue,
+      source: 'component',
+      componentValue,
+    }
+  } else {
+    return {
+      value: undefined,
+      source: 'empty',
+    }
+  }
+}
+
 export function ComparisonTable({
   node,
   onChange,
   disabled = false,
   className,
+  availableNodes,
+  onNavigate,
 }: ComparisonTableProps) {
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -58,19 +138,45 @@ export function ComparisonTable({
   const [deleteCriterionId, setDeleteCriterionId] = useState<string | null>(
     null
   )
+  const [showComponentSelector, setShowComponentSelector] = useState(false)
+  const [componentSearchValue, setComponentSearchValue] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
   const newOptionInputRef = useRef<HTMLInputElement>(null)
   const newCriterionInputRef = useRef<HTMLInputElement>(null)
   const editInputRef = useRef<HTMLInputElement>(null)
+  const componentSearchRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLUListElement>(null)
 
   const { options, criteria } = node
 
+  // Get available components for linking (excluding already linked ones)
+  const availableComponents = useMemo(() => {
+    if (!availableNodes) return []
+    const linkedIds = new Set(
+      options.filter((o) => o.linkedNodeId).map((o) => o.linkedNodeId)
+    )
+    return Array.from(availableNodes.values())
+      .filter(isComponentNode)
+      .filter((c) => !linkedIds.has(c.id))
+      .filter((c) =>
+        c.title.toLowerCase().includes(componentSearchValue.toLowerCase())
+      )
+  }, [availableNodes, options, componentSearchValue])
+
   // Focus management for adding options
   useEffect(() => {
-    if (isAddingOption && newOptionInputRef.current) {
+    if (isAddingOption && !showComponentSelector && newOptionInputRef.current) {
       newOptionInputRef.current.focus()
     }
-  }, [isAddingOption])
+  }, [isAddingOption, showComponentSelector])
+
+  // Focus management for component search
+  useEffect(() => {
+    if (showComponentSelector && componentSearchRef.current) {
+      componentSearchRef.current.focus()
+    }
+  }, [showComponentSelector])
 
   // Focus management for adding criteria
   useEffect(() => {
@@ -87,6 +193,12 @@ export function ComparisonTable({
     }
   }, [editingCell])
 
+  // Reset highlighted index when search changes - intentional setState in effect
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHighlightedIndex(-1)
+  }, [componentSearchValue])
+
   // --- Option handlers ---
   const handleAddOption = useCallback(() => {
     if (!newOptionName.trim()) {
@@ -102,6 +214,53 @@ export function ComparisonTable({
     setNewOptionName('')
     setIsAddingOption(false)
   }, [newOptionName, options, onChange])
+
+  const handleAddLinkedOption = useCallback(
+    (component: ComponentNode) => {
+      const newOption = createLinkedDecisionOption(component)
+      onChange({
+        options: [...options, newOption],
+      })
+      setShowComponentSelector(false)
+      setComponentSearchValue('')
+      setIsAddingOption(false)
+    },
+    [options, onChange]
+  )
+
+  const handleUnlinkOption = useCallback(
+    (optionId: string) => {
+      const option = options.find((o) => o.id === optionId)
+      if (!option?.linkedNodeId) return
+
+      const linkedComponent = availableNodes?.get(option.linkedNodeId)
+
+      // Snapshot current resolved values into the option
+      const snapshotValues = { ...option.values }
+      if (linkedComponent && isComponentNode(linkedComponent)) {
+        for (const criterion of criteria) {
+          if (snapshotValues[criterion.id] === undefined) {
+            const resolved = getResolvedValue(
+              option,
+              criterion,
+              linkedComponent
+            )
+            if (resolved.value !== undefined) {
+              snapshotValues[criterion.id] = resolved.value
+            }
+          }
+        }
+      }
+
+      const newOptions = options.map((o) =>
+        o.id === optionId
+          ? { ...o, linkedNodeId: undefined, values: snapshotValues }
+          : o
+      )
+      onChange({ options: newOptions })
+    },
+    [options, criteria, availableNodes, onChange]
+  )
 
   const handleDeleteOption = useCallback(
     (optionId: string) => {
@@ -180,11 +339,24 @@ export function ComparisonTable({
     (optionId: string, criterionId: string) => {
       if (disabled) return
       const option = options.find((o) => o.id === optionId)
-      const currentValue = option?.values[criterionId] ?? ''
+      if (!option) return
+
+      // Get the displayed value (may be from linked component)
+      const linkedComponent = option.linkedNodeId
+        ? availableNodes?.get(option.linkedNodeId)
+        : undefined
+      const criterion = criteria.find((c) => c.id === criterionId)
+      if (!criterion) return
+
+      const resolved =
+        linkedComponent && isComponentNode(linkedComponent)
+          ? getResolvedValue(option, criterion, linkedComponent)
+          : { value: option.values[criterionId], source: 'empty' as const }
+
       setEditingCell({ optionId, criterionId })
-      setEditValue(String(currentValue))
+      setEditValue(resolved.value !== undefined ? String(resolved.value) : '')
     },
-    [disabled, options]
+    [disabled, options, criteria, availableNodes]
   )
 
   const commitEdit = useCallback(() => {
@@ -255,6 +427,31 @@ export function ComparisonTable({
       }
     },
     [handleAddOption]
+  )
+
+  // --- Component selector handlers ---
+  const handleComponentSelectorKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setShowComponentSelector(false)
+        setComponentSearchValue('')
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setHighlightedIndex((prev) =>
+          prev < availableComponents.length - 1 ? prev + 1 : prev
+        )
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        if (highlightedIndex >= 0 && availableComponents[highlightedIndex]) {
+          handleAddLinkedOption(availableComponents[highlightedIndex])
+        }
+      }
+    },
+    [availableComponents, highlightedIndex, handleAddLinkedOption]
   )
 
   // --- New criterion input handlers ---
@@ -369,49 +566,200 @@ export function ComparisonTable({
               </th>
 
               {/* Option headers */}
-              {options.map((option) => (
-                <th
-                  key={option.id}
-                  className={cn(headerCellClassName, 'min-w-[120px]')}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate" title={option.name}>
-                      {option.name}
-                    </span>
-                    {!disabled && (
-                      <button
-                        type="button"
-                        onClick={() => setDeleteOptionId(option.id)}
-                        className={cn(
-                          'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-                          'hover:bg-gray-200 hover:text-red-600',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                          'dark:hover:bg-gray-700'
+              {options.map((option) => {
+                const linkedComponent = option.linkedNodeId
+                  ? availableNodes?.get(option.linkedNodeId)
+                  : undefined
+                const isLinked =
+                  !!linkedComponent && isComponentNode(linkedComponent)
+
+                return (
+                  <th
+                    key={option.id}
+                    className={cn(headerCellClassName, 'min-w-[120px]')}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        {isLinked && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigate?.(option.linkedNodeId!)}
+                            className="flex-shrink-0 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                            aria-label={`Navigate to linked component ${linkedComponent.title}`}
+                            title={`Linked to: ${linkedComponent.title}`}
+                          >
+                            <Link2 className="h-4 w-4" aria-hidden="true" />
+                          </button>
                         )}
-                        aria-label={`Delete option ${option.name}`}
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
-                </th>
-              ))}
+                        <span className="truncate" title={option.name}>
+                          {option.name}
+                        </span>
+                      </div>
+                      {!disabled && (
+                        <div className="flex items-center">
+                          {isLinked && (
+                            <button
+                              type="button"
+                              onClick={() => handleUnlinkOption(option.id)}
+                              className={cn(
+                                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
+                                'hover:bg-gray-200 hover:text-amber-600',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                                'dark:hover:bg-gray-700'
+                              )}
+                              aria-label={`Unlink ${option.name} from component`}
+                              title="Unlink from component"
+                            >
+                              <X className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setDeleteOptionId(option.id)}
+                            className={cn(
+                              'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
+                              'hover:bg-gray-200 hover:text-red-600',
+                              'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
+                              'dark:hover:bg-gray-700'
+                            )}
+                            aria-label={`Delete option ${option.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                )
+              })}
 
               {/* Add Option column */}
-              <th className={cn(headerCellClassName, 'w-[140px]')}>
+              <th className={cn(headerCellClassName, 'w-[180px]')}>
                 {isAddingOption ? (
-                  <input
-                    ref={newOptionInputRef}
-                    type="text"
-                    value={newOptionName}
-                    onChange={(e) => setNewOptionName(e.target.value)}
-                    onKeyDown={handleNewOptionKeyDown}
-                    onBlur={handleAddOption}
-                    placeholder="Option name..."
-                    className={cn(inputClassName, 'text-center')}
-                    aria-label="New option name"
-                    autoComplete="off"
-                  />
+                  showComponentSelector ? (
+                    <div className="relative">
+                      <input
+                        ref={componentSearchRef}
+                        type="text"
+                        role="combobox"
+                        value={componentSearchValue}
+                        onChange={(e) =>
+                          setComponentSearchValue(e.target.value)
+                        }
+                        onKeyDown={handleComponentSelectorKeyDown}
+                        onBlur={() => {
+                          // Delay to allow click on suggestion
+                          setTimeout(() => {
+                            setShowComponentSelector(false)
+                            setComponentSearchValue('')
+                          }, 200)
+                        }}
+                        placeholder="Search components..."
+                        className={cn(inputClassName, 'pr-8')}
+                        aria-label="Search components to link"
+                        aria-expanded="true"
+                        aria-haspopup="listbox"
+                        aria-controls="component-suggestions"
+                        autoComplete="off"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowComponentSelector(false)
+                          setComponentSearchValue('')
+                        }}
+                        className="absolute top-1/2 right-1 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                        aria-label="Cancel component selection"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      {availableComponents.length > 0 && (
+                        <ul
+                          ref={suggestionsRef}
+                          id="component-suggestions"
+                          role="listbox"
+                          className={cn(
+                            'absolute top-full right-0 left-0 z-10 mt-1',
+                            'max-h-48 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg',
+                            'dark:border-gray-700 dark:bg-gray-800'
+                          )}
+                        >
+                          {availableComponents.map((component, index) => (
+                            <li
+                              key={component.id}
+                              role="option"
+                              aria-selected={highlightedIndex === index}
+                              className={cn(
+                                'cursor-pointer px-3 py-2 text-left text-sm',
+                                highlightedIndex === index
+                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+                                  : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                              )}
+                              onClick={() => handleAddLinkedOption(component)}
+                              // Keyboard navigation handled by input's onKeyDown
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleAddLinkedOption(component)
+                                }
+                              }}
+                            >
+                              <div className="truncate font-medium">
+                                {component.title}
+                              </div>
+                              {component.supplier && (
+                                <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                                  {component.supplier}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {availableComponents.length === 0 &&
+                        componentSearchValue && (
+                          <div
+                            className={cn(
+                              'absolute top-full right-0 left-0 z-10 mt-1',
+                              'rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-500 shadow-lg',
+                              'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                            )}
+                          >
+                            No matching components
+                          </div>
+                        )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <input
+                        ref={newOptionInputRef}
+                        type="text"
+                        value={newOptionName}
+                        onChange={(e) => setNewOptionName(e.target.value)}
+                        onKeyDown={handleNewOptionKeyDown}
+                        onBlur={handleAddOption}
+                        placeholder="Option name..."
+                        className={cn(inputClassName, 'flex-1 text-center')}
+                        aria-label="New option name"
+                        autoComplete="off"
+                      />
+                      {availableNodes && availableNodes.size > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowComponentSelector(true)}
+                          className={cn(
+                            'flex-shrink-0 rounded p-1.5',
+                            'text-gray-400 hover:bg-blue-50 hover:text-blue-600',
+                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                            'dark:hover:bg-blue-900/50 dark:hover:text-blue-400'
+                          )}
+                          aria-label="Link to existing component"
+                          title="Link to component"
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )
                 ) : (
                   <button
                     type="button"
@@ -507,19 +855,35 @@ export function ComparisonTable({
 
                 {/* Value cells for each option */}
                 {options.map((option) => {
+                  const linkedComponent = option.linkedNodeId
+                    ? availableNodes?.get(option.linkedNodeId)
+                    : undefined
+                  const isLinked =
+                    linkedComponent && isComponentNode(linkedComponent)
+
                   const isEditing =
                     editingCell?.optionId === option.id &&
                     editingCell?.criterionId === criterion.id
-                  const value = option.values[criterion.id]
+
+                  // Get resolved value (from component or override)
+                  const resolved = isLinked
+                    ? getResolvedValue(option, criterion, linkedComponent)
+                    : {
+                        value: option.values[criterion.id],
+                        source: 'empty' as const,
+                      }
+
+                  const hasOverride = isLinked && resolved.source === 'override'
 
                   return (
                     <td
                       key={`${option.id}-${criterion.id}`}
                       className={cn(
                         cellClassName,
-                        'text-center',
+                        'relative text-center',
                         !disabled &&
-                          'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800'
+                          'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800',
+                        hasOverride && 'bg-amber-50/50 dark:bg-amber-950/20'
                       )}
                       onClick={() => startEditing(option.id, criterion.id)}
                       role="gridcell"
@@ -544,15 +908,29 @@ export function ComparisonTable({
                           autoComplete="off"
                         />
                       ) : (
-                        <span
-                          className={cn(
-                            'block min-h-[1.5rem]',
-                            value === undefined &&
-                              'text-gray-300 dark:text-gray-600'
+                        <>
+                          <span
+                            className={cn(
+                              'block min-h-[1.5rem]',
+                              resolved.value === undefined &&
+                                'text-gray-300 dark:text-gray-600',
+                              isLinked &&
+                                resolved.source === 'component' &&
+                                'text-blue-600 dark:text-blue-400'
+                            )}
+                          >
+                            {resolved.value !== undefined
+                              ? String(resolved.value)
+                              : '—'}
+                          </span>
+                          {hasOverride && (
+                            <span
+                              className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-400"
+                              title="Value overridden from component"
+                              aria-label="Overridden value"
+                            />
                           )}
-                        >
-                          {value !== undefined ? String(value) : '—'}
-                        </span>
+                        </>
                       )}
                     </td>
                   )

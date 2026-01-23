@@ -100,7 +100,7 @@ export function Breadcrumbs({
             {/* Separator */}
             {index > 0 && (
               <ChevronRight
-                className="mx-1 h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500"
+                className="mx-1 h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400"
                 aria-hidden="true"
               />
             )}

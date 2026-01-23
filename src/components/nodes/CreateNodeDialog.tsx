@@ -397,7 +397,7 @@ export function CreateNodeDialog({
           </form>
 
           {/* Keyboard shortcut hint */}
-          <p className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+          <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
             Keyboard shortcut:{' '}
             <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600 dark:bg-gray-800 dark:text-gray-400">
               {formatHotkey('N', { ctrl: true, shift: true })}

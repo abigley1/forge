@@ -126,7 +126,7 @@ function LinkGroup({
             'text-xs tabular-nums',
             count > 0
               ? 'text-gray-500 dark:text-gray-400'
-              : 'text-gray-400 dark:text-gray-500'
+              : 'text-gray-500 dark:text-gray-400'
           )}
           aria-hidden="true"
         >
@@ -144,7 +144,7 @@ function LinkGroup({
         aria-hidden={!expanded}
       >
         {count === 0 ? (
-          <p className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+          <p className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
             {direction === 'outgoing'
               ? 'No outgoing links'
               : 'No incoming links'}
@@ -199,7 +199,7 @@ function RelatedNodeItem({
         {/* Direction indicator for incoming */}
         {direction === 'incoming' && (
           <ArrowRight
-            className="h-3 w-3 shrink-0 text-gray-400 dark:text-gray-500"
+            className="h-3 w-3 shrink-0 text-gray-500 dark:text-gray-400"
             aria-hidden="true"
           />
         )}
@@ -214,7 +214,7 @@ function RelatedNodeItem({
         <span
           className={cn(
             'shrink-0 text-xs',
-            'text-gray-400 dark:text-gray-500',
+            'text-gray-500 dark:text-gray-400',
             'opacity-0 transition-opacity duration-150',
             'group-hover:opacity-100 group-focus-visible:opacity-100'
           )}
@@ -227,7 +227,7 @@ function RelatedNodeItem({
           <ArrowRight
             className={cn(
               'h-3 w-3 shrink-0',
-              'text-gray-400 dark:text-gray-500',
+              'text-gray-500 dark:text-gray-400',
               'opacity-0 transition-opacity duration-150',
               'group-hover:opacity-100 group-focus-visible:opacity-100'
             )}
@@ -258,14 +258,14 @@ function EmptyRelatedNodes() {
         )}
       >
         <Link2
-          className="h-4 w-4 text-gray-400 dark:text-gray-500"
+          className="h-4 w-4 text-gray-500 dark:text-gray-400"
           aria-hidden="true"
         />
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400">
         No related nodes
       </p>
-      <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
         Use [[wiki-links]] to connect nodes
       </p>
     </div>

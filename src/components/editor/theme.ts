@@ -116,6 +116,10 @@ function createBaseTheme(colors: typeof lightColors): Extension {
       '.cm-line': {
         padding: '0 1rem',
       },
+      // Placeholder styling with WCAG-compliant contrast (≥4.5:1)
+      '.cm-placeholder': {
+        color: colors === lightColors ? '#6b7280' : '#9ca3af', // gray-500 light, gray-400 dark
+      },
     },
     { dark: colors === darkColors }
   )

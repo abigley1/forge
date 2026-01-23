@@ -434,8 +434,11 @@ export async function loadProject(
       }
     }
 
-    // Extract project name from path
-    const projectName = projectPath.split('/').pop() || 'Untitled Project'
+    // Extract project name from path or adapter root name
+    let projectName = projectPath.split('/').pop() || ''
+    if (!projectName || projectPath === '/') {
+      projectName = adapter.getRootName() || 'Untitled Project'
+    }
     const projectId = slugify(projectName)
 
     const project: Project = {

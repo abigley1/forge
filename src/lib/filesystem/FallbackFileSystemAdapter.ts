@@ -380,7 +380,11 @@ export class FallbackFileSystemAdapter implements FileSystemAdapter {
   }
 
   getRootPath(): string | null {
-    return this.rootPath ? `/${this.rootPath}` : null
+    return this.rootPath ? '/' : null
+  }
+
+  getRootName(): string | null {
+    return this.rootPath || null
   }
 
   /**
