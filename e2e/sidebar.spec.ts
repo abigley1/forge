@@ -28,6 +28,24 @@ test.describe('Sidebar - Core Functionality', () => {
       await expect(nav).toBeVisible()
     })
 
+    test('sidebar shows project name when project is loaded', async ({
+      page,
+    }) => {
+      // When test data is loaded via E2E hooks, a mock project is created
+      // The sidebar should show the project name "E2E Test Project"
+      const projectName = page.getByText('E2E Test Project')
+      await expect(projectName).toBeVisible()
+    })
+
+    test('sidebar shows node count when project is loaded', async ({
+      page,
+    }) => {
+      // Test data has 9 nodes - look specifically in the sidebar navigation
+      const sidebar = page.locator('nav[aria-label="Main navigation"]')
+      const nodeCount = sidebar.getByText('9 nodes')
+      await expect(nodeCount).toBeVisible()
+    })
+
     test('sidebar contains Quick Create section', async ({ page }) => {
       await expect(page.getByText('Quick Create')).toBeVisible()
     })

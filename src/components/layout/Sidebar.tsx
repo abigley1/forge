@@ -21,6 +21,8 @@ import {
   FolderOpen,
   Filter,
   Tags,
+  Download,
+  Upload,
 } from 'lucide-react'
 import { useState, useCallback, useMemo, useId } from 'react'
 
@@ -33,7 +35,7 @@ import type {
   ComponentNode,
   NoteNode,
 } from '@/types/nodes'
-import { useNodesStore } from '@/store'
+import { useNodesStore, useProjectStore } from '@/store'
 import { generateNodeId } from '@/lib/project'
 import { useUndoableAddNode, useFilters, useSorting } from '@/hooks'
 import {
@@ -43,6 +45,10 @@ import {
   FilterResultsCount,
   SortDropdown,
 } from '@/components/filters'
+import { ExportDialog } from '@/components/export/ExportDialog'
+import { ImportDialog } from '@/components/export/ImportDialog'
+import type { Project } from '@/types/project'
+import { createProjectMetadata } from '@/types/project'
 
 // ============================================================================
 // Types
@@ -208,18 +214,23 @@ function QuickCreateButton({ nodeType, onClick }: QuickCreateButtonProps) {
 // ============================================================================
 
 /**
- * Placeholder project switcher - will be fully implemented in Sprint 11
+ * Project switcher showing current project name and node count
  */
 function ProjectSwitcher() {
+  const project = useProjectStore((state) => state.project)
+  const nodes = useNodesStore((state) => state.nodes)
+
   return (
     <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
       <FolderOpen className="h-5 w-5 text-gray-500" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Forge
+          {project?.name || 'Forge'}
         </h1>
         <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-          No project loaded
+          {project
+            ? `${nodes.size} node${nodes.size === 1 ? '' : 's'}`
+            : 'No project loaded'}
         </p>
       </div>
     </div>
@@ -384,9 +395,36 @@ function TagCloud({ onTagClick, selectedTags = [] }: TagCloudProps) {
 export function Sidebar({ className }: SidebarProps) {
   const nodes = useNodesStore((state) => state.nodes)
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
+  const setNodes = useNodesStore((state) => state.setNodes)
   const addNodeWithUndo = useUndoableAddNode()
   const filters = useFilters()
   const sorting = useSorting()
+
+  // Import/Export dialog state
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+
+  // Create a Project object from current nodes for export
+  const currentProject = useMemo((): Project => {
+    return {
+      id: 'current-project',
+      name: 'Forge Project',
+      path: '.',
+      nodes: nodes,
+      metadata: createProjectMetadata(),
+    }
+  }, [nodes])
+
+  /**
+   * Handle import success by replacing/merging nodes
+   */
+  const handleImportSuccess = useCallback(
+    (importedProject: Project) => {
+      // Replace all nodes with imported nodes
+      setNodes(importedProject.nodes)
+    },
+    [setNodes]
+  )
 
   /**
    * Creates a new node of the specified type with default values
@@ -538,10 +576,61 @@ export function Sidebar({ className }: SidebarProps) {
         </SidebarSection>
       </div>
 
+      {/* Import/Export Buttons */}
+      <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-800">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setImportDialogOpen(true)}
+            className={cn(
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2',
+              'text-sm font-medium text-gray-700 dark:text-gray-300',
+              'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
+              'transition-colors duration-150',
+              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+            )}
+            aria-label="Import project data"
+          >
+            <Upload className="h-4 w-4" aria-hidden="true" />
+            Import
+          </button>
+          <button
+            type="button"
+            onClick={() => setExportDialogOpen(true)}
+            className={cn(
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2',
+              'text-sm font-medium text-gray-700 dark:text-gray-300',
+              'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
+              'transition-colors duration-150',
+              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+            )}
+            aria-label="Export project data"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Export
+          </button>
+        </div>
+      </div>
+
       {/* Footer */}
       <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
-        <p className="text-xs text-gray-400 dark:text-gray-500">Forge v0.0.1</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400">Forge v0.0.1</p>
       </div>
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        project={currentProject}
+      />
+
+      {/* Import Dialog */}
+      <ImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImportSuccess={handleImportSuccess}
+        currentProject={currentProject}
+      />
     </nav>
   )
 }
