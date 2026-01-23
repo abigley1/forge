@@ -40,8 +40,9 @@ test.describe('Graph View - Basic Rendering', () => {
     const graphNodes = page.locator('.react-flow__node')
     const nodeCount = await graphNodes.count()
 
-    // Should have multiple nodes from test data
-    expect(nodeCount).toBeGreaterThanOrEqual(1)
+    // Test data has 9 nodes (2 decisions, 2 components, 3 tasks, 2 notes)
+    // Verify all nodes loaded - this test will fail if nodes don't load
+    expect(nodeCount).toBe(9)
   })
 
   test('nodes display title and type icon', async ({ page }) => {
