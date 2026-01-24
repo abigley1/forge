@@ -35,6 +35,7 @@ const createNoteNode = (
   content: '',
   tags: [],
   dates: dates || createNodeDates(),
+  parent: null,
 })
 
 // ============================================================================

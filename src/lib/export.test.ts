@@ -50,6 +50,7 @@ function createTestTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
     ...overrides,
   }
 }
@@ -70,6 +71,7 @@ function createTestDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -89,6 +91,7 @@ function createTestComponentNode(
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
     ...overrides,
   }
 }
@@ -101,6 +104,7 @@ function createTestNoteNode(overrides: Partial<NoteNode> = {}): NoteNode {
     tags: [],
     dates: createNodeDates(),
     content: 'Note content',
+    parent: null,
     ...overrides,
   }
 }
@@ -204,6 +208,7 @@ describe('exportToJSON', () => {
           { id: 'option-1', name: 'Option A', values: { cost: '100' } },
         ],
         criteria: [{ id: 'crit-1', name: 'Cost', weight: 5, unit: 'USD' }],
+        parent: null,
       })
       const nodes = new Map([['my-decision', decision]])
       const project = createTestProject(nodes)
@@ -231,6 +236,7 @@ describe('exportToJSON', () => {
         supplier: 'ACME Corp',
         partNumber: 'ACME-123',
         customFields: { material: 'steel', weight: '5kg' },
+        parent: null,
       })
       const nodes = new Map([['my-component', component]])
       const project = createTestProject(nodes)
@@ -422,6 +428,7 @@ describe('importFromJSON', () => {
             dependsOn: [],
             blocks: [],
             checklist: [],
+            parent: null,
           },
         ],
       })
@@ -510,6 +517,7 @@ describe('importFromJSON', () => {
             supplier: 'Supplier Co',
             partNumber: 'ABC-123',
             customFields: { color: 'red' },
+            parent: null,
           },
         ],
       })
@@ -548,6 +556,7 @@ describe('importFromJSON', () => {
               created: '2024-01-01T00:00:00.000Z',
               modified: '2024-01-01T00:00:00.000Z',
             },
+            parent: null,
           },
         ],
       })
@@ -587,6 +596,7 @@ describe('importFromJSON', () => {
             dependsOn: [],
             blocks: [],
             checklist: [],
+            parent: null,
           },
           {
             id: 'note-1',
@@ -598,6 +608,7 @@ describe('importFromJSON', () => {
               created: '2024-01-01T00:00:00.000Z',
               modified: '2024-01-01T00:00:00.000Z',
             },
+            parent: null,
           },
         ],
       })
@@ -708,6 +719,7 @@ describe('importFromJSON', () => {
               created: '2024-01-01T00:00:00.000Z',
               modified: '2024-01-01T00:00:00.000Z',
             },
+            parent: null,
           },
           {
             id: 'duplicate-id',
@@ -719,6 +731,7 @@ describe('importFromJSON', () => {
               created: '2024-01-01T00:00:00.000Z',
               modified: '2024-01-01T00:00:00.000Z',
             },
+            parent: null,
           },
         ],
       })
@@ -873,6 +886,7 @@ describe('exportNodeToMarkdown', () => {
         supplier: 'ACME',
         partNumber: 'NEMA17-001',
         customFields: { voltage: '12V' },
+        parent: null,
       })
 
       const markdown = exportNodeToMarkdown(component)
@@ -962,6 +976,7 @@ describe('exportNodeToMarkdown', () => {
           { id: '1', text: 'First item', completed: true },
           { id: '2', text: 'Second item', completed: false },
         ],
+        parent: null,
       })
 
       const markdown = exportNodeToMarkdown(task)
@@ -1886,6 +1901,7 @@ describe('exportComponentsToCSV', () => {
           torque: 50,
           weight: '100g',
         },
+        parent: null,
       })
 
       const result = exportComponentsToCSV([component])
@@ -1909,6 +1925,7 @@ describe('exportComponentsToCSV', () => {
     it('handles empty custom fields', () => {
       const component = createTestComponentNode({
         customFields: {},
+        parent: null,
       })
 
       const result = exportComponentsToCSV([component])

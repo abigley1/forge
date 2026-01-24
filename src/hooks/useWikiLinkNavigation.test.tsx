@@ -16,7 +16,7 @@ import type { ReactNode } from 'react'
 import { useWikiLinkNavigation } from './useWikiLinkNavigation'
 import { useNodesStore } from '@/store'
 import { NodeType } from '@/types/nodes'
-import type { ForgeNode, TaskNode } from '@/types/nodes'
+import type { ForgeNode, TaskNode, NoteNode } from '@/types/nodes'
 
 // ============================================================================
 // Test Utilities
@@ -35,7 +35,6 @@ function createTestNode(
   const baseNode = {
     id,
     title,
-    type,
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: `# ${title}\n\nThis is the content for ${title}.`,
@@ -50,10 +49,24 @@ function createTestNode(
       dependsOn: [],
       blocks: [],
       checklist: [],
+      parent: null,
     } as TaskNode
   }
 
-  return baseNode as ForgeNode
+  if (type === NodeType.Note) {
+    return {
+      ...baseNode,
+      type: NodeType.Note,
+      parent: null,
+    } as NoteNode
+  }
+
+  // Default to Note for other types
+  return {
+    ...baseNode,
+    type: NodeType.Note,
+    parent: null,
+  } as NoteNode
 }
 
 // ============================================================================

@@ -33,6 +33,7 @@ function createTaskNode(
     checklist: [],
     milestone,
     dates: { created: new Date(), modified: new Date() },
+    parent: null,
   }
 }
 
@@ -177,6 +178,7 @@ describe('groupTasksByMilestone', () => {
           tags: [],
           content: '',
           dates: { created: new Date(), modified: new Date() },
+          parent: null,
         } as ForgeNode,
       ],
     ])
@@ -238,6 +240,7 @@ describe('getAllMilestones', () => {
           tags: [],
           content: '',
           dates: { created: new Date(), modified: new Date() },
+          parent: null,
         } as ForgeNode,
       ],
     ])

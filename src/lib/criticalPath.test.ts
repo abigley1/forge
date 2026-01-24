@@ -52,6 +52,7 @@ function createTaskNode(
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 
@@ -75,6 +76,7 @@ function createDecisionNode(
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 
@@ -89,6 +91,7 @@ function createNoteNode(id: string): NoteNode {
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 
@@ -108,6 +111,7 @@ function createComponentNode(id: string): ComponentNode {
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 

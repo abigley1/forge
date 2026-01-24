@@ -31,6 +31,9 @@ import type {
   DecisionNode,
   ComponentNode,
   NoteNode,
+  SubsystemNode,
+  AssemblyNode,
+  ModuleNode,
 } from '../types/nodes'
 import { createProjectMetadata } from '../types/project'
 
@@ -51,6 +54,7 @@ function createTestTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
     ...overrides,
   }
 }
@@ -71,6 +75,7 @@ function createTestDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -90,6 +95,7 @@ function createTestComponentNode(
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
     ...overrides,
   }
 }
@@ -102,6 +108,55 @@ function createTestNoteNode(overrides: Partial<NoteNode> = {}): NoteNode {
     tags: [],
     dates: createNodeDates(),
     content: 'Note content',
+    parent: null,
+    ...overrides,
+  }
+}
+
+function createTestSubsystemNode(
+  overrides: Partial<SubsystemNode> = {}
+): SubsystemNode {
+  return {
+    id: 'test-subsystem',
+    type: NodeType.Subsystem,
+    title: 'Test Subsystem',
+    tags: [],
+    dates: createNodeDates(),
+    content: 'Subsystem description',
+    status: 'planning',
+    requirements: [],
+    ...overrides,
+  }
+}
+
+function createTestAssemblyNode(
+  overrides: Partial<AssemblyNode> = {}
+): AssemblyNode {
+  return {
+    id: 'test-assembly',
+    type: NodeType.Assembly,
+    title: 'Test Assembly',
+    tags: [],
+    dates: createNodeDates(),
+    content: 'Assembly description',
+    status: 'planning',
+    requirements: [],
+    parent: null,
+    ...overrides,
+  }
+}
+
+function createTestModuleNode(overrides: Partial<ModuleNode> = {}): ModuleNode {
+  return {
+    id: 'test-module',
+    type: NodeType.Module,
+    title: 'Test Module',
+    tags: [],
+    dates: createNodeDates(),
+    content: 'Module description',
+    status: 'planning',
+    requirements: [],
+    parent: null,
     ...overrides,
   }
 }
@@ -205,6 +260,12 @@ describe('getDirectoryForNodeType', () => {
     expect(getDirectoryForNodeType(NodeType.Task)).toBe('tasks')
     expect(getDirectoryForNodeType(NodeType.Note)).toBe('notes')
   })
+
+  it('should return correct directory for container node types', () => {
+    expect(getDirectoryForNodeType(NodeType.Subsystem)).toBe('subsystems')
+    expect(getDirectoryForNodeType(NodeType.Assembly)).toBe('assemblies')
+    expect(getDirectoryForNodeType(NodeType.Module)).toBe('modules')
+  })
 })
 
 describe('getNodeTypeForDirectory', () => {
@@ -213,6 +274,12 @@ describe('getNodeTypeForDirectory', () => {
     expect(getNodeTypeForDirectory('components')).toBe(NodeType.Component)
     expect(getNodeTypeForDirectory('tasks')).toBe(NodeType.Task)
     expect(getNodeTypeForDirectory('notes')).toBe(NodeType.Note)
+  })
+
+  it('should return correct type for container node directories', () => {
+    expect(getNodeTypeForDirectory('subsystems')).toBe(NodeType.Subsystem)
+    expect(getNodeTypeForDirectory('assemblies')).toBe(NodeType.Assembly)
+    expect(getNodeTypeForDirectory('modules')).toBe(NodeType.Module)
   })
 
   it('should return undefined for unknown directory', () => {
@@ -249,6 +316,27 @@ describe('getNodeFilePath', () => {
     const node = createTestNoteNode({ id: 'my-note' })
     expect(getNodeFilePath('/project', node)).toBe('/project/notes/my-note.md')
   })
+
+  it('should generate correct path for subsystem node', () => {
+    const node = createTestSubsystemNode({ id: 'cannon-subsystem' })
+    expect(getNodeFilePath('/project', node)).toBe(
+      '/project/subsystems/cannon-subsystem.md'
+    )
+  })
+
+  it('should generate correct path for assembly node', () => {
+    const node = createTestAssemblyNode({ id: 'firing-mechanism' })
+    expect(getNodeFilePath('/project', node)).toBe(
+      '/project/assemblies/firing-mechanism.md'
+    )
+  })
+
+  it('should generate correct path for module node', () => {
+    const node = createTestModuleNode({ id: 'power-module' })
+    expect(getNodeFilePath('/project', node)).toBe(
+      '/project/modules/power-module.md'
+    )
+  })
 })
 
 describe('getNodeIdFromPath', () => {
@@ -281,6 +369,7 @@ describe('serializeNode', () => {
       status: 'pending',
       priority: 'high',
       tags: ['important'],
+      parent: null,
     })
 
     const content = serializeNode(node)
@@ -329,6 +418,7 @@ describe('serializeNode', () => {
       supplier: 'Acme Corp',
       partNumber: 'ACME-123',
       customFields: { voltage: 12 },
+      parent: null,
     })
 
     const content = serializeNode(node)
@@ -964,5 +1054,126 @@ describe('Integration: Full Project Workflow', () => {
     )
     expect(result.project?.nodes.get('task-1')?.type).toBe(NodeType.Task)
     expect(result.project?.nodes.get('note-1')?.type).toBe(NodeType.Note)
+  })
+
+  it('should handle container node types (subsystem, assembly, module)', async () => {
+    await initializeProject(fs, '/container-test', 'Container Test Project')
+
+    const subsystem = createTestSubsystemNode({
+      id: 'cannon-subsystem',
+      title: 'Cannon Subsystem',
+      status: 'in_progress',
+      requirements: ['Must fire projectiles', 'Safety interlock required'],
+    })
+    const assembly = createTestAssemblyNode({
+      id: 'firing-mechanism',
+      title: 'Firing Mechanism',
+      status: 'planning',
+      requirements: ['Trigger mechanism', 'Safety catch'],
+    })
+    const module = createTestModuleNode({
+      id: 'power-module',
+      title: 'Power Module',
+      status: 'complete',
+      requirements: ['12V input', '5A capacity'],
+    })
+
+    await saveNode(fs, '/container-test', subsystem)
+    await saveNode(fs, '/container-test', assembly)
+    await saveNode(fs, '/container-test', module)
+
+    const result = await loadProject(fs, '/container-test')
+
+    expect(result.error).toBeNull()
+    expect(result.project?.nodes.size).toBe(3)
+
+    // Verify subsystem
+    const loadedSubsystem = result.project?.nodes.get(
+      'cannon-subsystem'
+    ) as SubsystemNode
+    expect(loadedSubsystem.type).toBe(NodeType.Subsystem)
+    expect(loadedSubsystem.title).toBe('Cannon Subsystem')
+    expect(loadedSubsystem.status).toBe('in_progress')
+    expect(loadedSubsystem.requirements).toEqual([
+      'Must fire projectiles',
+      'Safety interlock required',
+    ])
+
+    // Verify assembly
+    const loadedAssembly = result.project?.nodes.get(
+      'firing-mechanism'
+    ) as AssemblyNode
+    expect(loadedAssembly.type).toBe(NodeType.Assembly)
+    expect(loadedAssembly.title).toBe('Firing Mechanism')
+    expect(loadedAssembly.status).toBe('planning')
+    expect(loadedAssembly.requirements).toEqual([
+      'Trigger mechanism',
+      'Safety catch',
+    ])
+
+    // Verify module
+    const loadedModule = result.project?.nodes.get('power-module') as ModuleNode
+    expect(loadedModule.type).toBe(NodeType.Module)
+    expect(loadedModule.title).toBe('Power Module')
+    expect(loadedModule.status).toBe('complete')
+    expect(loadedModule.requirements).toEqual(['12V input', '5A capacity'])
+  })
+
+  it('should save container nodes to correct directories', async () => {
+    await initializeProject(fs, '/dir-test', 'Directory Test')
+
+    const subsystem = createTestSubsystemNode({ id: 'sub-1' })
+    const assembly = createTestAssemblyNode({ id: 'asm-1' })
+    const module = createTestModuleNode({ id: 'mod-1' })
+
+    await saveNode(fs, '/dir-test', subsystem)
+    await saveNode(fs, '/dir-test', assembly)
+    await saveNode(fs, '/dir-test', module)
+
+    // Verify files exist in correct directories
+    expect(await fs.exists('/dir-test/subsystems/sub-1.md')).toBe(true)
+    expect(await fs.exists('/dir-test/assemblies/asm-1.md')).toBe(true)
+    expect(await fs.exists('/dir-test/modules/mod-1.md')).toBe(true)
+  })
+
+  it('should load all seven node types', async () => {
+    await initializeProject(fs, '/all-types', 'All Types Project')
+
+    // Create one of each node type
+    const decision = createTestDecisionNode({ id: 'decision-1' })
+    const component = createTestComponentNode({ id: 'component-1' })
+    const task = createTestTaskNode({ id: 'task-1' })
+    const note = createTestNoteNode({ id: 'note-1' })
+    const subsystem = createTestSubsystemNode({ id: 'subsystem-1' })
+    const assembly = createTestAssemblyNode({ id: 'assembly-1' })
+    const module = createTestModuleNode({ id: 'module-1' })
+
+    await saveNode(fs, '/all-types', decision)
+    await saveNode(fs, '/all-types', component)
+    await saveNode(fs, '/all-types', task)
+    await saveNode(fs, '/all-types', note)
+    await saveNode(fs, '/all-types', subsystem)
+    await saveNode(fs, '/all-types', assembly)
+    await saveNode(fs, '/all-types', module)
+
+    const result = await loadProject(fs, '/all-types')
+
+    expect(result.error).toBeNull()
+    expect(result.project?.nodes.size).toBe(7)
+    expect(result.project?.nodes.get('decision-1')?.type).toBe(
+      NodeType.Decision
+    )
+    expect(result.project?.nodes.get('component-1')?.type).toBe(
+      NodeType.Component
+    )
+    expect(result.project?.nodes.get('task-1')?.type).toBe(NodeType.Task)
+    expect(result.project?.nodes.get('note-1')?.type).toBe(NodeType.Note)
+    expect(result.project?.nodes.get('subsystem-1')?.type).toBe(
+      NodeType.Subsystem
+    )
+    expect(result.project?.nodes.get('assembly-1')?.type).toBe(
+      NodeType.Assembly
+    )
+    expect(result.project?.nodes.get('module-1')?.type).toBe(NodeType.Module)
   })
 })

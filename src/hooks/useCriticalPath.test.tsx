@@ -28,6 +28,7 @@ function createTaskNode(
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 
@@ -50,6 +51,7 @@ function createDecisionNode(
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 

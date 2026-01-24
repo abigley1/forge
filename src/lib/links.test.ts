@@ -45,6 +45,7 @@ const createTaskNode = (id: string, title: string, content = ''): TaskNode => ({
   dependsOn: [],
   blocks: [],
   checklist: [],
+  parent: null,
 })
 
 const createDecisionNode = (
@@ -64,6 +65,7 @@ const createDecisionNode = (
   criteria: [],
   rationale: null,
   selectedDate: null,
+  parent: null,
 })
 
 const createComponentNode = (
@@ -82,6 +84,7 @@ const createComponentNode = (
   supplier: null,
   partNumber: null,
   customFields: {},
+  parent: null,
 })
 
 const createNoteNode = (id: string, title: string, content = ''): NoteNode => ({
@@ -91,6 +94,7 @@ const createNoteNode = (id: string, title: string, content = ''): NoteNode => ({
   content,
   tags: [],
   dates: createNodeDates(),
+  parent: null,
 })
 
 // ============================================================================

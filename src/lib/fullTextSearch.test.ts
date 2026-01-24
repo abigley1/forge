@@ -39,6 +39,7 @@ function createTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     blocks: [],
     checklist: [],
     milestone: undefined,
+    parent: null,
     ...overrides,
   }
 }
@@ -59,6 +60,7 @@ function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -78,6 +80,7 @@ function createComponentNode(
     supplier: 'DigiKey',
     partNumber: 'MC-123',
     customFields: {},
+    parent: null,
     ...overrides,
   }
 }
@@ -90,6 +93,7 @@ function createNoteNode(overrides: Partial<NoteNode> = {}): NoteNode {
     tags: ['research'],
     dates: { created: new Date(), modified: new Date() },
     content: 'Notes about the project research and findings.',
+    parent: null,
     ...overrides,
   }
 }
@@ -101,6 +105,7 @@ describe('nodeToDocument', () => {
       title: 'My Task Title',
       content: 'Task content here',
       tags: ['tag1', 'tag2'],
+      parent: null,
     })
 
     const doc = nodeToDocument(node)

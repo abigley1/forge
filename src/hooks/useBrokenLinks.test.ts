@@ -13,6 +13,7 @@ function createTestNode(id: string, title: string, content: string): ForgeNode {
     content,
     tags: [],
     dates: createNodeDates(),
+    parent: null,
   }
 }
 

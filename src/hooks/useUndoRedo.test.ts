@@ -26,6 +26,7 @@ function createTestTaskNode(id: string, title: string): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 

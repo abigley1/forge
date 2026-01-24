@@ -39,6 +39,7 @@ function createTaskNode(id: string, title: string): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -56,6 +57,7 @@ function createDecisionNode(id: string, title: string): DecisionNode {
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -72,6 +74,7 @@ function createComponentNode(id: string, title: string): ComponentNode {
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
   }
 }
 
@@ -83,6 +86,7 @@ function createNoteNode(id: string, title: string): NoteNode {
     tags: [],
     dates: createNodeDates(),
     content: '',
+    parent: null,
   }
 }
 
@@ -101,11 +105,14 @@ describe('groupNodesByType', () => {
 
     const groups = groupNodesByType(nodes)
 
-    expect(groups).toHaveLength(4)
+    expect(groups).toHaveLength(7)
     expect(groups[0].type).toBe(NodeType.Task)
     expect(groups[1].type).toBe(NodeType.Decision)
     expect(groups[2].type).toBe(NodeType.Component)
     expect(groups[3].type).toBe(NodeType.Note)
+    expect(groups[4].type).toBe(NodeType.Subsystem)
+    expect(groups[5].type).toBe(NodeType.Assembly)
+    expect(groups[6].type).toBe(NodeType.Module)
   })
 
   it('includes empty groups by default', () => {
@@ -115,11 +122,14 @@ describe('groupNodesByType', () => {
 
     const groups = groupNodesByType(nodes)
 
-    expect(groups).toHaveLength(4)
+    expect(groups).toHaveLength(7)
     expect(groups[0].nodes).toHaveLength(1) // Tasks
     expect(groups[1].nodes).toHaveLength(0) // Decisions
     expect(groups[2].nodes).toHaveLength(0) // Components
     expect(groups[3].nodes).toHaveLength(0) // Notes
+    expect(groups[4].nodes).toHaveLength(0) // Subsystems
+    expect(groups[5].nodes).toHaveLength(0) // Assemblies
+    expect(groups[6].nodes).toHaveLength(0) // Modules
   })
 
   it('can exclude empty groups', () => {
@@ -136,7 +146,7 @@ describe('groupNodesByType', () => {
   it('handles empty input', () => {
     const groups = groupNodesByType(new Map())
 
-    expect(groups).toHaveLength(4)
+    expect(groups).toHaveLength(7)
     groups.forEach((group) => {
       expect(group.nodes).toHaveLength(0)
     })
@@ -305,7 +315,10 @@ describe('constants', () => {
     expect(NODE_TYPE_ORDER).toContain(NodeType.Decision)
     expect(NODE_TYPE_ORDER).toContain(NodeType.Component)
     expect(NODE_TYPE_ORDER).toContain(NodeType.Note)
-    expect(NODE_TYPE_ORDER).toHaveLength(4)
+    expect(NODE_TYPE_ORDER).toContain(NodeType.Subsystem)
+    expect(NODE_TYPE_ORDER).toContain(NodeType.Assembly)
+    expect(NODE_TYPE_ORDER).toContain(NodeType.Module)
+    expect(NODE_TYPE_ORDER).toHaveLength(7)
   })
 
   it('NODE_TYPE_LABELS has labels for all types', () => {
@@ -313,5 +326,8 @@ describe('constants', () => {
     expect(NODE_TYPE_LABELS[NodeType.Decision]).toBe('Decisions')
     expect(NODE_TYPE_LABELS[NodeType.Component]).toBe('Components')
     expect(NODE_TYPE_LABELS[NodeType.Note]).toBe('Notes')
+    expect(NODE_TYPE_LABELS[NodeType.Subsystem]).toBe('Subsystems')
+    expect(NODE_TYPE_LABELS[NodeType.Assembly]).toBe('Assemblies')
+    expect(NODE_TYPE_LABELS[NodeType.Module]).toBe('Modules')
   })
 })

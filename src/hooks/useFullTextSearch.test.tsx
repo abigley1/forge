@@ -23,6 +23,7 @@ function createTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     blocks: [],
     checklist: [],
     milestone: undefined,
+    parent: null,
     ...overrides,
   }
 }
@@ -43,6 +44,7 @@ function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -61,6 +63,7 @@ describe('useFullTextSearch', () => {
         title: 'Set up database',
         content: 'Configure PostgreSQL for the application.',
         tags: ['database', 'setup'],
+        parent: null,
       })
     )
     nodes.set(
@@ -503,6 +506,7 @@ function createTestNode(
       criteria: [],
       rationale: null,
       selectedDate: null,
+      parent: null,
     } as ForgeNode
   }
 
@@ -515,6 +519,7 @@ function createTestNode(
       supplier: '',
       partNumber: '',
       customFields: {},
+      parent: null,
     } as ForgeNode
   }
 

@@ -34,6 +34,7 @@ function createTestNode(
         dependsOn: [],
         blocks: [],
         checklist: [],
+        parent: null,
       }
     case 'decision':
       return {
@@ -45,6 +46,7 @@ function createTestNode(
         criteria: [],
         rationale: null,
         selectedDate: null,
+        parent: null,
       }
     case 'component':
       return {
@@ -55,12 +57,14 @@ function createTestNode(
         supplier: null,
         partNumber: null,
         customFields: {},
+        parent: null,
       }
     case 'note':
     default:
       return {
         ...baseNode,
         type: 'note' as const,
+        parent: null,
       }
   }
 }

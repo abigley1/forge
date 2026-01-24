@@ -31,6 +31,7 @@ const createTaskNode = (
   dependsOn: [],
   blocks: [],
   checklist: [],
+  parent: null,
 })
 
 const createDecisionNode = (
@@ -51,6 +52,7 @@ const createDecisionNode = (
   criteria: [],
   rationale: null,
   selectedDate: null,
+  parent: null,
 })
 
 const createNoteNode = (
@@ -64,6 +66,7 @@ const createNoteNode = (
   content: `Content for ${title}`,
   tags,
   dates: createNodeDates(),
+  parent: null,
 })
 
 // ============================================================================

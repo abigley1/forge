@@ -38,6 +38,7 @@ function createTestDecisionNode(id: string): DecisionNode {
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -54,6 +55,7 @@ function createTestTaskNode(id: string): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -65,6 +67,7 @@ function createTestNoteNode(id: string): NoteNode {
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 

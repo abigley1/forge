@@ -36,6 +36,7 @@ function createTaskNode(id: string, title: string, content = ''): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -57,6 +58,7 @@ function createTaskNodeWithDependencies(
     dependsOn,
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -78,6 +80,7 @@ function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -89,6 +92,7 @@ function createNoteNode(id: string, title: string, content = ''): NoteNode {
     content,
     tags: [],
     dates: { created: new Date(), modified: new Date() },
+    parent: null,
   }
 }
 
@@ -109,6 +113,7 @@ function createTaskNodeWithTags(
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 

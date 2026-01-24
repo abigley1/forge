@@ -6,6 +6,9 @@ import type {
   DecisionNode,
   ComponentNode,
   NoteNode,
+  SubsystemNode,
+  AssemblyNode,
+  ModuleNode,
 } from '@/types/nodes'
 import { NodeType } from '@/types/nodes'
 
@@ -29,6 +32,7 @@ function createTestTaskNode(id: string, title: string): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -49,6 +53,7 @@ function createTestDecisionNode(id: string, title: string): DecisionNode {
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -68,6 +73,7 @@ function createTestComponentNode(id: string, title: string): ComponentNode {
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
   }
 }
 
@@ -82,6 +88,57 @@ function createTestNoteNode(id: string, title: string): NoteNode {
       created: new Date('2024-01-01'),
       modified: new Date('2024-01-01'),
     },
+    parent: null,
+  }
+}
+
+function createTestSubsystemNode(id: string, title: string): SubsystemNode {
+  return {
+    id,
+    type: NodeType.Subsystem,
+    title,
+    content: `# ${title}\n\nSubsystem description`,
+    tags: ['test'],
+    dates: {
+      created: new Date('2024-01-01'),
+      modified: new Date('2024-01-01'),
+    },
+    status: 'planning',
+    requirements: [],
+  }
+}
+
+function createTestAssemblyNode(id: string, title: string): AssemblyNode {
+  return {
+    id,
+    type: NodeType.Assembly,
+    title,
+    content: `# ${title}\n\nAssembly description`,
+    tags: ['test'],
+    dates: {
+      created: new Date('2024-01-01'),
+      modified: new Date('2024-01-01'),
+    },
+    status: 'planning',
+    requirements: [],
+    parent: null,
+  }
+}
+
+function createTestModuleNode(id: string, title: string): ModuleNode {
+  return {
+    id,
+    type: NodeType.Module,
+    title,
+    content: `# ${title}\n\nModule description`,
+    tags: ['test'],
+    dates: {
+      created: new Date('2024-01-01'),
+      modified: new Date('2024-01-01'),
+    },
+    status: 'planning',
+    requirements: [],
+    parent: null,
   }
 }
 
@@ -805,6 +862,226 @@ describe('useNodesStore', () => {
       expect(sizes).toEqual([1, 2, 1])
 
       unsubscribe()
+    })
+  })
+
+  // ==========================================================================
+  // Container Node Support (Task 13.4)
+  // ==========================================================================
+
+  describe('container node support', () => {
+    describe('getNodesByType for container types', () => {
+      it('should return all subsystem nodes', () => {
+        const subsystem1 = createTestSubsystemNode('sub-1', 'Subsystem 1')
+        const subsystem2 = createTestSubsystemNode('sub-2', 'Subsystem 2')
+        const task = createTestTaskNode('task-1', 'Task 1')
+
+        useNodesStore.getState().addNode(subsystem1)
+        useNodesStore.getState().addNode(subsystem2)
+        useNodesStore.getState().addNode(task)
+
+        const subsystems = useNodesStore
+          .getState()
+          .getNodesByType(NodeType.Subsystem)
+
+        expect(subsystems).toHaveLength(2)
+        expect(subsystems.map((n) => n.id).sort()).toEqual(['sub-1', 'sub-2'])
+      })
+
+      it('should return all assembly nodes', () => {
+        const assembly1 = createTestAssemblyNode('asm-1', 'Assembly 1')
+        const assembly2 = createTestAssemblyNode('asm-2', 'Assembly 2')
+
+        useNodesStore.getState().addNode(assembly1)
+        useNodesStore.getState().addNode(assembly2)
+
+        const assemblies = useNodesStore
+          .getState()
+          .getNodesByType(NodeType.Assembly)
+
+        expect(assemblies).toHaveLength(2)
+        expect(assemblies.map((n) => n.id).sort()).toEqual(['asm-1', 'asm-2'])
+      })
+
+      it('should return all module nodes', () => {
+        const module1 = createTestModuleNode('mod-1', 'Module 1')
+        const module2 = createTestModuleNode('mod-2', 'Module 2')
+
+        useNodesStore.getState().addNode(module1)
+        useNodesStore.getState().addNode(module2)
+
+        const modules = useNodesStore.getState().getNodesByType(NodeType.Module)
+
+        expect(modules).toHaveLength(2)
+        expect(modules.map((n) => n.id).sort()).toEqual(['mod-1', 'mod-2'])
+      })
+
+      it('should include container types in getNodeCountsByType', () => {
+        useNodesStore
+          .getState()
+          .addNode(createTestSubsystemNode('sub-1', 'Subsystem'))
+        useNodesStore
+          .getState()
+          .addNode(createTestAssemblyNode('asm-1', 'Assembly'))
+        useNodesStore
+          .getState()
+          .addNode(createTestModuleNode('mod-1', 'Module'))
+        useNodesStore.getState().addNode(createTestTaskNode('task-1', 'Task'))
+
+        const counts = useNodesStore.getState().getNodeCountsByType()
+
+        expect(counts.subsystem).toBe(1)
+        expect(counts.assembly).toBe(1)
+        expect(counts.module).toBe(1)
+        expect(counts.task).toBe(1)
+      })
+    })
+
+    describe('getChildNodes', () => {
+      it('should return all nodes with matching parent field', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Motion System')
+        const task1 = {
+          ...createTestTaskNode('task-1', 'Task 1'),
+          parent: 'sub-1',
+        }
+        const task2 = {
+          ...createTestTaskNode('task-2', 'Task 2'),
+          parent: 'sub-1',
+        }
+        const task3 = createTestTaskNode('task-3', 'Task 3') // No parent
+
+        useNodesStore.getState().addNode(subsystem)
+        useNodesStore.getState().addNode(task1)
+        useNodesStore.getState().addNode(task2)
+        useNodesStore.getState().addNode(task3)
+
+        const children = useNodesStore.getState().getChildNodes('sub-1')
+
+        expect(children).toHaveLength(2)
+        expect(children.map((n) => n.id).sort()).toEqual(['task-1', 'task-2'])
+      })
+
+      it('should return empty array when no children exist', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Empty Subsystem')
+        const task = createTestTaskNode('task-1', 'Task 1')
+
+        useNodesStore.getState().addNode(subsystem)
+        useNodesStore.getState().addNode(task)
+
+        const children = useNodesStore.getState().getChildNodes('sub-1')
+
+        expect(children).toHaveLength(0)
+      })
+
+      it('should return empty array for non-existent parent', () => {
+        const children = useNodesStore
+          .getState()
+          .getChildNodes('non-existent-parent')
+
+        expect(children).toHaveLength(0)
+      })
+
+      it('should include all node types with parent field', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Main Subsystem')
+        const task = {
+          ...createTestTaskNode('task-1', 'Child Task'),
+          parent: 'sub-1',
+        }
+        const component = {
+          ...createTestComponentNode('comp-1', 'Child Component'),
+          parent: 'sub-1',
+        }
+        const decision = {
+          ...createTestDecisionNode('dec-1', 'Child Decision'),
+          parent: 'sub-1',
+        }
+        const note = {
+          ...createTestNoteNode('note-1', 'Child Note'),
+          parent: 'sub-1',
+        }
+
+        useNodesStore.getState().addNode(subsystem)
+        useNodesStore.getState().addNode(task)
+        useNodesStore.getState().addNode(component)
+        useNodesStore.getState().addNode(decision)
+        useNodesStore.getState().addNode(note)
+
+        const children = useNodesStore.getState().getChildNodes('sub-1')
+
+        expect(children).toHaveLength(4)
+        expect(children.map((n) => n.type).sort()).toEqual([
+          'component',
+          'decision',
+          'note',
+          'task',
+        ])
+      })
+
+      it('should support assemblies and modules as parents', () => {
+        const assembly = createTestAssemblyNode('asm-1', 'Test Assembly')
+        const module = createTestModuleNode('mod-1', 'Test Module')
+        const task1 = {
+          ...createTestTaskNode('task-1', 'Task under Assembly'),
+          parent: 'asm-1',
+        }
+        const task2 = {
+          ...createTestTaskNode('task-2', 'Task under Module'),
+          parent: 'mod-1',
+        }
+
+        useNodesStore.getState().addNode(assembly)
+        useNodesStore.getState().addNode(module)
+        useNodesStore.getState().addNode(task1)
+        useNodesStore.getState().addNode(task2)
+
+        const assemblyChildren = useNodesStore.getState().getChildNodes('asm-1')
+        const moduleChildren = useNodesStore.getState().getChildNodes('mod-1')
+
+        expect(assemblyChildren).toHaveLength(1)
+        expect(assemblyChildren[0].id).toBe('task-1')
+
+        expect(moduleChildren).toHaveLength(1)
+        expect(moduleChildren[0].id).toBe('task-2')
+      })
+    })
+
+    describe('container node CRUD operations', () => {
+      it('should add container nodes correctly', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Test Subsystem')
+        const assembly = createTestAssemblyNode('asm-1', 'Test Assembly')
+        const module = createTestModuleNode('mod-1', 'Test Module')
+
+        useNodesStore.getState().addNode(subsystem)
+        useNodesStore.getState().addNode(assembly)
+        useNodesStore.getState().addNode(module)
+
+        expect(useNodesStore.getState().getNodeById('sub-1')).toEqual(subsystem)
+        expect(useNodesStore.getState().getNodeById('asm-1')).toEqual(assembly)
+        expect(useNodesStore.getState().getNodeById('mod-1')).toEqual(module)
+      })
+
+      it('should update container node status', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Test Subsystem')
+        useNodesStore.getState().addNode(subsystem)
+
+        useNodesStore.getState().updateNode('sub-1', {
+          status: 'in_progress',
+        })
+
+        const updated = useNodesStore.getState().getNodeById('sub-1')
+        expect((updated as SubsystemNode).status).toBe('in_progress')
+      })
+
+      it('should delete container nodes', () => {
+        const subsystem = createTestSubsystemNode('sub-1', 'Test Subsystem')
+        useNodesStore.getState().addNode(subsystem)
+
+        expect(useNodesStore.getState().hasNode('sub-1')).toBe(true)
+
+        useNodesStore.getState().deleteNode('sub-1')
+
+        expect(useNodesStore.getState().hasNode('sub-1')).toBe(false)
+      })
     })
   })
 })

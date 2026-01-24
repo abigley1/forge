@@ -29,6 +29,7 @@ function createTestNode(overrides: Partial<TaskNode> = {}): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
     ...overrides,
   }
 }

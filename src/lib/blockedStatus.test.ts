@@ -38,6 +38,7 @@ function createTaskNode(
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 
@@ -59,6 +60,7 @@ function createDecisionNode(
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 
@@ -75,6 +77,7 @@ function createComponentNode(id: string, title: string): ComponentNode {
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 
@@ -86,6 +89,7 @@ function createNoteNode(id: string, title: string): NoteNode {
     tags: [],
     dates: { created: new Date(), modified: new Date() },
     content: '',
+    parent: null,
   }
 }
 
