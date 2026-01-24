@@ -86,6 +86,8 @@ export interface NodesSelectors {
   getOutgoingLinks: (id: string) => string[]
   /** Get incoming links for a node (nodes that link to it) */
   getIncomingLinks: (id: string) => string[]
+  /** Get all nodes that have this container as their parent */
+  getChildNodes: (containerId: string) => ForgeNode[]
 }
 
 /**
@@ -326,6 +328,9 @@ export const useNodesStore = create<NodesStore>()(
           component: 0,
           task: 0,
           note: 0,
+          subsystem: 0,
+          assembly: 0,
+          module: 0,
         } as Record<NodeType, number>
 
         get().nodes.forEach((node) => {
@@ -353,6 +358,20 @@ export const useNodesStore = create<NodesStore>()(
 
       getIncomingLinks: (id) => {
         return getIncomingLinks(get().linkIndex, id)
+      },
+
+      getChildNodes: (containerId) => {
+        const nodes = get().nodes
+        const children: ForgeNode[] = []
+
+        nodes.forEach((node) => {
+          // Check if node has parent field and it matches containerId
+          if ('parent' in node && node.parent === containerId) {
+            children.push(node)
+          }
+        })
+
+        return children
       },
     }),
     {

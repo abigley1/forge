@@ -4,7 +4,7 @@
 
 import { MarkerType, type Node as RFNode, type Edge as RFEdge } from 'reactflow'
 import type { ForgeNode } from '@/types/nodes'
-import { isTaskNode } from '@/types/nodes'
+import { isTaskNode, isContainerNode } from '@/types/nodes'
 import type { LinkIndex } from '@/lib/links'
 import ELK, {
   type ElkNode,
@@ -37,13 +37,17 @@ export interface GraphNodeData {
   isOnCriticalPath?: boolean
   /** Position on the critical path (0-indexed, -1 if not on path) */
   criticalPathPosition?: number
+  /** Whether this node is a container (subsystem/assembly/module) */
+  isContainer?: boolean
+  /** The parent container ID if this node has a parent */
+  parentId?: string | null
 }
 
 /**
  * Data attached to graph edges
  */
 export interface GraphEdgeData {
-  linkType: 'reference' | 'dependency'
+  linkType: 'reference' | 'dependency' | 'containment'
   /** Whether this edge is on the critical path */
   isOnCriticalPath?: boolean
 }
@@ -113,6 +117,11 @@ function forgeNodeToGraphNode(
   position: NodePosition,
   isSelected: boolean
 ): ForgeGraphNode {
+  // Check if node is a container type
+  const isContainer = isContainerNode(node)
+  // Get parent ID if the node has one
+  const parentId = 'parent' in node ? node.parent : null
+
   return {
     id: node.id,
     type: 'forgeNode', // Custom node type we'll define
@@ -123,6 +132,8 @@ function forgeNodeToGraphNode(
       status: getNodeStatus(node),
       tags: node.tags,
       forgeNode: node,
+      isContainer,
+      parentId,
     },
     selected: isSelected,
   }
@@ -235,11 +246,57 @@ function createReferenceEdges(
 }
 
 /**
+ * Create edges for parent-child containment relationships
+ *
+ * Containment edges are:
+ * - Dashed line with distinct color (#10b981 - emerald-500)
+ * - No marker (indicates grouping, not direction)
+ * - Connects parent container to child nodes
+ *
+ * @param nodes - Map of all nodes
+ * @returns Array of containment edges
+ */
+function createContainmentEdges(
+  nodes: Map<string, ForgeNode>
+): ForgeGraphEdge[] {
+  const edges: ForgeGraphEdge[] = []
+  const seenEdges = new Set<string>()
+
+  nodes.forEach((node) => {
+    // Check if node has a parent
+    const parentId = 'parent' in node ? node.parent : null
+    if (parentId && nodes.has(parentId)) {
+      const edgeId = `contain-${createEdgeId(parentId, node.id)}`
+      if (!seenEdges.has(edgeId)) {
+        seenEdges.add(edgeId)
+        edges.push({
+          id: edgeId,
+          source: parentId,
+          target: node.id,
+          type: 'containment', // Custom containment edge type
+          data: {
+            linkType: 'containment',
+          },
+          animated: false,
+          style: {
+            strokeDasharray: '5,5',
+            stroke: '#10b981', // emerald-500
+          },
+        })
+      }
+    }
+  })
+
+  return edges
+}
+
+/**
  * Convert nodes and link index to React Flow edges
  *
- * Creates two types of edges:
+ * Creates three types of edges:
  * 1. Dependency edges (blue, solid) from TaskNode.dependsOn
  * 2. Reference edges (gray, dashed) from wiki-links
+ * 3. Containment edges (emerald, dashed) from parent-child relationships
  *
  * @param nodes - Map of all nodes
  * @param linkIndex - Bidirectional link index
@@ -256,7 +313,10 @@ function nodesToEdges(
   // Then create reference edges (excluding those that duplicate dependencies)
   const referenceEdges = createReferenceEdges(linkIndex, dependencyEdgeIds)
 
-  return [...dependencyEdges, ...referenceEdges]
+  // Finally create containment edges for parent-child relationships
+  const containmentEdges = createContainmentEdges(nodes)
+
+  return [...dependencyEdges, ...referenceEdges, ...containmentEdges]
 }
 
 /**

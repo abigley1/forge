@@ -52,6 +52,8 @@ export interface FilterState {
   statuses: NodeStatus[]
   /** Search query */
   search: string
+  /** Container filter - show only nodes within this container (by ID) */
+  container: string | null
 }
 
 export interface UseFiltersReturn {
@@ -75,6 +77,8 @@ export interface UseFiltersReturn {
   toggleStatus: (status: NodeStatus) => void
   /** Set search query */
   setSearch: (search: string) => void
+  /** Set container filter */
+  setContainer: (containerId: string | null) => void
   /** Clear all filters */
   clearFilters: () => void
   /** Check if any filters are active */
@@ -93,6 +97,7 @@ const typesParser = parseAsArrayOf(parseAsString).withDefault([])
 const tagsParser = parseAsArrayOf(parseAsString).withDefault([])
 const statusesParser = parseAsArrayOf(parseAsString).withDefault([])
 const searchParser = parseAsString.withDefault('')
+const containerParser = parseAsString.withDefault('')
 
 // ============================================================================
 // Hook
@@ -107,6 +112,10 @@ export function useFilters(): UseFiltersReturn {
   const [tags, setTagsState] = useQueryState('tags', tagsParser)
   const [statuses, setStatusesState] = useQueryState('statuses', statusesParser)
   const [search, setSearchState] = useQueryState('q', searchParser)
+  const [container, setContainerState] = useQueryState(
+    'container',
+    containerParser
+  )
 
   // Filter to only valid values (handles invalid URL params gracefully)
   const typedTypes = types.filter(isValidNodeType)
@@ -119,8 +128,9 @@ export function useFilters(): UseFiltersReturn {
       tags,
       statuses: typedStatuses,
       search,
+      container: container || null,
     }),
-    [typedTypes, tags, typedStatuses, search]
+    [typedTypes, tags, typedStatuses, search, container]
   )
 
   // Type actions
@@ -203,13 +213,28 @@ export function useFilters(): UseFiltersReturn {
     [setSearchState]
   )
 
+  // Container action
+  const setContainer = useCallback(
+    (containerId: string | null) => {
+      void setContainerState(containerId || null)
+    },
+    [setContainerState]
+  )
+
   // Clear all filters
   const clearFilters = useCallback(() => {
     void setTypesState(null)
     void setTagsState(null)
     void setStatusesState(null)
     void setSearchState(null)
-  }, [setTypesState, setTagsState, setStatusesState, setSearchState])
+    void setContainerState(null)
+  }, [
+    setTypesState,
+    setTagsState,
+    setStatusesState,
+    setSearchState,
+    setContainerState,
+  ])
 
   // Check if any filters are active
   const hasActiveFilters = useMemo(
@@ -217,8 +242,9 @@ export function useFilters(): UseFiltersReturn {
       typedTypes.length > 0 ||
       tags.length > 0 ||
       typedStatuses.length > 0 ||
-      search.length > 0,
-    [typedTypes, tags, typedStatuses, search]
+      search.length > 0 ||
+      !!container,
+    [typedTypes, tags, typedStatuses, search, container]
   )
 
   // Count active filters
@@ -228,8 +254,9 @@ export function useFilters(): UseFiltersReturn {
     if (tags.length > 0) count += tags.length
     if (typedStatuses.length > 0) count += typedStatuses.length
     if (search.length > 0) count += 1
+    if (container) count += 1
     return count
-  }, [typedTypes, tags, typedStatuses, search])
+  }, [typedTypes, tags, typedStatuses, search, container])
 
   // Filter nodes function
   const filterNodes = useCallback(
@@ -272,10 +299,19 @@ export function useFilters(): UseFiltersReturn {
           }
         }
 
+        // Container filter - show only direct children of the selected container
+        // (does not include grandchildren/nested nodes for clearer organization)
+        if (container) {
+          const nodeParent = 'parent' in node ? node.parent : null
+          if (nodeParent !== container) {
+            return false
+          }
+        }
+
         return true
       })
     },
-    [typedTypes, tags, typedStatuses, search]
+    [typedTypes, tags, typedStatuses, search, container]
   )
 
   return {
@@ -289,6 +325,7 @@ export function useFilters(): UseFiltersReturn {
     setStatuses,
     toggleStatus,
     setSearch,
+    setContainer,
     clearFilters,
     hasActiveFilters,
     filterNodes,

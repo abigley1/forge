@@ -87,6 +87,27 @@ function serializeNode(node: ForgeNode): SerializedNode {
         ...baseFields,
         type: 'note' as const,
       }
+    case 'subsystem':
+      return {
+        ...baseFields,
+        type: 'subsystem' as const,
+        status: node.status,
+        ...(node.requirements ? { requirements: node.requirements } : {}),
+      }
+    case 'assembly':
+      return {
+        ...baseFields,
+        type: 'assembly' as const,
+        status: node.status,
+        ...(node.requirements ? { requirements: node.requirements } : {}),
+      }
+    case 'module':
+      return {
+        ...baseFields,
+        type: 'module' as const,
+        status: node.status,
+        ...(node.requirements ? { requirements: node.requirements } : {}),
+      }
   }
 }
 
@@ -344,6 +365,9 @@ const NODE_DIRECTORIES: Record<NodeTypeType, string> = {
   [NodeType.Component]: 'components',
   [NodeType.Task]: 'tasks',
   [NodeType.Note]: 'notes',
+  [NodeType.Subsystem]: 'subsystems',
+  [NodeType.Assembly]: 'assemblies',
+  [NodeType.Module]: 'modules',
 }
 
 /**
@@ -388,6 +412,15 @@ function nodeToFrontmatterData(node: ForgeNode): Record<string, unknown> {
 
     case NodeType.Note:
       // Note has no additional frontmatter fields
+      break
+
+    case NodeType.Subsystem:
+    case NodeType.Assembly:
+    case NodeType.Module:
+      data.status = node.status
+      if (node.requirements && node.requirements.length > 0) {
+        data.requirements = node.requirements
+      }
       break
   }
 
@@ -505,6 +538,24 @@ function detectNodeTypeFromPath(path: string): NodeTypeType | null {
     normalizedPath.startsWith('notes/')
   ) {
     return NodeType.Note
+  }
+  if (
+    normalizedPath.includes('/subsystems/') ||
+    normalizedPath.startsWith('subsystems/')
+  ) {
+    return NodeType.Subsystem
+  }
+  if (
+    normalizedPath.includes('/assemblies/') ||
+    normalizedPath.startsWith('assemblies/')
+  ) {
+    return NodeType.Assembly
+  }
+  if (
+    normalizedPath.includes('/modules/') ||
+    normalizedPath.startsWith('modules/')
+  ) {
+    return NodeType.Module
   }
 
   return null

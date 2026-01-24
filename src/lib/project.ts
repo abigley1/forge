@@ -60,6 +60,9 @@ const NODE_DIRECTORIES: Record<NodeType, string> = {
   [NodeType.Component]: 'components',
   [NodeType.Task]: 'tasks',
   [NodeType.Note]: 'notes',
+  [NodeType.Subsystem]: 'subsystems',
+  [NodeType.Assembly]: 'assemblies',
+  [NodeType.Module]: 'modules',
 }
 
 // ============================================================================
@@ -207,6 +210,10 @@ function nodeToFrontmatterData(node: ForgeNode): Record<string, unknown> {
       if (node.selected) data.selected = node.selected
       if (node.options.length > 0) data.options = node.options
       if (node.criteria.length > 0) data.criteria = node.criteria
+      if (node.rationale) data.rationale = node.rationale
+      if (node.selectedDate)
+        data.selected_date = node.selectedDate.toISOString()
+      if (node.parent) data.parent = node.parent
       break
 
     case NodeType.Component:
@@ -217,6 +224,7 @@ function nodeToFrontmatterData(node: ForgeNode): Record<string, unknown> {
       if (Object.keys(node.customFields).length > 0) {
         data.customFields = node.customFields
       }
+      if (node.parent) data.parent = node.parent
       break
 
     case NodeType.Task:
@@ -226,10 +234,20 @@ function nodeToFrontmatterData(node: ForgeNode): Record<string, unknown> {
       if (node.dependsOn.length > 0) data.depends_on = node.dependsOn
       if (node.blocks.length > 0) data.blocks = node.blocks
       if (node.checklist.length > 0) data.checklist = node.checklist
+      if (node.parent) data.parent = node.parent
       break
 
     case NodeType.Note:
-      // Note has no additional frontmatter fields
+      if (node.parent) data.parent = node.parent
+      break
+
+    case NodeType.Subsystem:
+    case NodeType.Assembly:
+    case NodeType.Module:
+      data.status = node.status
+      if (node.requirements && node.requirements.length > 0) {
+        data.requirements = node.requirements
+      }
       break
   }
 

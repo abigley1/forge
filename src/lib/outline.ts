@@ -28,6 +28,9 @@ export const NODE_TYPE_ORDER: NodeType[] = [
   NodeType.Decision,
   NodeType.Component,
   NodeType.Note,
+  NodeType.Subsystem,
+  NodeType.Assembly,
+  NodeType.Module,
 ]
 
 /**
@@ -38,6 +41,9 @@ export const NODE_TYPE_LABELS: Record<NodeType, string> = {
   [NodeType.Decision]: 'Decisions',
   [NodeType.Component]: 'Components',
   [NodeType.Note]: 'Notes',
+  [NodeType.Subsystem]: 'Subsystems',
+  [NodeType.Assembly]: 'Assemblies',
+  [NodeType.Module]: 'Modules',
 }
 
 // ============================================================================
@@ -118,6 +124,9 @@ export function getNodeCountsByType(
     [NodeType.Decision]: 0,
     [NodeType.Component]: 0,
     [NodeType.Note]: 0,
+    [NodeType.Subsystem]: 0,
+    [NodeType.Assembly]: 0,
+    [NodeType.Module]: 0,
   }
 
   for (const node of nodeArray) {

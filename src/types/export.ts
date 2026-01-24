@@ -8,6 +8,7 @@ import type {
   TaskStatus,
   TaskPriority,
   ChecklistItem,
+  ContainerStatus,
 } from './nodes'
 
 /**
@@ -148,6 +149,33 @@ export interface SerializedNoteNode extends SerializedNodeBase {
 }
 
 /**
+ * Serialized Subsystem node
+ */
+export interface SerializedSubsystemNode extends SerializedNodeBase {
+  type: 'subsystem'
+  status: ContainerStatus
+  requirements?: string[]
+}
+
+/**
+ * Serialized Assembly node
+ */
+export interface SerializedAssemblyNode extends SerializedNodeBase {
+  type: 'assembly'
+  status: ContainerStatus
+  requirements?: string[]
+}
+
+/**
+ * Serialized Module node
+ */
+export interface SerializedModuleNode extends SerializedNodeBase {
+  type: 'module'
+  status: ContainerStatus
+  requirements?: string[]
+}
+
+/**
  * A node serialized for export (dates as ISO strings).
  * Discriminated union by `type` field ensures type-specific fields are correct.
  */
@@ -156,6 +184,9 @@ export type SerializedNode =
   | SerializedComponentNode
   | SerializedTaskNode
   | SerializedNoteNode
+  | SerializedSubsystemNode
+  | SerializedAssemblyNode
+  | SerializedModuleNode
 
 /**
  * Result of an export operation

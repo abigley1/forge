@@ -31,6 +31,9 @@ const NODE_TYPE_ORDER: Record<NodeType, number> = {
   [NodeType.Component]: 1,
   [NodeType.Task]: 2,
   [NodeType.Note]: 3,
+  [NodeType.Subsystem]: 4,
+  [NodeType.Assembly]: 5,
+  [NodeType.Module]: 6,
 }
 
 /** Order for statuses when sorting by status (active first, completed/resolved last) */
@@ -44,6 +47,9 @@ const STATUS_ORDER: Record<string, number> = {
   considering: 4,
   selected: 5,
   rejected: 6,
+  // Container statuses
+  planning: 7,
+  on_hold: 8,
 }
 
 /**

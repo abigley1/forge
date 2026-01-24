@@ -58,6 +58,9 @@ const TYPE_ICONS: Record<NodeType, string> = {
   component: '□',
   task: '○',
   note: '▫',
+  subsystem: '◈',
+  assembly: '◉',
+  module: '▣',
 }
 
 /**
@@ -68,6 +71,9 @@ const TYPE_LABELS: Record<NodeType, string> = {
   component: 'Component',
   task: 'Task',
   note: 'Note',
+  subsystem: 'Subsystem',
+  assembly: 'Assembly',
+  module: 'Module',
 }
 
 /**

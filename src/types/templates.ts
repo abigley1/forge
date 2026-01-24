@@ -319,6 +319,9 @@ export const BUILT_IN_TEMPLATES: Record<NodeType, NodeTemplate[]> = {
   [NodeType.Component]: COMPONENT_TEMPLATES,
   [NodeType.Task]: TASK_TEMPLATES,
   [NodeType.Note]: NOTE_TEMPLATES,
+  [NodeType.Subsystem]: [], // Container nodes can have templates added later
+  [NodeType.Assembly]: [],
+  [NodeType.Module]: [],
 }
 
 /**
