@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
+import { useState, useCallback, useMemo, useEffect, useContext } from 'react'
+import { Trash2, Loader2 } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, SaveIndicator, useSaveIndicator } from '@/components/ui'
 import { useProjectStore, useNodesStore, useAppStore } from '@/store'
-import { useUndoRedo } from '@/hooks'
+import { useUndoRedo, useFilters, useHybridPersistence } from '@/hooks'
 import {
   QuickProjectSwitcher,
   CreateProjectDialog,
@@ -20,6 +20,23 @@ import { getAllTagsForClustering } from '@/lib/graph'
 import { cn } from '@/lib/utils'
 import type { TaskStatus, ForgeNode } from '@/types/nodes'
 import { isDecisionNode, type DecisionNode } from '@/types/nodes'
+import {
+  HybridPersistenceContext,
+  useOptionalHybridPersistence,
+} from '@/contexts'
+import { OfflineBanner } from '@/components/sync'
+
+/**
+ * Loading screen shown while initializing from IndexedDB
+ */
+function LoadingScreen() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-hidden />
+      <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+    </div>
+  )
+}
 
 /**
  * Welcome screen shown when no project is loaded
@@ -30,27 +47,39 @@ function WelcomeScreen() {
   const [error, setError] = useState<string | null>(null)
 
   const loadProject = useProjectStore((state) => state.loadProject)
+  const persistence = useContext(HybridPersistenceContext)
 
   const handleOpen = async () => {
     setIsOpening(true)
     setError(null)
 
     try {
-      const adapter = new BrowserFileSystemAdapter()
-      await adapter.requestDirectoryAccess()
+      // Use hybrid persistence if available
+      if (persistence) {
+        const success = await persistence.connectToFileSystem()
+        if (!success) {
+          setError(
+            'Failed to load project. Make sure you selected a valid Forge project folder.'
+          )
+        }
+      } else {
+        // Fallback to direct file system access
+        const adapter = new BrowserFileSystemAdapter()
+        await adapter.requestDirectoryAccess()
 
-      const rootPath = adapter.getRootPath()
-      if (!rootPath) {
-        setError('Failed to access project folder.')
-        return
-      }
+        const rootPath = adapter.getRootPath()
+        if (!rootPath) {
+          setError('Failed to access project folder.')
+          return
+        }
 
-      const success = await loadProject(adapter, rootPath)
+        const success = await loadProject(adapter, rootPath)
 
-      if (!success) {
-        setError(
-          'Failed to load project. Make sure you selected a valid Forge project folder.'
-        )
+        if (!success) {
+          setError(
+            'Failed to load project. Make sure you selected a valid Forge project folder.'
+          )
+        }
       }
     } catch (err) {
       if (
@@ -112,6 +141,28 @@ function ProjectWorkspace() {
   const getNodeById = useNodesStore((state) => state.getNodeById)
 
   const activeNode = activeNodeId ? getNodeById(activeNodeId) : null
+
+  // Hybrid persistence (optional - may not be available in tests)
+  const persistence = useOptionalHybridPersistence()
+
+  // Determine if we should show offline banner
+  const showOfflineBanner =
+    persistence?.isInitialized &&
+    persistence.connectionStatus !== 'connected' &&
+    persistence.hasStoredData
+
+  // Get filters and apply them to nodes
+  const { filterNodes, hasActiveFilters } = useFilters()
+
+  // Create filtered nodes Map for OutlineView
+  const filteredNodes = useMemo(() => {
+    const filteredArray = filterNodes(nodes)
+    const filteredMap = new Map<string, ForgeNode>()
+    for (const node of filteredArray) {
+      filteredMap.set(node.id, node)
+    }
+    return filteredMap
+  }, [nodes, filterNodes])
 
   // Enable auto-save and get save status
   const { status: saveStatus, errorMessage: saveErrorMessage } =
@@ -185,11 +236,21 @@ function ProjectWorkspace() {
 
   return (
     <div className="flex h-full flex-col">
+      {/* Offline mode banner */}
+      <OfflineBanner
+        show={!!showOfflineBanner}
+        needsPermission={persistence?.needsPermission}
+        onRequestPermission={persistence?.requestPermission}
+        onConnectToFileSystem={persistence?.connectToFileSystem}
+      />
+
       {/* Header with view toggle */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-800">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {nodes.size} {nodes.size === 1 ? 'node' : 'nodes'}
+            {hasActiveFilters
+              ? `${filteredNodes.size} of ${nodes.size} nodes`
+              : `${nodes.size} ${nodes.size === 1 ? 'node' : 'nodes'}`}
           </h2>
           <SaveIndicator status={saveStatus} errorMessage={saveErrorMessage} />
         </div>
@@ -207,7 +268,7 @@ function ProjectWorkspace() {
         >
           {activeView === 'outline' ? (
             <OutlineView
-              nodes={nodes}
+              nodes={filteredNodes}
               activeNodeId={activeNodeId}
               onNodeSelect={setActiveNode}
               onTaskStatusToggle={handleTaskStatusToggle}
@@ -306,6 +367,9 @@ function App() {
   const project = useProjectStore((state) => state.project)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
 
+  // Initialize hybrid persistence (IndexedDB + file system)
+  const persistence = useHybridPersistence()
+
   // Enable global undo/redo keyboard shortcuts (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
   useUndoRedo({ enableHotkeys: true })
 
@@ -325,15 +389,34 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Determine what to render based on state
+  const renderContent = () => {
+    // Still loading from IndexedDB
+    if (!persistence.isInitialized || persistence.isLoading) {
+      return <LoadingScreen />
+    }
+
+    // Have project loaded (from IndexedDB or file system)
+    // Note: If file system permission is needed, ProjectWorkspace shows the OfflineBanner
+    if (project) {
+      return <ProjectWorkspace />
+    }
+
+    // No data - show welcome screen
+    return <WelcomeScreen />
+  }
+
   return (
-    <AppShell>
-      {project ? <ProjectWorkspace /> : <WelcomeScreen />}
-      <CommandPalette />
-      <QuickProjectSwitcher
-        open={quickSwitcherOpen}
-        onOpenChange={setQuickSwitcherOpen}
-      />
-    </AppShell>
+    <HybridPersistenceContext.Provider value={persistence}>
+      <AppShell>
+        {renderContent()}
+        <CommandPalette />
+        <QuickProjectSwitcher
+          open={quickSwitcherOpen}
+          onOpenChange={setQuickSwitcherOpen}
+        />
+      </AppShell>
+    </HybridPersistenceContext.Provider>
   )
 }
 

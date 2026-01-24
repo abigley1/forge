@@ -11,12 +11,20 @@ import { useNodesStore } from '@/store/useNodesStore'
 import { useUndoStore } from '@/store/useUndoStore'
 import { NodeType, createNodeDates } from '@/types/nodes'
 import type { TaskNode, NoteNode } from '@/types/nodes'
+import { ToastProvider } from '@/components/ui'
 import { Sidebar } from './Sidebar'
 
-// Wrapper with NuqsTestingAdapter for URL state
-const renderWithNuqs = (ui: React.ReactElement) => {
-  return render(<NuqsTestingAdapter>{ui}</NuqsTestingAdapter>)
+// Wrapper with NuqsTestingAdapter and ToastProvider for URL state and toasts
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(
+    <ToastProvider>
+      <NuqsTestingAdapter>{ui}</NuqsTestingAdapter>
+    </ToastProvider>
+  )
 }
+
+// Keep legacy name for backwards compatibility
+const renderWithNuqs = renderWithProviders
 
 // Reset stores before each test
 beforeEach(() => {
@@ -276,6 +284,7 @@ describe('Sidebar', () => {
               dependsOn: [],
               blocks: [],
               checklist: [],
+              parent: null,
             } satisfies TaskNode,
           ],
           [
@@ -292,6 +301,7 @@ describe('Sidebar', () => {
               dependsOn: [],
               blocks: [],
               checklist: [],
+              parent: null,
             } satisfies TaskNode,
           ],
         ]),
@@ -337,6 +347,7 @@ describe('Sidebar', () => {
               tags: manyTags,
               dates,
               content: '',
+              parent: null,
             } satisfies NoteNode,
           ],
         ]),
@@ -413,6 +424,7 @@ describe('Sidebar', () => {
               dependsOn: [],
               blocks: [],
               checklist: [],
+              parent: null,
             } satisfies TaskNode,
           ],
         ]),

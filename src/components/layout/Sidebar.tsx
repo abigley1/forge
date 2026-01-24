@@ -22,6 +22,9 @@ import {
   Tags,
   Download,
   Upload,
+  Layers,
+  Boxes,
+  LayoutGrid,
 } from 'lucide-react'
 import { useState, useCallback, useMemo, useId } from 'react'
 
@@ -33,6 +36,9 @@ import type {
   DecisionNode,
   ComponentNode,
   NoteNode,
+  SubsystemNode,
+  AssemblyNode,
+  ModuleNode,
 } from '@/types/nodes'
 import { useNodesStore } from '@/store'
 import { generateNodeId } from '@/lib/project'
@@ -40,6 +46,7 @@ import { useUndoableAddNode, useFilters, useSorting } from '@/hooks'
 import {
   TypeFilter,
   StatusFilter,
+  ContainerFilter,
   NodeSearchInput,
   FilterResultsCount,
   SortDropdown,
@@ -51,6 +58,8 @@ import {
   CreateProjectDialog,
   ProjectSettingsDialog,
 } from '@/components/workspace'
+import { SyncStatusIndicator } from '@/components/sync'
+import { useOptionalHybridPersistence } from '@/contexts'
 import type { Project } from '@/types/project'
 import { createProjectMetadata } from '@/types/project'
 
@@ -119,6 +128,27 @@ const NODE_TYPE_CONFIG: Record<
     bgColor: 'bg-gray-50 dark:bg-gray-900/50',
     hoverBgColor: 'hover:bg-gray-100 dark:hover:bg-gray-800/50',
     iconColor: 'text-gray-500',
+  },
+  [NodeType.Subsystem]: {
+    label: 'Subsystem',
+    icon: Layers,
+    bgColor: 'bg-purple-50 dark:bg-purple-950/50',
+    hoverBgColor: 'hover:bg-purple-100 dark:hover:bg-purple-900/50',
+    iconColor: 'text-purple-500',
+  },
+  [NodeType.Assembly]: {
+    label: 'Assembly',
+    icon: Boxes,
+    bgColor: 'bg-cyan-50 dark:bg-cyan-950/50',
+    hoverBgColor: 'hover:bg-cyan-100 dark:hover:bg-cyan-900/50',
+    iconColor: 'text-cyan-500',
+  },
+  [NodeType.Module]: {
+    label: 'Module',
+    icon: LayoutGrid,
+    bgColor: 'bg-rose-50 dark:bg-rose-950/50',
+    hoverBgColor: 'hover:bg-rose-100 dark:hover:bg-rose-900/50',
+    iconColor: 'text-rose-500',
   },
 }
 
@@ -263,6 +293,12 @@ function FilterSectionContent({ filters, sorting }: FilterSectionContentProps) {
         onToggleStatus={filters.toggleStatus}
       />
 
+      {/* Container Filter */}
+      <ContainerFilter
+        selectedContainer={filters.filters.container}
+        onContainerChange={filters.setContainer}
+      />
+
       {/* Results Count */}
       <FilterResultsCount
         resultCount={filteredNodes.length}
@@ -376,6 +412,9 @@ export function Sidebar({ className }: SidebarProps) {
   const filters = useFilters()
   const sorting = useSorting()
 
+  // Hybrid persistence (optional - may not be available in tests)
+  const persistence = useOptionalHybridPersistence()
+
   // Import/Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
@@ -434,6 +473,7 @@ export function Sidebar({ className }: SidebarProps) {
             criteria: [],
             rationale: null,
             selectedDate: null,
+            parent: null,
           } satisfies DecisionNode
           break
         case NodeType.Component:
@@ -449,6 +489,7 @@ export function Sidebar({ className }: SidebarProps) {
             supplier: null,
             partNumber: null,
             customFields: {},
+            parent: null,
           } satisfies ComponentNode
           break
         case NodeType.Task:
@@ -464,6 +505,7 @@ export function Sidebar({ className }: SidebarProps) {
             dependsOn: [],
             blocks: [],
             checklist: [],
+            parent: null,
           } satisfies TaskNode
           break
         case NodeType.Note:
@@ -474,7 +516,43 @@ export function Sidebar({ className }: SidebarProps) {
             tags: [],
             dates,
             content: '',
+            parent: null,
           } satisfies NoteNode
+          break
+        case NodeType.Subsystem:
+          newNode = {
+            id,
+            type: NodeType.Subsystem,
+            title,
+            tags: [],
+            dates,
+            content: '',
+            status: 'planning',
+          } satisfies SubsystemNode
+          break
+        case NodeType.Assembly:
+          newNode = {
+            id,
+            type: NodeType.Assembly,
+            title,
+            tags: [],
+            dates,
+            content: '',
+            status: 'planning',
+            parent: null,
+          } satisfies AssemblyNode
+          break
+        case NodeType.Module:
+          newNode = {
+            id,
+            type: NodeType.Module,
+            title,
+            tags: [],
+            dates,
+            content: '',
+            status: 'planning',
+            parent: null,
+          } satisfies ModuleNode
           break
       }
 
@@ -496,6 +574,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <nav
+      data-testid="sidebar"
       className={cn('flex h-full flex-col', className)}
       aria-label="Main navigation"
     >
@@ -529,6 +608,18 @@ export function Sidebar({ className }: SidebarProps) {
             <QuickCreateButton
               nodeType={NodeType.Note}
               onClick={() => handleCreateNode(NodeType.Note)}
+            />
+            <QuickCreateButton
+              nodeType={NodeType.Subsystem}
+              onClick={() => handleCreateNode(NodeType.Subsystem)}
+            />
+            <QuickCreateButton
+              nodeType={NodeType.Assembly}
+              onClick={() => handleCreateNode(NodeType.Assembly)}
+            />
+            <QuickCreateButton
+              nodeType={NodeType.Module}
+              onClick={() => handleCreateNode(NodeType.Module)}
             />
           </div>
         </SidebarSection>
@@ -595,9 +686,38 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer with Sync Status */}
       <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
-        <p className="text-xs text-gray-600 dark:text-gray-400">Forge v0.0.1</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            Forge v0.0.1
+          </p>
+          {persistence && (
+            <SyncStatusIndicator
+              status={
+                persistence.syncStatus === 'synced'
+                  ? 'synced'
+                  : persistence.syncStatus === 'syncing'
+                    ? 'syncing'
+                    : persistence.error
+                      ? 'error'
+                      : 'offline'
+              }
+              isConnected={persistence.connectionStatus === 'connected'}
+              errorMessage={persistence.error ?? undefined}
+              onSyncNow={persistence.syncToFileSystem}
+              onReconnect={
+                persistence.needsPermission
+                  ? persistence.requestPermission
+                  : persistence.connectToFileSystem
+              }
+              autoSyncEnabled={persistence.autoSyncEnabled}
+              syncInterval={persistence.syncInterval}
+              onAutoSyncChange={persistence.setAutoSyncEnabled}
+              onSyncIntervalChange={persistence.setSyncInterval}
+            />
+          )}
+        </div>
       </div>
 
       {/* Export Dialog */}
