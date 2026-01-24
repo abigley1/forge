@@ -71,7 +71,7 @@ export const TEST_NODES = {
       modified: new Date('2024-01-06'),
     },
     content: '500mm lengths of 2020 aluminum extrusion for the frame.',
-    status: 'ordered',
+    status: 'selected',
     cost: 8.5,
     supplier: 'OpenBuilds',
     partNumber: '2020-500',
@@ -93,9 +93,9 @@ export const TEST_NODES = {
     dependsOn: [],
     blocks: ['task-order-parts'],
     checklist: [
-      { text: 'Check torque requirements', completed: false },
-      { text: 'Research suppliers', completed: true },
-      { text: 'Calculate power needs', completed: false },
+      { id: 'check-1', text: 'Check torque requirements', completed: false },
+      { id: 'check-2', text: 'Research suppliers', completed: true },
+      { id: 'check-3', text: 'Calculate power needs', completed: false },
     ],
   },
   task2: {
@@ -244,8 +244,30 @@ export async function setupTestDataViaActions(page: Page): Promise<void> {
     timeout: 5000,
   })
 
-  // Additional wait for React state to settle
-  await page.waitForTimeout(100)
+  // Wait for IndexedDB writes to complete
+  // The hybrid persistence hook writes nodes to IndexedDB async after store changes
+  // We need to wait long enough for all async writes to complete
+  await page.waitForTimeout(1000)
+
+  // Verify IndexedDB has data before returning
+  const hasData = await page.evaluate(async () => {
+    return new Promise<boolean>((resolve) => {
+      const request = indexedDB.open('forge-db')
+      request.onerror = () => resolve(false)
+      request.onsuccess = async () => {
+        const db = request.result
+        const transaction = db.transaction('directories', 'readonly')
+        const store = transaction.objectStore('directories')
+        const countRequest = store.count()
+        countRequest.onsuccess = () => resolve(countRequest.result > 0)
+        countRequest.onerror = () => resolve(false)
+      }
+    })
+  })
+
+  if (!hasData) {
+    console.warn('[E2E] Warning: IndexedDB appears to have no data after setup')
+  }
 }
 
 /**
@@ -280,6 +302,16 @@ export async function waitForAppReady(page: Page): Promise<void> {
   // Wait for the E2E hooks to be ready
   await page.waitForFunction(
     () => (window as unknown as { __e2eReady?: boolean }).__e2eReady === true,
+    {
+      timeout: 5000,
+    }
+  )
+
+  // Wait for hybrid persistence to be ready
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __e2eHybridPersistenceReady?: boolean })
+        .__e2eHybridPersistenceReady === true,
     {
       timeout: 5000,
     }
