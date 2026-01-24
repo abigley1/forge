@@ -15,10 +15,14 @@ import {
   isDecisionNode,
   isComponentNode,
   isTaskNode,
+  isContainerNode,
   type ForgeNode,
   type DecisionNode,
   type ComponentNode,
   type TaskNode,
+  type SubsystemNode,
+  type AssemblyNode,
+  type ModuleNode,
   type ChecklistItem,
   type TaskPriority,
 } from '@/types'
@@ -28,6 +32,9 @@ import { TagInput } from './TagInput'
 import { PrioritySelector } from './PrioritySelector'
 import { ChecklistEditor } from './ChecklistEditor'
 import { ComponentFields } from './ComponentFields'
+import { ContainerFields } from './ContainerFields'
+import { ChildNodesSection } from './ChildNodesSection'
+import { ParentSelector } from './ParentSelector'
 import { DependencyEditor } from './DependencyEditor'
 import { MilestoneSelector, extractMilestones } from './MilestoneSelector'
 
@@ -132,6 +139,22 @@ export function FrontmatterEditor({
     [onChange]
   )
 
+  // Container-specific handlers
+  const handleContainerChange = useCallback(
+    (updates: Partial<SubsystemNode | AssemblyNode | ModuleNode>) => {
+      onChange(updates as Partial<ForgeNode>)
+    },
+    [onChange]
+  )
+
+  // Parent change handler (for non-container nodes)
+  const handleParentChange = useCallback(
+    (parentId: string | null) => {
+      onChange({ parent: parentId } as Partial<ForgeNode>)
+    },
+    [onChange]
+  )
+
   // Extract available milestones from task nodes
   const availableMilestones = useMemo(() => {
     const taskNodes = Array.from(availableNodes.values()).filter(isTaskNode)
@@ -176,6 +199,17 @@ export function FrontmatterEditor({
         />
       )}
 
+      {/* Parent selector - shown for non-container nodes */}
+      {!isContainerNode(node) && (
+        <ParentSelector
+          value={'parent' in node ? (node.parent as string | null) : null}
+          onChange={handleParentChange}
+          nodeId={node.id}
+          onNavigate={onNavigate}
+          disabled={disabled}
+        />
+      )}
+
       {/* Decision-specific fields */}
       {isDecisionNode(node) && (
         <DecisionFields
@@ -211,6 +245,18 @@ export function FrontmatterEditor({
           onNavigate={onNavigate}
           disabled={disabled}
         />
+      )}
+
+      {/* Container-specific fields (Subsystem, Assembly, Module) */}
+      {isContainerNode(node) && (
+        <>
+          <ContainerFields
+            requirements={node.requirements || []}
+            onChange={handleContainerChange}
+            disabled={disabled}
+          />
+          <ChildNodesSection containerId={node.id} onNavigate={onNavigate} />
+        </>
       )}
     </div>
   )

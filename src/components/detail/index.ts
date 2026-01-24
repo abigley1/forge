@@ -28,6 +28,15 @@ export { parseChecklist, serializeChecklist } from '@/lib/checklist'
 export { ComponentFields } from './ComponentFields'
 export type { ComponentFieldsProps } from './ComponentFields'
 
+export { ContainerFields } from './ContainerFields'
+export type { ContainerFieldsProps } from './ContainerFields'
+
+export { ChildNodesSection } from './ChildNodesSection'
+export type { ChildNodesSectionProps } from './ChildNodesSection'
+
+export { ParentSelector } from './ParentSelector'
+export type { ParentSelectorProps } from './ParentSelector'
+
 export { DependencyEditor } from './DependencyEditor'
 export type {
   DependencyEditorProps,

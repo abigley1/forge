@@ -21,6 +21,9 @@ import {
   type ComponentNode,
   type TaskNode,
   type NoteNode,
+  type SubsystemNode,
+  type AssemblyNode,
+  type ModuleNode,
 } from '@/types/nodes'
 import type { TemplateFrontmatter } from '@/types/templates'
 import { NODE_TYPE_ICON_CONFIG, getNodeTypeLabel } from './config'
@@ -77,6 +80,7 @@ function createNode(
         criteria: [],
         rationale: null,
         selectedDate: null,
+        parent: null,
       } satisfies DecisionNode
 
     case NodeType.Component:
@@ -88,6 +92,7 @@ function createNode(
         supplier: frontmatter?.supplier ?? null,
         partNumber: frontmatter?.partNumber ?? null,
         customFields: {},
+        parent: null,
       } satisfies ComponentNode
 
     case NodeType.Task:
@@ -99,13 +104,38 @@ function createNode(
         dependsOn: [],
         blocks: [],
         checklist: [],
+        parent: null,
       } satisfies TaskNode
 
     case NodeType.Note:
       return {
         ...baseNode,
         type: NodeType.Note,
+        parent: null,
       } satisfies NoteNode
+
+    case NodeType.Subsystem:
+      return {
+        ...baseNode,
+        type: NodeType.Subsystem,
+        status: 'planning',
+      } satisfies SubsystemNode
+
+    case NodeType.Assembly:
+      return {
+        ...baseNode,
+        type: NodeType.Assembly,
+        status: 'planning',
+        parent: null,
+      } satisfies AssemblyNode
+
+    case NodeType.Module:
+      return {
+        ...baseNode,
+        type: NodeType.Module,
+        status: 'planning',
+        parent: null,
+      } satisfies ModuleNode
   }
 }
 

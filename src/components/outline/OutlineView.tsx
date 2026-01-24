@@ -17,6 +17,9 @@ import {
   Circle,
   CircleDot,
   CheckCircle2,
+  Layers,
+  Boxes,
+  LayoutGrid,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -60,6 +63,9 @@ const SECTION_ICONS: Record<NodeType, React.ReactNode> = {
   [NodeType.Decision]: <Lightbulb className="h-4 w-4" aria-hidden="true" />,
   [NodeType.Component]: <Package className="h-4 w-4" aria-hidden="true" />,
   [NodeType.Note]: <FileText className="h-4 w-4" aria-hidden="true" />,
+  [NodeType.Subsystem]: <Layers className="h-4 w-4" aria-hidden="true" />,
+  [NodeType.Assembly]: <Boxes className="h-4 w-4" aria-hidden="true" />,
+  [NodeType.Module]: <LayoutGrid className="h-4 w-4" aria-hidden="true" />,
 }
 
 /**

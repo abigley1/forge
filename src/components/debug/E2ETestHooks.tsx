@@ -20,6 +20,8 @@ declare global {
   interface Window {
     __e2eNodeCount?: number
     __e2eReady?: boolean
+    __e2eNodesByType?: Record<string, number>
+    __e2eChildNodes?: string[]
   }
 }
 
@@ -129,6 +131,52 @@ export function E2ETestHooks(): null {
       window.__e2eNodeCount = nodes.size
     }
 
+    const handleGetNodesByType = (event: CustomEvent<{ types: string[] }>) => {
+      const { types } = event.detail
+      const result: Record<string, number> = {}
+
+      types.forEach((type) => {
+        result[type] = useNodesStore
+          .getState()
+          .getNodesByType(type as never).length
+      })
+
+      window.__e2eNodesByType = result
+    }
+
+    const handleGetChildNodes = (
+      event: CustomEvent<{ parentTitle: string }>
+    ) => {
+      const { parentTitle } = event.detail
+      const allNodes = useNodesStore.getState().getAllNodes()
+
+      // Find the parent node by title
+      const parentNode = allNodes.find((n) => n.title === parentTitle)
+
+      if (parentNode) {
+        const children = useNodesStore.getState().getChildNodes(parentNode.id)
+        window.__e2eChildNodes = children.map((c) => c.id)
+      } else {
+        window.__e2eChildNodes = []
+      }
+    }
+
+    const handleSetTaskParent = (
+      event: CustomEvent<{ taskTitle: string; parentTitle: string }>
+    ) => {
+      const { taskTitle, parentTitle } = event.detail
+      const allNodes = useNodesStore.getState().getAllNodes()
+
+      const task = allNodes.find((n) => n.title === taskTitle)
+      const parent = allNodes.find((n) => n.title === parentTitle)
+
+      if (task && parent) {
+        useNodesStore.getState().updateNode(task.id, {
+          parent: parent.id,
+        } as unknown as Partial<ForgeNode>)
+      }
+    }
+
     const handleSetupWorkspace = (event: CustomEvent<E2EWorkspaceData>) => {
       const { projects, activeProjectId } = event.detail
 
@@ -161,6 +209,18 @@ export function E2ETestHooks(): null {
       'e2e-setup-workspace',
       handleSetupWorkspace as EventListener
     )
+    window.addEventListener(
+      'e2e-get-nodes-by-type',
+      handleGetNodesByType as EventListener
+    )
+    window.addEventListener(
+      'e2e-get-child-nodes',
+      handleGetChildNodes as EventListener
+    )
+    window.addEventListener(
+      'e2e-set-task-parent',
+      handleSetTaskParent as EventListener
+    )
 
     // Mark app as ready for E2E tests
     window.__e2eReady = true
@@ -175,6 +235,18 @@ export function E2ETestHooks(): null {
       window.removeEventListener(
         'e2e-setup-workspace',
         handleSetupWorkspace as EventListener
+      )
+      window.removeEventListener(
+        'e2e-get-nodes-by-type',
+        handleGetNodesByType as EventListener
+      )
+      window.removeEventListener(
+        'e2e-get-child-nodes',
+        handleGetChildNodes as EventListener
+      )
+      window.removeEventListener(
+        'e2e-set-task-parent',
+        handleSetTaskParent as EventListener
       )
       window.__e2eReady = false
     }

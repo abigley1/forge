@@ -9,12 +9,21 @@ import { Select as BaseSelect } from '@base-ui/react/select'
 import { ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { NodeType } from '@/types'
-import type { DecisionStatus, ComponentStatus, TaskStatus } from '@/types'
+import type {
+  DecisionStatus,
+  ComponentStatus,
+  TaskStatus,
+  ContainerStatus,
+} from '@/types'
 import { STATUS_CONFIG } from '@/components/nodes/config'
 
 const Z_DROPDOWN = 10
 
-export type NodeStatus = DecisionStatus | ComponentStatus | TaskStatus
+export type NodeStatus =
+  | DecisionStatus
+  | ComponentStatus
+  | TaskStatus
+  | ContainerStatus
 
 export interface StatusOption {
   value: string
@@ -77,6 +86,29 @@ const TASK_STATUSES: StatusOption[] = [
   },
 ]
 
+const CONTAINER_STATUSES: StatusOption[] = [
+  {
+    value: 'planning',
+    label: 'Planning',
+    dotColor: STATUS_CONFIG.planning.dotColor,
+  },
+  {
+    value: 'in_progress',
+    label: 'In Progress',
+    dotColor: STATUS_CONFIG.in_progress.dotColor,
+  },
+  {
+    value: 'complete',
+    label: 'Complete',
+    dotColor: STATUS_CONFIG.complete.dotColor,
+  },
+  {
+    value: 'on_hold',
+    label: 'On Hold',
+    dotColor: STATUS_CONFIG.on_hold.dotColor,
+  },
+]
+
 function getStatusOptions(nodeType: NodeType): StatusOption[] {
   switch (nodeType) {
     case NodeType.Decision:
@@ -85,6 +117,10 @@ function getStatusOptions(nodeType: NodeType): StatusOption[] {
       return COMPONENT_STATUSES
     case NodeType.Task:
       return TASK_STATUSES
+    case NodeType.Subsystem:
+    case NodeType.Assembly:
+    case NodeType.Module:
+      return CONTAINER_STATUSES
     default:
       return []
   }

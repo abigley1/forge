@@ -84,6 +84,7 @@ interface ContextMenuState {
   y: number
   nodeId: string
   nodeTitle: string
+  isContainer: boolean
 }
 
 /**
@@ -140,7 +141,7 @@ function GraphViewInner({
   const storedPositions = project?.metadata?.nodePositions
 
   // Get filter state
-  const { filterNodes, hasActiveFilters } = useFilters()
+  const { filterNodes, hasActiveFilters, setContainer } = useFilters()
 
   // Graph preferences (minimap, background visibility with persistence)
   const { preferences, toggleMinimap } = useGraphPreferences()
@@ -180,6 +181,7 @@ function GraphViewInner({
     y: 0,
     nodeId: '',
     nodeTitle: '',
+    isContainer: false,
   })
 
   // Cluster expansion state (for optional clustering feature)
@@ -493,6 +495,7 @@ function GraphViewInner({
       y: event.clientY,
       nodeId: node.id,
       nodeTitle: node.data?.label || node.id,
+      isContainer: node.data?.isContainer ?? false,
     })
   }, [])
 
@@ -529,6 +532,15 @@ function GraphViewInner({
       onNodeAddLink?.(nodeId)
     },
     [onNodeAddLink]
+  )
+
+  // Handle show children only (for container nodes)
+  const handleContextMenuShowChildrenOnly = useCallback(
+    (nodeId: string) => {
+      // Set the container filter to show only children of this container
+      setContainer(nodeId)
+    },
+    [setContainer]
   )
 
   // Handle pane click - deselect
@@ -792,10 +804,12 @@ function GraphViewInner({
           y={contextMenu.y}
           nodeId={contextMenu.nodeId}
           nodeTitle={contextMenu.nodeTitle}
+          isContainer={contextMenu.isContainer}
           onEdit={handleContextMenuEdit}
           onDelete={handleContextMenuDelete}
           onView={handleContextMenuView}
           onAddLink={handleContextMenuAddLink}
+          onShowChildrenOnly={handleContextMenuShowChildrenOnly}
           onClose={handleCloseContextMenu}
         />
       )}

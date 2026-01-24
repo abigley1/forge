@@ -8,6 +8,7 @@
 export { TypeFilter } from './TypeFilter'
 export { TagFilter } from './TagFilter'
 export { StatusFilter } from './StatusFilter'
+export { ContainerFilter } from './ContainerFilter'
 export { NodeSearchInput } from './NodeSearchInput'
 export {
   FilterResultsAnnouncer,

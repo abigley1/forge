@@ -18,6 +18,7 @@ import { useNodesStore } from '@/store/useNodesStore'
 import { useUndoableDeleteNode } from '@/hooks/useUndoRedo'
 import { extractWikiLinks } from '@/lib/frontmatter'
 import type { ForgeNode } from '@/types/nodes'
+import { isContainerNode } from '@/types/nodes'
 
 // ============================================================================
 // Types
@@ -73,6 +74,7 @@ export function DeleteNodeDialog({
   const nodes = useNodesStore((state) => state.nodes)
   const addNode = useNodesStore((state) => state.addNode)
   const setActiveNode = useNodesStore((state) => state.setActiveNode)
+  const getChildNodes = useNodesStore((state) => state.getChildNodes)
   const deleteNode = useUndoableDeleteNode()
   const { undo: showUndoToast, error: showError } = useToast()
 
@@ -81,6 +83,12 @@ export function DeleteNodeDialog({
     if (!node) return []
     return findLinkingNodes(node.id, nodes)
   }, [node, nodes])
+
+  // Find child nodes that would become orphaned (for container nodes)
+  const childNodes = useMemo(() => {
+    if (!node || !isContainerNode(node)) return []
+    return getChildNodes(node.id)
+  }, [node, getChildNodes])
 
   const handleDelete = useCallback(() => {
     if (!node) return
@@ -134,6 +142,7 @@ export function DeleteNodeDialog({
 
   const typeConfig = NODE_TYPE_ICON_CONFIG[node.type]
   const hasLinkingNodes = linkingNodes.length > 0
+  const hasChildNodes = childNodes.length > 0
 
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -156,6 +165,41 @@ export function DeleteNodeDialog({
                   {node.title}
                 </span>
               </div>
+
+              {/* Orphaned children warning (for container nodes) */}
+              {hasChildNodes && (
+                <div
+                  className="flex items-start gap-2 rounded-md border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950"
+                  role="alert"
+                >
+                  <AlertTriangle
+                    className="mt-0.5 h-4 w-4 shrink-0 text-orange-600 dark:text-orange-500"
+                    aria-hidden="true"
+                  />
+                  <div className="text-sm text-orange-800 dark:text-orange-200">
+                    <p className="font-medium">
+                      {childNodes.length}{' '}
+                      {childNodes.length === 1
+                        ? 'child node will become orphaned'
+                        : 'child nodes will become orphaned'}
+                      :
+                    </p>
+                    <ul className="mt-1 list-inside list-disc">
+                      {childNodes.slice(0, 3).map((childNode) => (
+                        <li key={childNode.id} className="truncate">
+                          {childNode.title}
+                        </li>
+                      ))}
+                      {childNodes.length > 3 && (
+                        <li>and {childNodes.length - 3} more...</li>
+                      )}
+                    </ul>
+                    <p className="mt-2 text-xs">
+                      These nodes will remain but lose their parent link.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Broken links warning */}
               {hasLinkingNodes && (

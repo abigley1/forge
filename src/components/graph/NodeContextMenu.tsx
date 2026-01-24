@@ -3,7 +3,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react'
-import { Edit2, Trash2, Eye, Link2 } from 'lucide-react'
+import { Edit2, Trash2, Eye, Link2, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface NodeContextMenuProps {
@@ -15,6 +15,8 @@ export interface NodeContextMenuProps {
   nodeId: string
   /** Node title for display */
   nodeTitle: string
+  /** Whether this node is a container (subsystem/assembly/module) */
+  isContainer?: boolean
   /** Called when Edit is clicked */
   onEdit: (nodeId: string) => void
   /** Called when Delete is clicked */
@@ -23,6 +25,8 @@ export interface NodeContextMenuProps {
   onView: (nodeId: string) => void
   /** Called when Add Link is clicked */
   onAddLink: (nodeId: string) => void
+  /** Called when Show Children Only is clicked (for containers) */
+  onShowChildrenOnly?: (nodeId: string) => void
   /** Called when menu should close */
   onClose: () => void
 }
@@ -67,10 +71,12 @@ export function NodeContextMenu({
   y,
   nodeId,
   nodeTitle,
+  isContainer = false,
   onEdit,
   onDelete,
   onView,
   onAddLink,
+  onShowChildrenOnly,
   onClose,
 }: NodeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
@@ -128,6 +134,11 @@ export function NodeContextMenu({
     onClose()
   }, [nodeId, onAddLink, onClose])
 
+  const handleShowChildrenOnly = useCallback(() => {
+    onShowChildrenOnly?.(nodeId)
+    onClose()
+  }, [nodeId, onShowChildrenOnly, onClose])
+
   return (
     <div
       ref={menuRef}
@@ -153,6 +164,13 @@ export function NodeContextMenu({
         <MenuItem icon={Eye} label="View" onClick={handleView} />
         <MenuItem icon={Edit2} label="Edit" onClick={handleEdit} />
         <MenuItem icon={Link2} label="Add Link" onClick={handleAddLink} />
+        {isContainer && onShowChildrenOnly && (
+          <MenuItem
+            icon={Filter}
+            label="Show Children Only"
+            onClick={handleShowChildrenOnly}
+          />
+        )}
         <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
         <MenuItem
           icon={Trash2}

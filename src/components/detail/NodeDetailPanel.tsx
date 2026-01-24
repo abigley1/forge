@@ -129,6 +129,7 @@ export function NodeDetailPanel({
         onKeyDown={handleKeyDown}
         data-state={isOpen ? 'open' : 'closed'}
         data-new-node={isNewNode || undefined}
+        data-testid="detail-panel"
         className={cn(
           // Base styles
           'fixed top-0 right-0 h-dvh w-full bg-white',

@@ -9,6 +9,7 @@ export { forgeNodeTypes } from './nodeTypes'
 export { forgeEdgeTypes } from './edgeTypes'
 export { DependencyEdge, type DependencyEdgeProps } from './DependencyEdge'
 export { ReferenceEdge, type ReferenceEdgeProps } from './ReferenceEdge'
+export { ContainmentEdge, type ContainmentEdgeProps } from './ContainmentEdge'
 export { NodeContextMenu, type NodeContextMenuProps } from './NodeContextMenu'
 export { GraphAnnouncer, type GraphAnnouncerProps } from './GraphAnnouncer'
 export {
