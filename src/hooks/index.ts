@@ -149,3 +149,14 @@ export type {
   UseCommandsOptions,
   UseCommandsReturn,
 } from './useCommands'
+
+// Hybrid persistence hooks (IndexedDB + File System)
+export {
+  useHybridPersistence,
+  isHybridPersistenceSupported,
+} from './useHybridPersistence'
+export type {
+  HybridPersistenceState,
+  HybridPersistenceActions,
+  UseHybridPersistenceReturn,
+} from './useHybridPersistence'
