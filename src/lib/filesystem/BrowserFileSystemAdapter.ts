@@ -562,4 +562,13 @@ export class BrowserFileSystemAdapter implements FileSystemAdapter {
   getRootHandle(): FileSystemDirectoryHandle | null {
     return this.rootHandle
   }
+
+  /**
+   * Set the root directory handle directly (for reconnection from stored handle)
+   */
+  setRootFromHandle(handle: FileSystemDirectoryHandle): void {
+    this.rootHandle = handle
+    this.rootPath = handle.name
+    this.handleCache.clear()
+  }
 }

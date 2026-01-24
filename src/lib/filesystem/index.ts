@@ -44,6 +44,44 @@ export {
   FallbackFileSystemAdapter,
   needsFallback,
 } from './FallbackFileSystemAdapter'
+export { IndexedDBAdapter, isIndexedDBSupported } from './IndexedDBAdapter'
+
+// Hybrid Persistence Service
+export {
+  HybridPersistenceService,
+  isHybridPersistenceSupported,
+} from './HybridPersistenceService'
+export type {
+  ConnectionStatus,
+  SyncStatus,
+  PersistenceEvent,
+  PersistenceEventCallback,
+} from './HybridPersistenceService'
+
+// Sync Service
+export { SyncService } from './SyncService'
+export type {
+  SyncMode,
+  SyncDirection,
+  SyncNodeResult,
+  SyncResult,
+  SyncEvent,
+  SyncEventCallback,
+  SyncOptions,
+} from './SyncService'
+
+// Conflict Service
+export { ConflictService } from './ConflictService'
+export type {
+  Conflict,
+  ConflictResolution,
+  ConflictStatus,
+  ConflictDetectionResult,
+  ConflictResolutionResult,
+  ConflictEvent,
+  ConflictEventCallback,
+  ConflictHistoryEntry,
+} from './ConflictService'
 
 /**
  * Create the appropriate file system adapter for the current environment
