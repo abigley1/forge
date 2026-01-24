@@ -2,6 +2,7 @@ export { Dialog } from './Dialog'
 export { AlertDialog } from './AlertDialog'
 export { Button } from './Button'
 export { ErrorBoundary } from './ErrorBoundary'
+export { Popover } from './Popover'
 export { ToastProvider, useToast } from './Toast'
 export type { Toast, ToastVariant } from './Toast'
 export { SaveIndicator, useSaveIndicator } from './SaveIndicator'
@@ -11,3 +12,5 @@ export type {
   UseSaveIndicatorReturn,
 } from './SaveIndicator'
 export { LiveAnnouncerProvider, useLiveAnnouncer } from './LiveAnnouncer'
+export { Switch } from './Switch'
+export type { SwitchProps } from './Switch'
