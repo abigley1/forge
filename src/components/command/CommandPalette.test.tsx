@@ -27,6 +27,7 @@ function createTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
     ...overrides,
   }
 }
@@ -47,6 +48,7 @@ function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }

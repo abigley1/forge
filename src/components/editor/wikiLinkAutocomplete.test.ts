@@ -52,6 +52,7 @@ function createMockNode(id: string, title: string, type: NodeType): ForgeNode {
         criteria: [],
         rationale: null,
         selectedDate: null,
+        parent: null,
       } as DecisionNode
     case 'task':
       return {
@@ -62,6 +63,7 @@ function createMockNode(id: string, title: string, type: NodeType): ForgeNode {
         dependsOn: [],
         blocks: [],
         checklist: [],
+        parent: null,
       } as TaskNode
     case 'component':
       return {
@@ -72,11 +74,13 @@ function createMockNode(id: string, title: string, type: NodeType): ForgeNode {
         supplier: null,
         partNumber: null,
         customFields: {},
+        parent: null,
       } as ComponentNode
     case 'note':
       return {
         ...baseNode,
         type: 'note',
+        parent: null,
       } as NoteNode
     default:
       throw new Error(`Unknown type: ${type}`)

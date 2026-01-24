@@ -41,6 +41,7 @@ const createTaskNode = (
   dependsOn: [],
   blocks: [],
   checklist: [],
+  parent: null,
 })
 
 const createNoteNode = (
@@ -54,6 +55,7 @@ const createNoteNode = (
   content: 'Note content',
   tags,
   dates: { created: new Date(), modified: new Date() },
+  parent: null,
 })
 
 // ============================================================================

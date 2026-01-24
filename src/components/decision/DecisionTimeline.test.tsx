@@ -23,6 +23,7 @@ function createMockDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -193,6 +194,7 @@ describe('DecisionTimeline', () => {
         status: 'selected',
         selected: 'opt-a',
         selectedDate: null,
+        parent: null,
       })
 
       render(<DecisionTimeline node={node} />)

@@ -13,6 +13,9 @@ import {
   PrioritySelector,
   ChecklistEditor,
   ComponentFields,
+  ContainerFields,
+  ChildNodesSection,
+  ParentSelector,
   FrontmatterEditor,
 } from './index'
 import {
@@ -20,6 +23,7 @@ import {
   type TaskNode,
   type ComponentNode,
   type DecisionNode,
+  type SubsystemNode,
   createNodeDates,
   createChecklistItem,
 } from '@/types'
@@ -41,6 +45,7 @@ function createTestTaskNode(overrides: Partial<TaskNode> = {}): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
     ...overrides,
   }
 }
@@ -60,6 +65,7 @@ function createTestComponentNode(
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
     ...overrides,
   }
 }
@@ -80,6 +86,23 @@ function createTestDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
+    ...overrides,
+  }
+}
+
+function createTestSubsystemNode(
+  overrides: Partial<SubsystemNode> = {}
+): SubsystemNode {
+  return {
+    id: 'test-subsystem',
+    type: NodeType.Subsystem,
+    title: 'Test Subsystem',
+    tags: [],
+    dates: createNodeDates(),
+    content: 'Test content',
+    status: 'planning',
+    requirements: [],
     ...overrides,
   }
 }
@@ -769,5 +792,227 @@ describe('FrontmatterEditor', () => {
 
       expect(onChange).toHaveBeenCalledWith({ status: 'selected' })
     })
+  })
+
+  describe('Container node support', () => {
+    it('renders ContainerFields for subsystem nodes', () => {
+      const onChange = vi.fn()
+      render(
+        <FrontmatterEditor
+          node={createTestSubsystemNode({ requirements: ['Req 1', 'Req 2'] })}
+          onChange={onChange}
+        />
+      )
+
+      expect(screen.getByText('Requirements')).toBeInTheDocument()
+    })
+
+    it('renders status select for container nodes', () => {
+      const onChange = vi.fn()
+      render(
+        <FrontmatterEditor
+          node={createTestSubsystemNode({ status: 'planning' })}
+          onChange={onChange}
+        />
+      )
+
+      expect(
+        screen.getByRole('combobox', { name: /status/i })
+      ).toBeInTheDocument()
+    })
+
+    it('renders child nodes section for container nodes', () => {
+      const onChange = vi.fn()
+      render(
+        <FrontmatterEditor
+          node={createTestSubsystemNode()}
+          onChange={onChange}
+        />
+      )
+
+      expect(
+        screen.getByRole('heading', { name: /child nodes/i })
+      ).toBeInTheDocument()
+    })
+  })
+})
+
+// ============================================================================
+// ContainerFields Tests
+// ============================================================================
+
+describe('ContainerFields', () => {
+  const defaultProps = {
+    requirements: [],
+    onChange: vi.fn(),
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders requirements section', () => {
+    render(<ContainerFields {...defaultProps} />)
+    expect(screen.getByText('Requirements')).toBeInTheDocument()
+  })
+
+  it('shows empty state when no requirements', () => {
+    render(<ContainerFields {...defaultProps} />)
+    expect(screen.getByText('No requirements yet')).toBeInTheDocument()
+  })
+
+  it('renders existing requirements', () => {
+    render(
+      <ContainerFields
+        {...defaultProps}
+        requirements={['Requirement 1', 'Requirement 2']}
+      />
+    )
+    expect(screen.getByDisplayValue('Requirement 1')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Requirement 2')).toBeInTheDocument()
+  })
+
+  it('allows adding requirements', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ContainerFields requirements={[]} onChange={onChange} />)
+
+    const input = screen.getByLabelText('New requirement')
+    await user.type(input, 'New requirement text')
+
+    const addButton = screen.getByRole('button', { name: /add requirement/i })
+    await user.click(addButton)
+
+    expect(onChange).toHaveBeenCalledWith({
+      requirements: ['New requirement text'],
+    })
+  })
+
+  it('allows adding requirements via Enter key', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<ContainerFields requirements={[]} onChange={onChange} />)
+
+    const input = screen.getByLabelText('New requirement')
+    await user.type(input, 'Enter key requirement{Enter}')
+
+    expect(onChange).toHaveBeenCalledWith({
+      requirements: ['Enter key requirement'],
+    })
+  })
+
+  it('allows removing requirements', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <ContainerFields requirements={['Req 1', 'Req 2']} onChange={onChange} />
+    )
+
+    const removeButtons = screen.getAllByRole('button', {
+      name: /remove requirement/i,
+    })
+    await user.click(removeButtons[0])
+
+    expect(onChange).toHaveBeenCalledWith({
+      requirements: ['Req 2'],
+    })
+  })
+
+  it('allows editing requirements', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <ContainerFields requirements={['Original text']} onChange={onChange} />
+    )
+
+    const input = screen.getByDisplayValue('Original text')
+    // Type a single character to verify onChange is called
+    await user.type(input, 'X')
+
+    // onChange is called for each character typed
+    expect(onChange).toHaveBeenCalledWith({
+      requirements: ['Original textX'],
+    })
+  })
+
+  it('disables inputs when disabled prop is true', () => {
+    render(
+      <ContainerFields
+        requirements={['Req 1']}
+        onChange={vi.fn()}
+        disabled={true}
+      />
+    )
+
+    const input = screen.getByDisplayValue('Req 1')
+    expect(input).toBeDisabled()
+  })
+
+  it('has add button disabled when input is empty', () => {
+    render(<ContainerFields {...defaultProps} />)
+    const addButton = screen.getByRole('button', { name: /add requirement/i })
+    expect(addButton).toBeDisabled()
+  })
+})
+
+// ============================================================================
+// ChildNodesSection Tests
+// ============================================================================
+
+describe('ChildNodesSection', () => {
+  it('shows empty state when no children', () => {
+    render(<ChildNodesSection containerId="test-container" />)
+    expect(screen.getByText('No child nodes yet')).toBeInTheDocument()
+  })
+
+  it('renders heading', () => {
+    render(<ChildNodesSection containerId="test-container" />)
+    expect(
+      screen.getByRole('heading', { name: /child nodes/i })
+    ).toBeInTheDocument()
+  })
+})
+
+// ============================================================================
+// ParentSelector Tests
+// ============================================================================
+
+describe('ParentSelector', () => {
+  const defaultProps = {
+    value: null,
+    onChange: vi.fn(),
+    nodeId: 'test-node',
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders label', () => {
+    render(<ParentSelector {...defaultProps} />)
+    expect(screen.getByText('Parent')).toBeInTheDocument()
+  })
+
+  it('shows placeholder when no parent selected', () => {
+    render(<ParentSelector {...defaultProps} />)
+    expect(screen.getByPlaceholderText(/select parent/i)).toBeInTheDocument()
+  })
+
+  it('has combobox with correct aria attributes', () => {
+    render(<ParentSelector {...defaultProps} />)
+    const combobox = screen.getByRole('combobox', { name: /parent/i })
+    expect(combobox).toBeInTheDocument()
+    expect(combobox).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('can be disabled', () => {
+    render(<ParentSelector {...defaultProps} disabled={true} />)
+    const combobox = screen.getByRole('combobox', { name: /parent/i })
+    expect(combobox).toBeDisabled()
+  })
+
+  it('accepts custom label', () => {
+    render(<ParentSelector {...defaultProps} label="Container" />)
+    expect(screen.getByText('Container')).toBeInTheDocument()
   })
 })

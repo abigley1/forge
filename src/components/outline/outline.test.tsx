@@ -33,6 +33,7 @@ function createTaskNode(
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -50,6 +51,7 @@ function createDecisionNode(id: string, title: string): DecisionNode {
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 

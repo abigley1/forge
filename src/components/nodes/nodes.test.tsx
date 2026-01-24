@@ -39,6 +39,7 @@ const createTaskNode = (overrides: Partial<TaskNode> = {}): TaskNode => ({
   dependsOn: [],
   blocks: [],
   checklist: [],
+  parent: null,
   ...overrides,
 })
 
@@ -57,6 +58,7 @@ const createDecisionNode = (
   criteria: [],
   rationale: null,
   selectedDate: null,
+  parent: null,
   ...overrides,
 })
 
@@ -74,6 +76,7 @@ const createComponentNode = (
   content: 'Component content',
   tags: [],
   dates: { created: new Date(), modified: new Date() },
+  parent: null,
   ...overrides,
 })
 
@@ -84,6 +87,7 @@ const createNoteNode = (overrides: Partial<NoteNode> = {}): NoteNode => ({
   content: 'Note content',
   tags: [],
   dates: { created: new Date(), modified: new Date() },
+  parent: null,
   ...overrides,
 })
 

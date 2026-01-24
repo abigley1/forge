@@ -43,6 +43,7 @@ function createMockTaskNode(id: string, title: string): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -62,6 +63,7 @@ function createMockComponentNode(id: string, title: string): ComponentNode {
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
   }
 }
 
@@ -82,6 +84,7 @@ function createMockDecisionNode(id: string, title: string): DecisionNode {
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -96,6 +99,7 @@ function createMockNoteNode(id: string, title: string): NoteNode {
       created: new Date('2024-01-01'),
       modified: new Date('2024-01-15'),
     },
+    parent: null,
   }
 }
 

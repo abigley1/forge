@@ -54,6 +54,7 @@ function createTaskNode(id: string, title: string, content = ''): TaskNode {
     dependsOn: [],
     blocks: [],
     checklist: [],
+    parent: null,
   }
 }
 
@@ -75,6 +76,7 @@ function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -95,6 +97,7 @@ function createComponentNode(
     supplier: null,
     partNumber: null,
     customFields: {},
+    parent: null,
   }
 }
 
@@ -106,6 +109,7 @@ function createNoteNode(id: string, title: string, content = ''): NoteNode {
     content,
     tags: [],
     dates: { created: new Date(), modified: new Date() },
+    parent: null,
   }
 }
 
@@ -999,7 +1003,11 @@ describe('forgeEdgeTypes', () => {
     expect(forgeEdgeTypes.reference).toBe(ReferenceEdge)
   })
 
+  it('includes containment edge type', () => {
+    expect(forgeEdgeTypes.containment).toBeDefined()
+  })
+
   it('has correct number of edge types', () => {
-    expect(Object.keys(forgeEdgeTypes)).toHaveLength(2)
+    expect(Object.keys(forgeEdgeTypes)).toHaveLength(3)
   })
 })

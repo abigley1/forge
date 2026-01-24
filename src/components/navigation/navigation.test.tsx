@@ -65,6 +65,7 @@ const createTaskNode = (id: string, title: string): TaskNode => ({
   dependsOn: [],
   blocks: [],
   checklist: [],
+  parent: null,
 })
 
 const createDecisionNode = (id: string, title: string): DecisionNode => ({
@@ -80,6 +81,7 @@ const createDecisionNode = (id: string, title: string): DecisionNode => ({
   criteria: [],
   rationale: null,
   selectedDate: null,
+  parent: null,
 })
 
 const createComponentNode = (id: string, title: string): ComponentNode => ({
@@ -94,6 +96,7 @@ const createComponentNode = (id: string, title: string): ComponentNode => ({
   supplier: null,
   partNumber: null,
   customFields: {},
+  parent: null,
 })
 
 const createNoteNode = (id: string, title: string): NoteNode => ({
@@ -103,6 +106,7 @@ const createNoteNode = (id: string, title: string): NoteNode => ({
   content: '',
   tags: [],
   dates: createNodeDates(),
+  parent: null,
 })
 
 const mockNavigateToNode = vi.fn()

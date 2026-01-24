@@ -32,6 +32,7 @@ function createTaskNode(
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 
@@ -52,6 +53,7 @@ function createDecisionNode(id: string, title: string): DecisionNode {
       created: new Date(),
       modified: new Date(),
     },
+    parent: null,
   }
 }
 
@@ -589,6 +591,7 @@ describe('DependencyEditor', () => {
           created: new Date(),
           modified: new Date(),
         },
+        parent: null,
       }
       nodesWithNote.set('note-1', noteNode)
 
@@ -627,6 +630,7 @@ describe('DependencyEditor', () => {
           created: new Date(),
           modified: new Date(),
         },
+        parent: null,
       }
       nodesWithComponent.set('component-1', componentNode)
 

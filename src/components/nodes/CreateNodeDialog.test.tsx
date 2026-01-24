@@ -432,6 +432,7 @@ describe('CreateNodeDialog', () => {
         content: '',
         tags: [],
         dates: { created: new Date(), modified: new Date() },
+        parent: null,
       })
 
       const user = userEvent.setup()
@@ -528,6 +529,7 @@ describe('CreateNodeDialog', () => {
           dependsOn: [],
           blocks: [],
           checklist: [],
+          parent: null,
         })
       )
     })

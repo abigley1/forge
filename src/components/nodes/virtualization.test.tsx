@@ -39,6 +39,7 @@ function createMockNode(
       dependsOn: [],
       blocks: [],
       checklist: [],
+      parent: null,
     }
   }
 
@@ -56,6 +57,7 @@ function createMockNode(
       criteria: [],
       rationale: null,
       selectedDate: null,
+      parent: null,
     }
   }
 
@@ -72,6 +74,7 @@ function createMockNode(
       supplier: null,
       partNumber: null,
       customFields: {},
+      parent: null,
     }
   }
 
@@ -83,6 +86,7 @@ function createMockNode(
     tags: [],
     dates,
     content: '',
+    parent: null,
   }
 }
 

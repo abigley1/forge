@@ -24,6 +24,7 @@ function createMockDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
     ...overrides,
   }
 }
@@ -141,6 +142,7 @@ Related to [[Motor Selection]]`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -177,6 +179,7 @@ Related to [[motor-123]]`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -242,6 +245,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -272,6 +276,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -330,6 +335,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -385,6 +391,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -440,6 +447,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
         {
           id: 'power-1',
@@ -454,6 +462,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
@@ -492,6 +501,7 @@ No implications here.`
           criteria: [],
           rationale: null,
           selectedDate: null,
+          parent: null,
         },
       ])
 
