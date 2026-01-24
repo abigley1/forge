@@ -17,6 +17,9 @@ export const NodeType = {
   Component: 'component',
   Task: 'task',
   Note: 'note',
+  Subsystem: 'subsystem',
+  Assembly: 'assembly',
+  Module: 'module',
 } as const
 
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]
@@ -32,6 +35,12 @@ export type ComponentStatus = 'selected' | 'considering' | 'rejected'
 export type TaskStatus = 'pending' | 'in_progress' | 'blocked' | 'complete'
 
 export type TaskPriority = 'high' | 'medium' | 'low'
+
+export type ContainerStatus =
+  | 'planning'
+  | 'in_progress'
+  | 'complete'
+  | 'on_hold'
 
 // ============================================================================
 // Supporting Types
@@ -121,6 +130,8 @@ export interface DecisionNode extends BaseNode {
   rationale: string | null
   /** Timestamp when the decision was selected (null if not yet decided) */
   selectedDate: Date | null
+  /** ID of parent container node (Subsystem, Assembly, or Module) */
+  parent: string | null
 }
 
 /**
@@ -138,6 +149,8 @@ export interface ComponentNode extends BaseNode {
   partNumber: string | null
   /** Custom fields for specs (e.g., torque, voltage, weight) */
   customFields: Record<string, string | number>
+  /** ID of parent container node (Subsystem, Assembly, or Module) */
+  parent: string | null
 }
 
 /**
@@ -157,6 +170,8 @@ export interface TaskNode extends BaseNode {
   checklist: ChecklistItem[]
   /** Optional milestone for grouping related tasks */
   milestone?: string
+  /** ID of parent container node (Subsystem, Assembly, or Module) */
+  parent: string | null
 }
 
 /**
@@ -164,6 +179,47 @@ export interface TaskNode extends BaseNode {
  */
 export interface NoteNode extends BaseNode {
   type: typeof NodeType.Note
+  /** ID of parent container node (Subsystem, Assembly, or Module) */
+  parent: string | null
+}
+
+/**
+ * Base interface for container nodes (Subsystem, Assembly, Module)
+ * Container nodes organize and group other nodes hierarchically
+ */
+interface BaseContainerNode extends BaseNode {
+  /** Current status of the container */
+  status: ContainerStatus
+  /** Optional requirements that this container needs to fulfill */
+  requirements?: string[]
+}
+
+/**
+ * Subsystem node for high-level organizational grouping
+ * A subsystem represents a major functional area of a project (e.g., "Propulsion", "Power", "Control")
+ */
+export interface SubsystemNode extends BaseContainerNode {
+  type: typeof NodeType.Subsystem
+}
+
+/**
+ * Assembly node for grouping physical components
+ * An assembly represents a collection of parts that form a functional unit (e.g., "Motor Assembly", "Frame Assembly")
+ */
+export interface AssemblyNode extends BaseContainerNode {
+  type: typeof NodeType.Assembly
+  /** Optional parent container (Subsystem, Assembly, or Module) */
+  parent: string | null
+}
+
+/**
+ * Module node for grouping related functionality
+ * A module represents a logical grouping of related features or components (e.g., "User Interface Module", "Sensor Module")
+ */
+export interface ModuleNode extends BaseContainerNode {
+  type: typeof NodeType.Module
+  /** Optional parent container (Subsystem, Assembly, or Module) */
+  parent: string | null
 }
 
 // ============================================================================
@@ -174,7 +230,14 @@ export interface NoteNode extends BaseNode {
  * Discriminated union of all node types
  * Use type guards to narrow to specific types
  */
-export type ForgeNode = DecisionNode | ComponentNode | TaskNode | NoteNode
+export type ForgeNode =
+  | DecisionNode
+  | ComponentNode
+  | TaskNode
+  | NoteNode
+  | SubsystemNode
+  | AssemblyNode
+  | ModuleNode
 
 // ============================================================================
 // Type Guards
@@ -206,6 +269,40 @@ export function isTaskNode(node: ForgeNode): node is TaskNode {
  */
 export function isNoteNode(node: ForgeNode): node is NoteNode {
   return node.type === NodeType.Note
+}
+
+/**
+ * Type guard for SubsystemNode
+ */
+export function isSubsystemNode(node: ForgeNode): node is SubsystemNode {
+  return node.type === NodeType.Subsystem
+}
+
+/**
+ * Type guard for AssemblyNode
+ */
+export function isAssemblyNode(node: ForgeNode): node is AssemblyNode {
+  return node.type === NodeType.Assembly
+}
+
+/**
+ * Type guard for ModuleNode
+ */
+export function isModuleNode(node: ForgeNode): node is ModuleNode {
+  return node.type === NodeType.Module
+}
+
+/**
+ * Type guard for any container node (Subsystem, Assembly, or Module)
+ */
+export function isContainerNode(
+  node: ForgeNode
+): node is SubsystemNode | AssemblyNode | ModuleNode {
+  return (
+    node.type === NodeType.Subsystem ||
+    node.type === NodeType.Assembly ||
+    node.type === NodeType.Module
+  )
 }
 
 // ============================================================================
@@ -301,6 +398,145 @@ export function createDecisionNode(
     criteria: [],
     rationale: null,
     selectedDate: null,
+    parent: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new subsystem node with sensible defaults
+ */
+export function createSubsystemNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<SubsystemNode, 'type'>>
+): SubsystemNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Subsystem,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'planning',
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new assembly node with sensible defaults
+ */
+export function createAssemblyNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<AssemblyNode, 'type'>>
+): AssemblyNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Assembly,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'planning',
+    parent: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new module node with sensible defaults
+ */
+export function createModuleNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<ModuleNode, 'type'>>
+): ModuleNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Module,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'planning',
+    parent: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new component node with sensible defaults
+ */
+export function createComponentNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<ComponentNode, 'type'>>
+): ComponentNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Component,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'considering',
+    cost: null,
+    supplier: null,
+    partNumber: null,
+    customFields: {},
+    parent: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new task node with sensible defaults
+ */
+export function createTaskNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<TaskNode, 'type'>>
+): TaskNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Task,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    status: 'pending',
+    priority: 'medium',
+    dependsOn: [],
+    blocks: [],
+    checklist: [],
+    parent: null,
+    ...overrides,
+  }
+}
+
+/**
+ * Creates a new note node with sensible defaults
+ */
+export function createNoteNode(
+  id: string,
+  title: string,
+  overrides?: Partial<Omit<NoteNode, 'type'>>
+): NoteNode {
+  const dates = createNodeDates()
+  return {
+    id,
+    type: NodeType.Note,
+    title,
+    tags: [],
+    dates,
+    content: '',
+    parent: null,
     ...overrides,
   }
 }

@@ -161,6 +161,7 @@ export const decisionNodeSchema = baseNodeSchema.extend({
   rationale: z.string().nullable().default(null),
   selectedDate: nullableDateSchema.default(null),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  parent: z.string().nullable().default(null),
 })
 
 /**
@@ -174,6 +175,7 @@ export const componentNodeSchema = baseNodeSchema.extend({
   partNumber: z.string().nullable().default(null),
   customFields: z.record(z.union([z.string(), z.number()])).default({}),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  parent: z.string().nullable().default(null),
 })
 
 /**
@@ -188,6 +190,7 @@ export const taskNodeSchema = baseNodeSchema.extend({
   checklist: z.array(checklistItemSchema).default([]),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
   milestone: z.string().optional(),
+  parent: z.string().nullable().default(null),
 })
 
 /**
@@ -196,6 +199,50 @@ export const taskNodeSchema = baseNodeSchema.extend({
 export const noteNodeSchema = baseNodeSchema.extend({
   type: z.literal(NodeType.Note),
   dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  parent: z.string().nullable().default(null),
+})
+
+/**
+ * Subsystem node schema
+ */
+
+/**
+ * Container status schema - used by Subsystem, Assembly, and Module nodes
+ */
+export const containerStatusSchema = z.enum([
+  'planning',
+  'in_progress',
+  'complete',
+  'on_hold',
+])
+
+export const subsystemNodeSchema = baseNodeSchema.extend({
+  type: z.literal(NodeType.Subsystem),
+  dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  status: containerStatusSchema.default('planning'),
+  requirements: z.array(z.string()).optional(),
+})
+
+/**
+ * Assembly node schema
+ */
+export const assemblyNodeSchema = baseNodeSchema.extend({
+  type: z.literal(NodeType.Assembly),
+  dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  status: containerStatusSchema.default('planning'),
+  requirements: z.array(z.string()).optional(),
+  parent: z.string().nullable().default(null),
+})
+
+/**
+ * Module node schema
+ */
+export const moduleNodeSchema = baseNodeSchema.extend({
+  type: z.literal(NodeType.Module),
+  dates: nodeDatesSchema.default({ created: new Date(), modified: new Date() }),
+  status: containerStatusSchema.default('planning'),
+  requirements: z.array(z.string()).optional(),
+  parent: z.string().nullable().default(null),
 })
 
 /**
@@ -206,6 +253,9 @@ export const forgeNodeSchema = z.discriminatedUnion('type', [
   componentNodeSchema,
   taskNodeSchema,
   noteNodeSchema,
+  subsystemNodeSchema,
+  assemblyNodeSchema,
+  moduleNodeSchema,
 ])
 
 // ============================================================================
@@ -217,7 +267,15 @@ export const forgeNodeSchema = z.discriminatedUnion('type', [
  * Uses snake_case for depends_on as it appears in frontmatter
  */
 const baseFrontmatterSchema = z.object({
-  type: z.enum(['decision', 'component', 'task', 'note']),
+  type: z.enum([
+    'decision',
+    'component',
+    'task',
+    'note',
+    'subsystem',
+    'assembly',
+    'module',
+  ]),
   tags: z.array(z.string()).optional(),
   created: z.union([z.string(), z.date(), z.number()]).optional(),
   modified: z.union([z.string(), z.date(), z.number()]).optional(),
@@ -237,6 +295,7 @@ export const decisionFrontmatterSchema = baseFrontmatterSchema.extend({
     .union([z.string(), z.date(), z.number()])
     .nullable()
     .optional(),
+  parent: z.string().nullable().optional(),
 })
 
 /**
@@ -248,6 +307,7 @@ export const componentFrontmatterSchema = baseFrontmatterSchema.extend({
   cost: z.number().nullable().optional(),
   supplier: z.string().nullable().optional(),
   partNumber: z.string().nullable().optional(),
+  parent: z.string().nullable().optional(),
 })
 
 /**
@@ -260,6 +320,7 @@ export const taskFrontmatterSchema = baseFrontmatterSchema.extend({
   depends_on: z.array(z.string()).optional(),
   blocks: z.array(z.string()).optional(),
   milestone: z.string().optional(),
+  parent: z.string().nullable().optional(),
 })
 
 /**
@@ -267,6 +328,34 @@ export const taskFrontmatterSchema = baseFrontmatterSchema.extend({
  */
 export const noteFrontmatterSchema = baseFrontmatterSchema.extend({
   type: z.literal('note'),
+  parent: z.string().nullable().optional(),
+})
+
+/**
+ * Subsystem frontmatter schema
+ */
+export const subsystemFrontmatterSchema = baseFrontmatterSchema.extend({
+  type: z.literal('subsystem'),
+  status: containerStatusSchema.optional().default('planning'),
+  requirements: z.array(z.string()).optional(),
+})
+
+/**
+ * Assembly frontmatter schema
+ */
+export const assemblyFrontmatterSchema = baseFrontmatterSchema.extend({
+  type: z.literal('assembly'),
+  status: containerStatusSchema.optional().default('planning'),
+  requirements: z.array(z.string()).optional(),
+})
+
+/**
+ * Module frontmatter schema
+ */
+export const moduleFrontmatterSchema = baseFrontmatterSchema.extend({
+  type: z.literal('module'),
+  status: containerStatusSchema.optional().default('planning'),
+  requirements: z.array(z.string()).optional(),
 })
 
 /**
@@ -277,6 +366,9 @@ export const frontmatterSchema = z.discriminatedUnion('type', [
   componentFrontmatterSchema,
   taskFrontmatterSchema,
   noteFrontmatterSchema,
+  subsystemFrontmatterSchema,
+  assemblyFrontmatterSchema,
+  moduleFrontmatterSchema,
 ])
 
 // ============================================================================
@@ -370,7 +462,15 @@ export function validateNode(
   }
 
   // Validate type is a known value
-  const validTypes = ['decision', 'component', 'task', 'note']
+  const validTypes = [
+    'decision',
+    'component',
+    'task',
+    'note',
+    'subsystem',
+    'assembly',
+    'module',
+  ]
   if (!validTypes.includes(data.type as string)) {
     return {
       success: false,
@@ -498,6 +598,36 @@ export function isValidNoteNode(data: Record<string, unknown>): boolean {
   return result.success && result.data.type === NodeType.Note
 }
 
+/**
+ * Validates if data can be parsed as a valid SubsystemNode
+ *
+ * @returns true if data validates as a SubsystemNode
+ */
+export function isValidSubsystemNode(data: Record<string, unknown>): boolean {
+  const result = validateNode(data)
+  return result.success && result.data.type === NodeType.Subsystem
+}
+
+/**
+ * Validates if data can be parsed as a valid AssemblyNode
+ *
+ * @returns true if data validates as an AssemblyNode
+ */
+export function isValidAssemblyNode(data: Record<string, unknown>): boolean {
+  const result = validateNode(data)
+  return result.success && result.data.type === NodeType.Assembly
+}
+
+/**
+ * Validates if data can be parsed as a valid ModuleNode
+ *
+ * @returns true if data validates as a ModuleNode
+ */
+export function isValidModuleNode(data: Record<string, unknown>): boolean {
+  const result = validateNode(data)
+  return result.success && result.data.type === NodeType.Module
+}
+
 // ============================================================================
 // Exported Types (for convenience)
 // ============================================================================
@@ -506,4 +636,7 @@ export type DecisionFrontmatter = z.infer<typeof decisionFrontmatterSchema>
 export type ComponentFrontmatter = z.infer<typeof componentFrontmatterSchema>
 export type TaskFrontmatter = z.infer<typeof taskFrontmatterSchema>
 export type NoteFrontmatter = z.infer<typeof noteFrontmatterSchema>
+export type SubsystemFrontmatter = z.infer<typeof subsystemFrontmatterSchema>
+export type AssemblyFrontmatter = z.infer<typeof assemblyFrontmatterSchema>
+export type ModuleFrontmatter = z.infer<typeof moduleFrontmatterSchema>
 export type Frontmatter = z.infer<typeof frontmatterSchema>

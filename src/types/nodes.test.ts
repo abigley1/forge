@@ -5,10 +5,17 @@ import {
   isComponentNode,
   isTaskNode,
   isNoteNode,
+  isSubsystemNode,
+  isAssemblyNode,
+  isModuleNode,
+  isContainerNode,
   createNodeDates,
   createChecklistItem,
   createDecisionOption,
   createDecisionCriterion,
+  createSubsystemNode,
+  createAssemblyNode,
+  createModuleNode,
   type ForgeNode,
   type DecisionNode,
   type ComponentNode,
@@ -48,6 +55,7 @@ function createTestDecisionNode(): DecisionNode {
     ],
     rationale: null,
     selectedDate: null,
+    parent: null,
   }
 }
 
@@ -68,6 +76,7 @@ function createTestComponentNode(): ComponentNode {
       voltage: 24,
       weight: '570g',
     },
+    parent: null,
   }
 }
 
@@ -87,6 +96,7 @@ function createTestTaskNode(): TaskNode {
       { id: 'cl-1', text: 'Stepper motor', completed: true },
       { id: 'cl-2', text: 'Driver board', completed: false },
     ],
+    parent: null,
   }
 }
 
@@ -98,6 +108,7 @@ function createTestNoteNode(): NoteNode {
     tags: ['design', 'brainstorm'],
     dates: createBaseDates(),
     content: '# Random ideas for the project',
+    parent: null,
   }
 }
 
@@ -113,13 +124,16 @@ describe('NodeType', () => {
     expect(NodeType.Note).toBe('note')
   })
 
-  it('should have exactly 4 node types', () => {
+  it('should have exactly 7 node types', () => {
     const values = Object.values(NodeType)
-    expect(values).toHaveLength(4)
+    expect(values).toHaveLength(7)
     expect(values).toContain('decision')
     expect(values).toContain('component')
     expect(values).toContain('task')
     expect(values).toContain('note')
+    expect(values).toContain('subsystem')
+    expect(values).toContain('assembly')
+    expect(values).toContain('module')
   })
 })
 
@@ -232,6 +246,93 @@ describe('type guards', () => {
       }
     })
   })
+
+  describe('isSubsystemNode', () => {
+    it('should return true for SubsystemNode', () => {
+      const node = createSubsystemNode('sub-1', 'Test Subsystem')
+      expect(isSubsystemNode(node)).toBe(true)
+    })
+
+    it('should return false for other node types', () => {
+      expect(isSubsystemNode(createTestDecisionNode())).toBe(false)
+      expect(isSubsystemNode(createTestComponentNode())).toBe(false)
+      expect(isSubsystemNode(createTestTaskNode())).toBe(false)
+      expect(isSubsystemNode(createTestNoteNode())).toBe(false)
+    })
+
+    it('should narrow type correctly', () => {
+      const node: ForgeNode = createSubsystemNode('sub-1', 'Test Subsystem')
+      if (isSubsystemNode(node)) {
+        expect(node.status).toBe('planning')
+        expect(node.type).toBe(NodeType.Subsystem)
+      } else {
+        throw new Error('Type guard should have returned true')
+      }
+    })
+  })
+
+  describe('isAssemblyNode', () => {
+    it('should return true for AssemblyNode', () => {
+      const node = createAssemblyNode('asm-1', 'Test Assembly')
+      expect(isAssemblyNode(node)).toBe(true)
+    })
+
+    it('should return false for other node types', () => {
+      expect(isAssemblyNode(createTestDecisionNode())).toBe(false)
+      expect(isAssemblyNode(createTestComponentNode())).toBe(false)
+      expect(isAssemblyNode(createTestTaskNode())).toBe(false)
+      expect(isAssemblyNode(createSubsystemNode('s', 'S'))).toBe(false)
+    })
+
+    it('should narrow type correctly', () => {
+      const node: ForgeNode = createAssemblyNode('asm-1', 'Test Assembly')
+      if (isAssemblyNode(node)) {
+        expect(node.status).toBe('planning')
+        expect(node.type).toBe(NodeType.Assembly)
+      } else {
+        throw new Error('Type guard should have returned true')
+      }
+    })
+  })
+
+  describe('isModuleNode', () => {
+    it('should return true for ModuleNode', () => {
+      const node = createModuleNode('mod-1', 'Test Module')
+      expect(isModuleNode(node)).toBe(true)
+    })
+
+    it('should return false for other node types', () => {
+      expect(isModuleNode(createTestDecisionNode())).toBe(false)
+      expect(isModuleNode(createTestComponentNode())).toBe(false)
+      expect(isModuleNode(createSubsystemNode('s', 'S'))).toBe(false)
+      expect(isModuleNode(createAssemblyNode('a', 'A'))).toBe(false)
+    })
+
+    it('should narrow type correctly', () => {
+      const node: ForgeNode = createModuleNode('mod-1', 'Test Module')
+      if (isModuleNode(node)) {
+        expect(node.status).toBe('planning')
+        expect(node.type).toBe(NodeType.Module)
+      } else {
+        throw new Error('Type guard should have returned true')
+      }
+    })
+  })
+
+  describe('isContainerNode', () => {
+    it('should return true for all container node types', () => {
+      expect(isContainerNode(createSubsystemNode('s', 'Subsystem'))).toBe(true)
+      expect(isContainerNode(createAssemblyNode('a', 'Assembly'))).toBe(true)
+      expect(isContainerNode(createModuleNode('m', 'Module'))).toBe(true)
+    })
+
+    it('should return false for non-container node types', () => {
+      expect(isContainerNode(createTestDecisionNode())).toBe(false)
+      expect(isContainerNode(createTestComponentNode())).toBe(false)
+      expect(isContainerNode(createTestTaskNode())).toBe(false)
+      expect(isContainerNode(createTestNoteNode())).toBe(false)
+    })
+  })
 })
 
 // ============================================================================
@@ -267,6 +368,12 @@ describe('ForgeNode discriminated union', () => {
         case NodeType.Note:
           // TypeScript knows this is NoteNode (just BaseNode properties)
           expect(node.content).toBeDefined()
+          break
+        case NodeType.Subsystem:
+        case NodeType.Assembly:
+        case NodeType.Module:
+          // TypeScript knows these are container nodes
+          expect(node.status).toBeDefined()
           break
         default: {
           // Exhaustiveness check - this should never be reached
@@ -379,6 +486,62 @@ describe('factory helpers', () => {
       expect(crit1.id).not.toBe(crit2.id)
     })
   })
+
+  describe('createSubsystemNode', () => {
+    it('should create a subsystem with default planning status', () => {
+      const node = createSubsystemNode('sub-1', 'Propulsion System')
+      expect(node.type).toBe(NodeType.Subsystem)
+      expect(node.id).toBe('sub-1')
+      expect(node.title).toBe('Propulsion System')
+      expect(node.status).toBe('planning')
+      expect(node.tags).toEqual([])
+      expect(node.content).toBe('')
+    })
+
+    it('should allow status override', () => {
+      const node = createSubsystemNode('sub-1', 'Test', {
+        status: 'in_progress',
+      })
+      expect(node.status).toBe('in_progress')
+    })
+
+    it('should allow requirements override', () => {
+      const node = createSubsystemNode('sub-1', 'Test', {
+        requirements: ['Must support 10kg payload'],
+      })
+      expect(node.requirements).toEqual(['Must support 10kg payload'])
+    })
+  })
+
+  describe('createAssemblyNode', () => {
+    it('should create an assembly with default planning status', () => {
+      const node = createAssemblyNode('asm-1', 'Drive Train')
+      expect(node.type).toBe(NodeType.Assembly)
+      expect(node.id).toBe('asm-1')
+      expect(node.title).toBe('Drive Train')
+      expect(node.status).toBe('planning')
+    })
+
+    it('should allow status override', () => {
+      const node = createAssemblyNode('asm-1', 'Test', { status: 'complete' })
+      expect(node.status).toBe('complete')
+    })
+  })
+
+  describe('createModuleNode', () => {
+    it('should create a module with default planning status', () => {
+      const node = createModuleNode('mod-1', 'Control Module')
+      expect(node.type).toBe(NodeType.Module)
+      expect(node.id).toBe('mod-1')
+      expect(node.title).toBe('Control Module')
+      expect(node.status).toBe('planning')
+    })
+
+    it('should allow status override', () => {
+      const node = createModuleNode('mod-1', 'Test', { status: 'on_hold' })
+      expect(node.status).toBe('on_hold')
+    })
+  })
 })
 
 // ============================================================================
@@ -442,6 +605,7 @@ describe('edge cases', () => {
     const node: TaskNode = {
       ...createTestTaskNode(),
       checklist: [],
+      parent: null,
     }
     expect(node.checklist).toEqual([])
   })
@@ -460,6 +624,7 @@ describe('edge cases', () => {
     const node: ComponentNode = {
       ...createTestComponentNode(),
       customFields: {},
+      parent: null,
     }
     expect(node.customFields).toEqual({})
   })

@@ -5,11 +5,24 @@
  * Separated from components to avoid fast-refresh warnings.
  */
 
-import { Lightbulb, Package, CheckSquare, FileText } from 'lucide-react'
+import {
+  Lightbulb,
+  Package,
+  CheckSquare,
+  FileText,
+  Layers,
+  Boxes,
+  LayoutGrid,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { NodeType } from '@/types/nodes'
-import type { DecisionStatus, ComponentStatus, TaskStatus } from '@/types/nodes'
+import type {
+  DecisionStatus,
+  ComponentStatus,
+  TaskStatus,
+  ContainerStatus,
+} from '@/types/nodes'
 
 // ============================================================================
 // Node Type Icon Configuration
@@ -46,6 +59,21 @@ export const NODE_TYPE_ICON_CONFIG: Record<
     color: 'text-gray-500',
     label: 'Note',
   },
+  [NodeType.Subsystem]: {
+    icon: Layers,
+    color: 'text-purple-500',
+    label: 'Subsystem',
+  },
+  [NodeType.Assembly]: {
+    icon: Boxes,
+    color: 'text-cyan-500',
+    label: 'Assembly',
+  },
+  [NodeType.Module]: {
+    icon: LayoutGrid,
+    color: 'text-rose-500',
+    label: 'Module',
+  },
 }
 
 /**
@@ -60,7 +88,11 @@ export function getNodeTypeLabel(type: NodeType): string {
 // ============================================================================
 
 /** All possible status values across node types */
-export type NodeStatus = DecisionStatus | ComponentStatus | TaskStatus
+export type NodeStatus =
+  | DecisionStatus
+  | ComponentStatus
+  | TaskStatus
+  | ContainerStatus
 
 /**
  * Status configuration with colors and display labels.
@@ -119,6 +151,19 @@ export const STATUS_CONFIG: Record<
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     textColor: 'text-green-800 dark:text-green-200',
     dotColor: 'bg-green-500',
+  },
+  // Container statuses
+  planning: {
+    label: 'Planning',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    textColor: 'text-purple-800 dark:text-purple-200',
+    dotColor: 'bg-purple-500',
+  },
+  on_hold: {
+    label: 'On Hold',
+    bgColor: 'bg-gray-100 dark:bg-gray-900/30',
+    textColor: 'text-gray-800 dark:text-gray-200',
+    dotColor: 'bg-gray-500',
   },
 }
 

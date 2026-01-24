@@ -69,6 +69,7 @@ const validNoteData = {
   title: 'Research Notes',
   tags: ['research'],
   content: 'General notes about motors.',
+  parent: null,
 }
 
 // ============================================================================
@@ -149,6 +150,7 @@ describe('validateNode', () => {
         type: 'task',
         title: 'My Task',
         depends_on: ['task-1', 'task-2'],
+        parent: null,
       }
 
       const result = validateNode(taskWithSnakeCase)
@@ -622,6 +624,7 @@ describe('individual schemas', () => {
         tags: ['test'],
         content: 'Content',
         dates: { created: new Date(), modified: new Date() },
+        parent: null,
       }
       const result = noteNodeSchema.safeParse(node)
 
@@ -666,6 +669,7 @@ describe('frontmatter schemas', () => {
         status: 'pending',
         priority: 'low',
         depends_on: ['other'],
+        parent: null,
       }
       const result = taskFrontmatterSchema.safeParse(fm)
       expect(result.success).toBe(true)
@@ -747,6 +751,7 @@ describe('edge cases', () => {
       dependsOn: [],
       blocks: [],
       checklist: [],
+      parent: null,
     }
     const result = validateNode(node)
 
@@ -765,6 +770,7 @@ describe('edge cases', () => {
       type: 'component',
       title: 'Test',
       customFields: {},
+      parent: null,
     }
     const result = validateNode(node)
 
@@ -785,6 +791,7 @@ describe('edge cases', () => {
         rating: 100,
         description: 'High power',
       },
+      parent: null,
     }
     const result = validateNode(node)
 
@@ -851,6 +858,7 @@ describe('edge cases', () => {
         { id: 'i1', text: 'First item', completed: true },
         { id: 'i2', text: 'Second item', completed: false },
       ],
+      parent: null,
     }
     const result = validateNode(node)
 
@@ -860,5 +868,205 @@ describe('edge cases', () => {
       expect(result.data.checklist[0].completed).toBe(true)
       expect(result.data.checklist[1].completed).toBe(false)
     }
+  })
+})
+
+// ============================================================================
+// Parent Linking Field Tests (Sprint 13 - Task 13.2)
+// ============================================================================
+
+describe('parent linking field', () => {
+  describe('TaskNode with parent field', () => {
+    it('should accept valid parent id', () => {
+      const result = validateNode({
+        id: 'task-1',
+        type: 'task',
+        title: 'Task with Parent',
+        status: 'pending',
+        priority: 'medium',
+        parent: 'cannon-subsystem',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Task) {
+        expect(result.data.parent).toBe('cannon-subsystem')
+      }
+    })
+
+    it('should allow null parent', () => {
+      const result = validateNode({
+        id: 'task-1',
+        type: 'task',
+        title: 'Task without Parent',
+        status: 'pending',
+        priority: 'medium',
+        parent: null,
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Task) {
+        expect(result.data.parent).toBeNull()
+      }
+    })
+
+    it('should default parent to null when not provided', () => {
+      const result = validateNode({
+        id: 'task-1',
+        type: 'task',
+        title: 'Task',
+        status: 'pending',
+        priority: 'medium',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Task) {
+        expect(result.data.parent).toBeNull()
+      }
+    })
+  })
+
+  describe('ComponentNode with parent field', () => {
+    it('should accept valid parent id', () => {
+      const result = validateNode({
+        id: 'comp-1',
+        type: 'component',
+        title: 'Component with Parent',
+        status: 'considering',
+        parent: 'drive-assembly',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Component) {
+        expect(result.data.parent).toBe('drive-assembly')
+      }
+    })
+
+    it('should default parent to null when not provided', () => {
+      const result = validateNode({
+        id: 'comp-1',
+        type: 'component',
+        title: 'Component',
+        status: 'considering',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Component) {
+        expect(result.data.parent).toBeNull()
+      }
+    })
+  })
+
+  describe('DecisionNode with parent field', () => {
+    it('should accept valid parent id', () => {
+      const result = validateNode({
+        id: 'dec-1',
+        type: 'decision',
+        title: 'Decision with Parent',
+        status: 'pending',
+        parent: 'control-module',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Decision) {
+        expect(result.data.parent).toBe('control-module')
+      }
+    })
+
+    it('should default parent to null when not provided', () => {
+      const result = validateNode({
+        id: 'dec-1',
+        type: 'decision',
+        title: 'Decision',
+        status: 'pending',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Decision) {
+        expect(result.data.parent).toBeNull()
+      }
+    })
+  })
+
+  describe('NoteNode with parent field', () => {
+    it('should accept valid parent id', () => {
+      const result = validateNode({
+        id: 'note-1',
+        type: 'note',
+        title: 'Note with Parent',
+        parent: 'propulsion-subsystem',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Note) {
+        expect(result.data.parent).toBe('propulsion-subsystem')
+      }
+    })
+
+    it('should default parent to null when not provided', () => {
+      const result = validateNode({
+        id: 'note-1',
+        type: 'note',
+        title: 'Note',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === NodeType.Note) {
+        expect(result.data.parent).toBeNull()
+      }
+    })
+  })
+
+  describe('frontmatter parsing with parent field', () => {
+    it('should parse parent from task frontmatter', () => {
+      const result = validateFrontmatter({
+        type: 'task',
+        status: 'pending',
+        priority: 'medium',
+        parent: 'cannon-subsystem',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === 'task') {
+        expect(result.data.parent).toBe('cannon-subsystem')
+      }
+    })
+
+    it('should parse parent from component frontmatter', () => {
+      const result = validateFrontmatter({
+        type: 'component',
+        status: 'considering',
+        parent: 'drive-assembly',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === 'component') {
+        expect(result.data.parent).toBe('drive-assembly')
+      }
+    })
+
+    it('should parse parent from decision frontmatter', () => {
+      const result = validateFrontmatter({
+        type: 'decision',
+        status: 'pending',
+        parent: 'control-module',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === 'decision') {
+        expect(result.data.parent).toBe('control-module')
+      }
+    })
+
+    it('should parse parent from note frontmatter', () => {
+      const result = validateFrontmatter({
+        type: 'note',
+        parent: 'propulsion-subsystem',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success && result.data.type === 'note') {
+        expect(result.data.parent).toBe('propulsion-subsystem')
+      }
+    })
   })
 })
