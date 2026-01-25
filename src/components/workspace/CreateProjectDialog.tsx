@@ -4,18 +4,18 @@
  * Dialog for creating a new project with:
  * - Project name input (required)
  * - Description input (optional)
- * - Folder selection
- * - Validation and error handling
+ * - Creates project in IndexedDB (no folder selection required)
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { FolderOpen, X, AlertCircle } from 'lucide-react'
+import { X, AlertCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Dialog } from '@/components/ui'
 import { useWorkspaceStore } from '@/store'
 import { slugify } from '@/lib/project'
 import { Z_MODAL } from '@/lib/z-index'
+import { IndexedDBAdapter } from '@/lib/filesystem'
 
 // ============================================================================
 // Types
@@ -41,7 +41,6 @@ export function CreateProjectDialog({
 }: CreateProjectDialogProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [folderPath, setFolderPath] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -50,13 +49,13 @@ export function CreateProjectDialog({
   // Store actions
   const addProject = useWorkspaceStore((state) => state.addProject)
   const setActiveProject = useWorkspaceStore((state) => state.setActiveProject)
+  const projects = useWorkspaceStore((state) => state.projects)
 
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
       setName('')
       setDescription('')
-      setFolderPath(null)
       setError(null)
       setIsSubmitting(false)
       // Focus name input after a short delay for animation
@@ -64,46 +63,27 @@ export function CreateProjectDialog({
     }
   }, [open])
 
-  // Handle folder selection
-  const handleSelectFolder = useCallback(async () => {
-    try {
-      // Check if File System Access API is available
-      if ('showDirectoryPicker' in window) {
-        const handle = await (
-          window as unknown as {
-            showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
-          }
-        ).showDirectoryPicker()
-        setFolderPath(handle.name)
-        setError(null)
-      } else {
-        // Fallback for browsers without File System Access API
-        setError(
-          'Your browser does not support folder selection. Please use Chrome or Edge.'
-        )
-      }
-    } catch (err) {
-      // User cancelled or error occurred
-      if ((err as Error).name !== 'AbortError') {
-        setError('Failed to select folder')
-      }
-    }
-  }, [])
-
   // Handle form submission
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault()
 
-      // Validate
+      // Validate name
       if (!name.trim()) {
         setError('Project name is required')
         nameInputRef.current?.focus()
         return
       }
 
-      if (!folderPath) {
-        setError('Please select a folder for the project')
+      // Generate project ID
+      const id = slugify(name.trim())
+
+      // Check for duplicate project IDs
+      if (projects.some((p) => p.id === id)) {
+        setError(
+          'A project with this name already exists. Please choose a different name.'
+        )
+        nameInputRef.current?.focus()
         return
       }
 
@@ -111,20 +91,33 @@ export function CreateProjectDialog({
       setError(null)
 
       try {
-        // Create project ID from name
-        const id = slugify(name.trim())
+        // Initialize IndexedDB storage for the new project
+        const adapter = new IndexedDBAdapter(id)
+        try {
+          // Create the directory structure for node types
+          await adapter.mkdir('/decisions')
+          await adapter.mkdir('/components')
+          await adapter.mkdir('/tasks')
+          await adapter.mkdir('/notes')
+          await adapter.mkdir('/subsystems')
+          await adapter.mkdir('/assemblies')
+          await adapter.mkdir('/modules')
+        } finally {
+          // Close the adapter - it will be reopened by useHybridPersistence
+          adapter.close()
+        }
 
         // Add to workspace
         addProject({
           id,
           name: name.trim(),
-          path: folderPath,
+          path: `indexeddb://${id}`, // Virtual path indicating IndexedDB storage
           nodeCount: 0,
           modifiedAt: new Date(),
           description: description.trim() || undefined,
         })
 
-        // Set as active project
+        // Set as active project - this triggers useHybridPersistence to switch
         setActiveProject(id)
 
         // Notify parent
@@ -141,7 +134,7 @@ export function CreateProjectDialog({
     [
       name,
       description,
-      folderPath,
+      projects,
       addProject,
       setActiveProject,
       onCreated,
@@ -235,7 +228,10 @@ export function CreateProjectDialog({
                   htmlFor="project-description"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Description <span className="text-gray-400">(optional)</span>
+                  Description{' '}
+                  <span className="text-gray-500 dark:text-gray-400">
+                    (optional)
+                  </span>
                 </label>
                 <textarea
                   id="project-description"
@@ -252,41 +248,11 @@ export function CreateProjectDialog({
                 />
               </div>
 
-              {/* Folder Selection */}
-              <div>
-                <label
-                  htmlFor="folder-select"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Project Folder <span className="text-red-500">*</span>
-                </label>
-                <button
-                  id="folder-select"
-                  type="button"
-                  onClick={handleSelectFolder}
-                  className={cn(
-                    'flex w-full items-center gap-2 rounded-md border border-gray-300 px-3 py-2',
-                    'text-sm text-gray-700 dark:text-gray-300',
-                    'dark:border-gray-700 dark:bg-gray-800',
-                    'hover:bg-gray-50 dark:hover:bg-gray-700',
-                    'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
-                    error && !folderPath && 'border-red-500'
-                  )}
-                >
-                  <FolderOpen
-                    className="h-4 w-4 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  {folderPath ? (
-                    <span className="truncate">{folderPath}</span>
-                  ) : (
-                    <span className="text-gray-400">Select a folder...</span>
-                  )}
-                </button>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Choose where to store your project files
-                </p>
-              </div>
+              {/* Info about storage */}
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Your project will be stored in your browser. Use "Save to
+                Folder" in Project Settings to export to your file system.
+              </p>
             </div>
 
             {/* Footer */}
@@ -303,7 +269,7 @@ export function CreateProjectDialog({
               </Dialog.Close>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !name.trim()}
                 className={cn(
                   'rounded-md bg-blue-600 px-4 py-2',
                   'text-sm font-medium text-white',

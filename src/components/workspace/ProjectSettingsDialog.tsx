@@ -4,16 +4,21 @@
  * Dialog for editing project settings:
  * - Edit project name
  * - Edit project description
+ * - Save to folder (export to file system)
  * - Delete project with confirmation
  */
 
 import { useState, useCallback, useEffect } from 'react'
-import { X, Trash2, AlertTriangle } from 'lucide-react'
+import { X, Trash2, AlertTriangle, FolderOutput, Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { Dialog, AlertDialog } from '@/components/ui'
+import { Dialog, AlertDialog, useToast } from '@/components/ui'
 import { useWorkspaceStore, useProjectStore, useNodesStore } from '@/store'
 import { Z_MODAL } from '@/lib/z-index'
+import {
+  exportProjectToFolder,
+  isFileSystemAccessSupported,
+} from '@/lib/export'
 
 // ============================================================================
 // Types
@@ -40,14 +45,20 @@ export function ProjectSettingsDialog({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const toast = useToast()
 
   // Store state and actions
   const currentProject = useProjectStore((state) => state.project)
   const updateProject = useWorkspaceStore((state) => state.updateProject)
   const removeProject = useWorkspaceStore((state) => state.removeProject)
-  const nodeCount = useNodesStore((state) => state.nodes.size)
+  const nodes = useNodesStore((state) => state.nodes)
+  const nodeCount = nodes.size
   const closeProject = useProjectStore((state) => state.closeProject)
+
+  // Check if File System Access API is supported
+  const canExportToFolder = isFileSystemAccessSupported()
 
   // Initialize form with current project data
   useEffect(() => {
@@ -88,6 +99,46 @@ export function ProjectSettingsDialog({
       setIsSaving(false)
     }
   }, [currentProject, name, description, updateProject, onOpenChange])
+
+  // Handle export to folder
+  const handleExportToFolder = useCallback(async () => {
+    if (!currentProject) return
+
+    setIsExporting(true)
+
+    try {
+      const result = await exportProjectToFolder(nodes, currentProject.name, {
+        id: currentProject.id,
+        description: currentProject.metadata.description,
+        createdAt: currentProject.metadata.createdAt,
+        modifiedAt: currentProject.metadata.modifiedAt,
+        nodeOrder: currentProject.metadata.nodeOrder,
+        nodePositions: currentProject.metadata.nodePositions,
+      })
+
+      if (result.success) {
+        toast.success({
+          title: 'Export Complete',
+          description: `Saved ${result.fileCount} file${result.fileCount !== 1 ? 's' : ''} to ${result.directoryName || 'folder'}`,
+        })
+      } else if (result.error === 'Export cancelled') {
+        // User cancelled - no toast needed
+      } else {
+        toast.error({
+          title: 'Export Failed',
+          description: result.error || 'An unknown error occurred',
+        })
+      }
+    } catch (error) {
+      toast.error({
+        title: 'Export Failed',
+        description:
+          error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }, [currentProject, nodes, toast])
 
   // Handle delete
   const handleDelete = useCallback(() => {
@@ -196,9 +247,50 @@ export function ProjectSettingsDialog({
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   <strong>Nodes:</strong> {nodeCount}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  <strong>Path:</strong> {currentProject.path}
+              </div>
+
+              {/* Export to Folder */}
+              <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                <h3 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Save to Folder
+                </h3>
+                <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                  Export your project as markdown files to a folder on your
+                  computer. This creates a git-friendly directory structure.
                 </p>
+                <button
+                  type="button"
+                  onClick={handleExportToFolder}
+                  disabled={isExporting || !canExportToFolder}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-3 py-2',
+                    'text-sm font-medium',
+                    'bg-blue-600 text-white',
+                    'hover:bg-blue-700',
+                    'disabled:cursor-not-allowed disabled:opacity-50',
+                    'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  )}
+                  title={
+                    !canExportToFolder
+                      ? 'File System Access API not supported in this browser'
+                      : undefined
+                  }
+                >
+                  {isExporting ? (
+                    <Loader2
+                      className="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <FolderOutput className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {isExporting ? 'Saving...' : 'Save to Folder'}
+                </button>
+                {!canExportToFolder && (
+                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                    Not supported in this browser. Try Chrome, Edge, or Opera.
+                  </p>
+                )}
               </div>
 
               {/* Danger Zone */}
@@ -207,8 +299,8 @@ export function ProjectSettingsDialog({
                   Danger Zone
                 </h3>
                 <p className="mb-3 text-sm text-red-700 dark:text-red-400">
-                  Deleting a project will remove it from your workspace. Files
-                  on disk will not be deleted.
+                  Deleting a project will remove it from your browser storage.
+                  Use "Save to Folder" first to keep a backup.
                 </p>
                 <button
                   type="button"
@@ -287,7 +379,8 @@ export function ProjectSettingsDialog({
 
             <AlertDialog.Description className="mb-6 text-sm text-gray-600 dark:text-gray-400">
               Are you sure you want to delete "{currentProject.name}"? This will
-              remove it from your workspace. Files on disk will not be affected.
+              remove it from your browser storage. Make sure you've saved a
+              backup using "Save to Folder" if needed.
             </AlertDialog.Description>
 
             <div className="flex justify-end gap-3">

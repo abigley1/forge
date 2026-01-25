@@ -6,8 +6,14 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { Link, Loader2 } from 'lucide-react'
 
 import { Dialog, Button, useToast } from '@/components/ui'
+import {
+  parseLink,
+  SUPPORTED_SUPPLIERS,
+  type PartialComponentData,
+} from '@/lib/supplier-parser'
 import { useUndoableAddNode, useHotkey, formatHotkey } from '@/hooks'
 import { useNodesStore } from '@/store/useNodesStore'
 import { useTemplatesStore } from '@/store/useTemplatesStore'
@@ -171,8 +177,17 @@ export function CreateNodeDialog({
   const [selectedTemplateId, setSelectedTemplateId] = useState('blank')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Import from link state
+  const [showImportLink, setShowImportLink] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [importError, setImportError] = useState<string | null>(null)
+  const [isImporting, setIsImporting] = useState(false)
+  const [importPreview, setImportPreview] =
+    useState<PartialComponentData | null>(null)
+
   // Refs
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const importUrlInputRef = useRef<HTMLInputElement>(null)
 
   // Hooks
   const addNode = useUndoableAddNode()
@@ -200,6 +215,12 @@ export function CreateNodeDialog({
       const templates = getTemplatesForType(defaultType)
       setSelectedTemplateId(templates[0]?.id ?? '')
       setIsSubmitting(false)
+      // Reset import state
+      setShowImportLink(false)
+      setImportUrl('')
+      setImportError(null)
+      setIsImporting(false)
+      setImportPreview(null)
       // Focus title input after dialog animation
       setTimeout(() => {
         titleInputRef.current?.focus()
@@ -216,6 +237,45 @@ export function CreateNodeDialog({
   const selectedTemplate = availableTemplates.find(
     (t) => t.id === selectedTemplateId
   )
+
+  // Handle import from link
+  const handleImportLink = useCallback(async () => {
+    if (!importUrl.trim()) {
+      setImportError('Please enter a URL')
+      return
+    }
+
+    setImportError(null)
+    setIsImporting(true)
+
+    const result = await parseLink(importUrl.trim())
+
+    if (!result.success) {
+      setImportError(result.error.message)
+      setIsImporting(false)
+      return
+    }
+
+    // Set preview data
+    setImportPreview(result.data)
+    // Pre-fill title if available
+    if (result.data.title) {
+      setTitle(result.data.title)
+    } else if (result.data.partNumber) {
+      setTitle(result.data.partNumber)
+    }
+    setIsImporting(false)
+  }, [importUrl])
+
+  // Clear import state when switching away from component type
+  useEffect(() => {
+    if (selectedType !== NodeType.Component) {
+      setShowImportLink(false)
+      setImportUrl('')
+      setImportError(null)
+      setImportPreview(null)
+    }
+  }, [selectedType])
 
   // Handle form submission
   const handleSubmit = useCallback(
@@ -244,6 +304,32 @@ export function CreateNodeDialog({
           nodeId,
           frontmatter
         )
+
+        // If we imported from a link, add the supplier data to component node
+        if (selectedType === NodeType.Component && importPreview) {
+          const componentNode = node as ComponentNode
+          if (importPreview.supplier) {
+            componentNode.supplier = importPreview.supplier
+          }
+          if (importPreview.partNumber) {
+            componentNode.partNumber = importPreview.partNumber
+          }
+          if (importPreview.price !== null) {
+            componentNode.cost = importPreview.price
+          }
+          // Store supplier URL in custom fields
+          if (importPreview.supplierUrl) {
+            componentNode.customFields = {
+              ...componentNode.customFields,
+              supplierUrl: importPreview.supplierUrl,
+            }
+          }
+          // Add description to content if available
+          if (importPreview.description) {
+            componentNode.content =
+              importPreview.description + '\n\n' + componentNode.content
+          }
+        }
 
         // Add to store (with undo support)
         addNode(node)
@@ -275,6 +361,7 @@ export function CreateNodeDialog({
       nodes,
       selectedType,
       selectedTemplate,
+      importPreview,
       addNode,
       setActiveNode,
       onNodeCreated,
@@ -416,6 +503,161 @@ export function CreateNodeDialog({
                 </p>
               )}
             </div>
+
+            {/* Import from Link - Only for Component type */}
+            {selectedType === NodeType.Component && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+                {!showImportLink ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowImportLink(true)
+                      setTimeout(() => importUrlInputRef.current?.focus(), 100)
+                    }}
+                    className={cn(
+                      'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 py-2.5',
+                      'text-sm font-medium text-gray-600 dark:text-gray-400',
+                      'border-gray-300 hover:border-gray-400 hover:text-gray-700',
+                      'dark:border-gray-600 dark:hover:border-gray-500 dark:hover:text-gray-300',
+                      'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
+                      'dark:focus-visible:ring-gray-300'
+                    )}
+                  >
+                    <Link className="h-4 w-4" aria-hidden="true" />
+                    Import from Link
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Import from Link
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowImportLink(false)
+                          setImportUrl('')
+                          setImportError(null)
+                          setImportPreview(null)
+                        }}
+                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    {/* URL Input */}
+                    <div className="flex gap-2">
+                      <input
+                        ref={importUrlInputRef}
+                        type="url"
+                        value={importUrl}
+                        onChange={(e) => {
+                          setImportUrl(e.target.value)
+                          setImportError(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleImportLink()
+                          }
+                        }}
+                        className={cn(
+                          'flex-1 rounded-md border px-3 py-2',
+                          'text-sm text-gray-900 placeholder-gray-500',
+                          'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                          'focus-visible:outline-none',
+                          'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400'
+                        )}
+                        placeholder="Paste supplier URL..."
+                        autoComplete="off"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleImportLink}
+                        disabled={isImporting || !importUrl.trim()}
+                        className="shrink-0"
+                      >
+                        {isImporting ? (
+                          <Loader2
+                            className="h-4 w-4 animate-spin"
+                            aria-label="Loading"
+                          />
+                        ) : (
+                          'Import'
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Supported suppliers hint */}
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Supported:{' '}
+                      {SUPPORTED_SUPPLIERS.map(
+                        (s) => s.charAt(0).toUpperCase() + s.slice(1)
+                      ).join(', ')}
+                    </p>
+
+                    {/* Error message */}
+                    {importError && (
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {importError}
+                      </p>
+                    )}
+
+                    {/* Import Preview */}
+                    {importPreview && (
+                      <div
+                        data-testid="import-preview"
+                        className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"
+                      >
+                        <div className="space-y-2 text-sm">
+                          {importPreview.supplier && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Supplier:
+                              </span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {importPreview.supplier}
+                              </span>
+                            </div>
+                          )}
+                          {importPreview.partNumber && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Part #:
+                              </span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {importPreview.partNumber}
+                              </span>
+                            </div>
+                          )}
+                          {importPreview.price !== null && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Price:
+                              </span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                ${importPreview.price.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {importPreview.manufacturer && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Manufacturer:
+                              </span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {importPreview.manufacturer}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Footer */}
             <Dialog.Footer>

@@ -1,12 +1,13 @@
 /**
  * ViewToggle Component
  *
- * Toggle between Outline and Graph views with keyboard shortcuts:
+ * Toggle between Outline, Graph, and Kanban views with keyboard shortcuts:
  * - Ctrl/Cmd+1: Switch to Outline view
  * - Ctrl/Cmd+2: Switch to Graph view
+ * - Ctrl/Cmd+3: Switch to Kanban view
  */
 
-import { List, GitBranch } from 'lucide-react'
+import { List, GitBranch, Columns3 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useHotkey } from '@/hooks'
@@ -15,7 +16,7 @@ import { useHotkey } from '@/hooks'
 // Types
 // ============================================================================
 
-export type ViewMode = 'outline' | 'graph'
+export type ViewMode = 'outline' | 'graph' | 'kanban'
 
 export interface ViewToggleProps {
   /** Current view mode */
@@ -53,6 +54,12 @@ const VIEW_CONFIG: Record<
     shortcut: '2',
     shortcutLabel: '⌘2',
   },
+  kanban: {
+    label: 'Kanban',
+    icon: Columns3,
+    shortcut: '3',
+    shortcutLabel: '⌘3',
+  },
 }
 
 // ============================================================================
@@ -80,10 +87,14 @@ export function ViewToggle({
 
   useHotkey('2', () => onChange('graph'), { ctrl: true })
 
+  useHotkey('3', () => onChange('kanban'), { ctrl: true })
+
   // Also register with meta key for Mac
   useHotkey('1', () => onChange('outline'), { meta: true })
 
   useHotkey('2', () => onChange('graph'), { meta: true })
+
+  useHotkey('3', () => onChange('kanban'), { meta: true })
 
   return (
     <div

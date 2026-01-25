@@ -25,7 +25,7 @@ import {
   Grid3X3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Z_DROPDOWN } from '@/lib/z-index'
+import { Z_POPOVER } from '@/lib/z-index'
 import { useNodesStore } from '@/store/useNodesStore'
 import { NodeType, isContainerNode, type ForgeNode } from '@/types'
 
@@ -401,7 +401,7 @@ export function ParentSelector({
               'border border-gray-200 bg-white shadow-lg',
               'dark:border-gray-700 dark:bg-gray-800'
             )}
-            style={{ zIndex: Z_DROPDOWN }}
+            style={{ zIndex: Z_POPOVER }}
           >
             {containerGroups.length === 0 ? (
               <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">

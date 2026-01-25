@@ -17,7 +17,7 @@ import type {
 } from '@/types'
 import { STATUS_CONFIG } from '@/components/nodes/config'
 
-const Z_DROPDOWN = 10
+import { Z_POPOVER } from '@/lib/z-index'
 
 export type NodeStatus =
   | DecisionStatus
@@ -209,7 +209,7 @@ export function StatusSelect({
         </BaseSelect.Trigger>
 
         <BaseSelect.Portal>
-          <BaseSelect.Positioner sideOffset={4} style={{ zIndex: Z_DROPDOWN }}>
+          <BaseSelect.Positioner sideOffset={4} style={{ zIndex: Z_POPOVER }}>
             <BaseSelect.Popup
               className={cn(
                 'min-w-[var(--anchor-width)] overflow-hidden rounded-md',

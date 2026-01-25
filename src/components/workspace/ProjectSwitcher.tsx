@@ -18,6 +18,7 @@ import {
   Settings,
   Plus,
   Search,
+  AlertTriangle,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -28,7 +29,7 @@ import {
   type ProjectSummary,
 } from '@/store'
 import { fuzzySearch } from '@/lib/fuzzySearch'
-import { Z_DROPDOWN } from '@/lib/z-index'
+import { Z_DROPDOWN, Z_MODAL } from '@/lib/z-index'
 
 // ============================================================================
 // Types
@@ -130,9 +131,12 @@ export function ProjectSwitcher({
 }: ProjectSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [pendingProjectId, setPendingProjectId] = useState<string | null>(null)
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const cancelButtonRef = useRef<HTMLButtonElement>(null)
 
   // Store state
   const projects = useWorkspaceStore((state) => state.projects)
@@ -144,6 +148,7 @@ export function ProjectSwitcher({
 
   // Current project info from project store
   const currentProject = useProjectStore((state) => state.project)
+  const isDirty = useProjectStore((state) => state.isDirty)
   const nodeCount = useNodesStore((state) => state.nodes.size)
 
   // Get display name and count
@@ -167,18 +172,83 @@ export function ProjectSwitcher({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- projects triggers re-render when store updates
   }, [getSortedProjects, searchQuery, projects])
 
+  // Actually perform the project switch
+  // The useHybridPersistence hook handles loading data when activeProjectId changes
+  const performProjectSwitch = useCallback(
+    (projectId: string) => {
+      const targetProject = projects.find((p) => p.id === projectId)
+      if (!targetProject) return
+
+      // In E2E mode (development without real file system), dispatch event for test hooks
+      // This allows E2E tests to control what nodes are loaded
+      if (
+        import.meta.env.DEV &&
+        typeof window !== 'undefined' &&
+        (window as Window & { __e2eReady?: boolean }).__e2eReady
+      ) {
+        // Get stored project nodes from E2E test setup
+        const e2eNodes = (window as Window & { __e2eProject2Nodes?: unknown[] })
+          .__e2eProject2Nodes
+        const e2eProject = (
+          window as Window & { __e2eProject2?: { id: string } }
+        ).__e2eProject2
+
+        // Only use E2E path if test data is actually set up for this project
+        if (e2eNodes && e2eProject && e2eProject.id === projectId) {
+          const event = new CustomEvent('e2e-switch-project', {
+            detail: { projectId, nodes: e2eNodes },
+          })
+          window.dispatchEvent(event)
+        }
+      }
+
+      // Update workspace state - useHybridPersistence will handle loading project data
+      setActiveProject(projectId)
+    },
+    [projects, setActiveProject]
+  )
+
   // Handle project selection
   const handleSelectProject = useCallback(
     (projectId: string) => {
-      setActiveProject(projectId)
+      // Don't switch if already on this project
+      if (projectId === activeProjectId) {
+        setIsOpen(false)
+        setSearchQuery('')
+        return
+      }
+
+      // Check for unsaved changes
+      if (isDirty) {
+        setPendingProjectId(projectId)
+        setShowUnsavedDialog(true)
+        setIsOpen(false)
+        setSearchQuery('')
+        return
+      }
+
+      // Perform the switch
       setIsOpen(false)
       setSearchQuery('')
-
-      // TODO: Trigger actual project loading
-      // For now, just update the workspace state
+      performProjectSwitch(projectId)
     },
-    [setActiveProject]
+    [activeProjectId, isDirty, performProjectSwitch]
   )
+
+  // Handle discard changes and switch
+  const handleDiscardAndSwitch = useCallback(() => {
+    if (pendingProjectId) {
+      performProjectSwitch(pendingProjectId)
+    }
+    setShowUnsavedDialog(false)
+    setPendingProjectId(null)
+  }, [pendingProjectId, performProjectSwitch])
+
+  // Handle cancel switch
+  const handleCancelSwitch = useCallback(() => {
+    setShowUnsavedDialog(false)
+    setPendingProjectId(null)
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -206,6 +276,24 @@ export function ProjectSwitcher({
       searchInputRef.current.focus()
     }
   }, [isOpen])
+
+  // Focus cancel button and handle Escape when unsaved dialog opens
+  useEffect(() => {
+    if (!showUnsavedDialog) return
+
+    if (cancelButtonRef.current) {
+      cancelButtonRef.current.focus()
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancelSwitch()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [showUnsavedDialog, handleCancelSwitch])
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -366,6 +454,83 @@ export function ProjectSwitcher({
             </div>
           )}
         </div>
+      )}
+
+      {/* Unsaved Changes Dialog */}
+      {showUnsavedDialog && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50"
+            style={{ zIndex: Z_MODAL - 1 }}
+            onClick={handleCancelSwitch}
+            aria-hidden="true"
+          />
+          {/* Dialog */}
+          <div
+            role="alertdialog"
+            aria-labelledby="unsaved-dialog-title"
+            aria-describedby="unsaved-dialog-description"
+            className={cn(
+              'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
+              'w-full max-w-md rounded-lg bg-white p-6 shadow-xl',
+              'dark:border dark:border-gray-700 dark:bg-gray-900'
+            )}
+            style={{ zIndex: Z_MODAL }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                <AlertTriangle
+                  className="h-5 w-5 text-yellow-600 dark:text-yellow-500"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="flex-1">
+                <h2
+                  id="unsaved-dialog-title"
+                  className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
+                  Unsaved Changes
+                </h2>
+                <p
+                  id="unsaved-dialog-description"
+                  className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                >
+                  You have unsaved changes in the current project. Switching
+                  projects will discard these changes.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                ref={cancelButtonRef}
+                type="button"
+                onClick={handleCancelSwitch}
+                className={cn(
+                  'rounded-md px-4 py-2 text-sm font-medium',
+                  'text-gray-700 dark:text-gray-300',
+                  'border border-gray-300 dark:border-gray-600',
+                  'hover:bg-gray-50 dark:hover:bg-gray-800',
+                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                )}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscardAndSwitch}
+                className={cn(
+                  'rounded-md px-4 py-2 text-sm font-medium',
+                  'bg-red-600 text-white',
+                  'hover:bg-red-700',
+                  'focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none'
+                )}
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
