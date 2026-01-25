@@ -1,0 +1,369 @@
+{
+  "version": "1.0.0",
+  "status": "proposed",
+  "lastUpdated": "2026-01-25T00:00:00Z",
+  "projectName": "Forge SQLite Migration",
+  "description": "Migrate Forge from IndexedDB to SQLite to enable shared storage between the browser app and MCP server",
+  "motivation": {
+    "problem": "The Forge MCP server runs in Node.js and cannot access browser IndexedDB. This creates two isolated data stores that cannot communicate.",
+    "currentState": {
+      "browserApp": "Uses IndexedDB via adapters (IndexedDBAdapter, HybridPersistenceService)",
+      "mcpServer": "Writes directly to filesystem (data/ directory)",
+      "result": "Data created by MCP is invisible to browser app and vice versa"
+    },
+    "desiredState": {
+      "sharedStorage": "SQLite database accessible by both browser and MCP",
+      "singleSourceOfTruth": "Express server manages all database operations",
+      "benefits": [
+        "No File System Access API permission prompts",
+        "Easy project switching",
+        "MCP can create/modify data that browser sees immediately",
+        "Single .sqlite file per project (easy backup, version control)",
+        "Offline support via service worker caching"
+      ]
+    }
+  },
+  "architecture": {
+    "overview": "Express server becomes the single source of truth with SQLite storage. Both browser and MCP call the same REST API.",
+    "diagram": [
+      "┌─────────────┐     ┌─────────────────────┐     ┌─────────────┐",
+      "│  Forge MCP  │────▶│   Express Server    │◀────│ Browser App │",
+      "└─────────────┘     │   + SQLite DB       │     └─────────────┘",
+      "                    └──────────┬──────────┘",
+      "                               │",
+      "                               ▼",
+      "                    ┌─────────────────────┐",
+      "                    │  data/forge.sqlite  │",
+      "                    └─────────────────────┘"
+    ],
+    "components": {
+      "expressServer": {
+        "role": "API gateway and database manager",
+        "technology": "Express + better-sqlite3",
+        "responsibilities": [
+          "Handle all CRUD operations for nodes",
+          "Manage SQLite database connections",
+          "Serve REST API for both browser and MCP",
+          "Handle project switching"
+        ]
+      },
+      "browserApp": {
+        "role": "UI client",
+        "changes": [
+          "Replace IndexedDBAdapter with ServerAPIAdapter",
+          "All storage operations go through fetch() to Express API",
+          "Optional: Keep IndexedDB as offline cache"
+        ]
+      },
+      "mcpServer": {
+        "role": "Claude Code integration",
+        "changes": [
+          "Replace filesystem writes with HTTP calls to Express API",
+          "Use same endpoints as browser app"
+        ]
+      }
+    }
+  },
+  "phases": [
+    {
+      "id": "phase-1",
+      "title": "Database Schema & Server Setup",
+      "description": "Design SQLite schema and add database layer to Express server",
+      "tasks": [
+        {
+          "id": "1.1",
+          "title": "Design SQLite Schema",
+          "description": "Create schema for nodes, projects, and relationships",
+          "details": {
+            "tables": [
+              {
+                "name": "projects",
+                "columns": [
+                  "id TEXT PRIMARY KEY",
+                  "name TEXT NOT NULL",
+                  "description TEXT",
+                  "created_at TEXT",
+                  "modified_at TEXT"
+                ]
+              },
+              {
+                "name": "nodes",
+                "columns": [
+                  "id TEXT PRIMARY KEY",
+                  "project_id TEXT NOT NULL REFERENCES projects(id)",
+                  "type TEXT NOT NULL CHECK(type IN ('task','decision','component','note','subsystem','assembly','module'))",
+                  "title TEXT NOT NULL",
+                  "content TEXT",
+                  "status TEXT",
+                  "priority TEXT",
+                  "parent_id TEXT REFERENCES nodes(id)",
+                  "created_at TEXT",
+                  "modified_at TEXT"
+                ]
+              },
+              {
+                "name": "node_tags",
+                "columns": [
+                  "node_id TEXT REFERENCES nodes(id)",
+                  "tag TEXT NOT NULL",
+                  "PRIMARY KEY (node_id, tag)"
+                ]
+              },
+              {
+                "name": "node_dependencies",
+                "columns": [
+                  "node_id TEXT REFERENCES nodes(id)",
+                  "depends_on_id TEXT REFERENCES nodes(id)",
+                  "PRIMARY KEY (node_id, depends_on_id)"
+                ]
+              },
+              {
+                "name": "components_extra",
+                "columns": [
+                  "node_id TEXT PRIMARY KEY REFERENCES nodes(id)",
+                  "supplier TEXT",
+                  "part_number TEXT",
+                  "cost REAL"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "1.2",
+          "title": "Add better-sqlite3 to Express Server",
+          "description": "Install and configure SQLite in the server package",
+          "files": [
+            "server/package.json",
+            "server/src/db/index.ts",
+            "server/src/db/schema.ts"
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Create Database Service Layer",
+          "description": "Implement CRUD operations for all node types",
+          "files": [
+            "server/src/db/ProjectRepository.ts",
+            "server/src/db/NodeRepository.ts",
+            "server/src/db/migrations.ts"
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Create REST API Routes",
+          "description": "Add API endpoints for nodes and projects",
+          "endpoints": [
+            "GET    /api/projects",
+            "POST   /api/projects",
+            "GET    /api/projects/:id",
+            "PUT    /api/projects/:id",
+            "DELETE /api/projects/:id",
+            "GET    /api/projects/:projectId/nodes",
+            "POST   /api/projects/:projectId/nodes",
+            "GET    /api/projects/:projectId/nodes/:id",
+            "PUT    /api/projects/:projectId/nodes/:id",
+            "DELETE /api/projects/:projectId/nodes/:id",
+            "GET    /api/projects/:projectId/nodes/:id/dependencies",
+            "POST   /api/projects/:projectId/nodes/:id/dependencies",
+            "DELETE /api/projects/:projectId/nodes/:id/dependencies/:depId",
+            "GET    /api/projects/:projectId/blocked-tasks",
+            "GET    /api/projects/:projectId/critical-path"
+          ],
+          "files": [
+            "server/src/routes/projects.ts",
+            "server/src/routes/nodes.ts"
+          ]
+        }
+      ],
+      "deliverable": "Express server with SQLite backend, all API endpoints working via curl/Postman"
+    },
+    {
+      "id": "phase-2",
+      "title": "Browser App Migration",
+      "description": "Replace IndexedDB with API calls to Express server",
+      "tasks": [
+        {
+          "id": "2.1",
+          "title": "Create ServerAPIAdapter",
+          "description": "New adapter implementing FileSystemAdapter interface that calls Express API",
+          "files": ["src/lib/filesystem/ServerAPIAdapter.ts"]
+        },
+        {
+          "id": "2.2",
+          "title": "Create API Client",
+          "description": "Type-safe fetch wrapper for all API endpoints",
+          "files": ["src/lib/api/client.ts", "src/lib/api/types.ts"]
+        },
+        {
+          "id": "2.3",
+          "title": "Update Stores to Use API",
+          "description": "Modify Zustand stores to use ServerAPIAdapter instead of IndexedDB",
+          "files": [
+            "src/store/useNodesStore.ts",
+            "src/store/useProjectStore.ts",
+            "src/store/useWorkspaceStore.ts"
+          ]
+        },
+        {
+          "id": "2.4",
+          "title": "Update HybridPersistenceService",
+          "description": "Simplify to use server API as primary, optional offline cache",
+          "files": [
+            "src/hooks/useHybridPersistence.ts",
+            "src/lib/filesystem/HybridPersistenceService.ts"
+          ]
+        },
+        {
+          "id": "2.5",
+          "title": "Remove/Deprecate Old Adapters",
+          "description": "Clean up IndexedDBAdapter, BrowserFileSystemAdapter (or keep for offline)",
+          "files": ["src/lib/filesystem/index.ts"]
+        }
+      ],
+      "deliverable": "Browser app fully functional using Express API, no IndexedDB for primary storage"
+    },
+    {
+      "id": "phase-3",
+      "title": "MCP Server Migration",
+      "description": "Update Forge MCP to use Express API instead of filesystem",
+      "tasks": [
+        {
+          "id": "3.1",
+          "title": "Add API Client to MCP",
+          "description": "Create HTTP client for calling Express API from Node.js MCP",
+          "files": ["packages/forge-mcp-server/src/api-client.ts"]
+        },
+        {
+          "id": "3.2",
+          "title": "Update MCP Tools",
+          "description": "Modify all MCP tools to use API client instead of filesystem",
+          "tools": [
+            "create_node",
+            "update_node",
+            "delete_node",
+            "search_nodes",
+            "get_node",
+            "add_dependency",
+            "remove_dependency",
+            "get_blocked_tasks",
+            "get_critical_path",
+            "find_components",
+            "bulk_update"
+          ],
+          "files": ["packages/forge-mcp-server/src/tools/*.ts"]
+        },
+        {
+          "id": "3.3",
+          "title": "Update MCP Configuration",
+          "description": "Add server URL configuration, remove filesystem path config",
+          "files": ["packages/forge-mcp-server/src/config.ts"]
+        }
+      ],
+      "deliverable": "MCP creates nodes that immediately appear in browser app"
+    },
+    {
+      "id": "phase-4",
+      "title": "Data Migration & Testing",
+      "description": "Migrate existing data and comprehensive testing",
+      "tasks": [
+        {
+          "id": "4.1",
+          "title": "Create Migration Script",
+          "description": "Script to migrate existing IndexedDB data to SQLite",
+          "files": ["scripts/migrate-indexeddb-to-sqlite.ts"]
+        },
+        {
+          "id": "4.2",
+          "title": "Create Markdown Import Script",
+          "description": "Script to import existing markdown files (from MCP filesystem) to SQLite",
+          "files": ["scripts/import-markdown-to-sqlite.ts"]
+        },
+        {
+          "id": "4.3",
+          "title": "Update E2E Tests",
+          "description": "Modify Playwright tests to work with server-based storage",
+          "files": ["e2e/*.spec.ts"]
+        },
+        {
+          "id": "4.4",
+          "title": "Add API Integration Tests",
+          "description": "Test all API endpoints",
+          "files": ["server/src/routes/*.test.ts"]
+        },
+        {
+          "id": "4.5",
+          "title": "Add MCP Integration Tests",
+          "description": "Test MCP tools work correctly with API",
+          "files": ["packages/forge-mcp-server/src/**/*.test.ts"]
+        }
+      ],
+      "deliverable": "All existing data migrated, full test coverage passing"
+    },
+    {
+      "id": "phase-5",
+      "title": "Offline Support (Optional)",
+      "description": "Add offline capability using service worker and IndexedDB cache",
+      "tasks": [
+        {
+          "id": "5.1",
+          "title": "Add Service Worker",
+          "description": "Cache API responses for offline access",
+          "files": ["src/sw.ts", "vite.config.ts"]
+        },
+        {
+          "id": "5.2",
+          "title": "Implement Offline Queue",
+          "description": "Queue mutations when offline, sync when back online",
+          "files": ["src/lib/offline/queue.ts", "src/lib/offline/sync.ts"]
+        },
+        {
+          "id": "5.3",
+          "title": "Add Conflict Resolution",
+          "description": "Handle conflicts when syncing offline changes",
+          "files": ["src/lib/offline/conflicts.ts"]
+        }
+      ],
+      "deliverable": "App works offline and syncs when connection restored"
+    }
+  ],
+  "technicalDecisions": [
+    {
+      "decision": "Use better-sqlite3 instead of sql.js",
+      "rationale": "better-sqlite3 is synchronous, faster, and more reliable for server-side Node.js. sql.js (WASM) would only be needed if we wanted SQLite in the browser directly, but we're using the API approach instead."
+    },
+    {
+      "decision": "Single database file per workspace (not per project)",
+      "rationale": "Simplifies project switching - no need to open/close database connections. Projects are just rows in the projects table."
+    },
+    {
+      "decision": "Keep node content as TEXT (markdown), not parsed",
+      "rationale": "Preserves the markdown-first philosophy. Frontmatter parsing happens in the application layer, not database."
+    },
+    {
+      "decision": "Express server required for app to function",
+      "rationale": "Simplifies architecture. Offline support can be added later via service worker if needed."
+    }
+  ],
+  "risks": [
+    {
+      "risk": "Breaking change for existing users",
+      "mitigation": "Provide migration scripts for both IndexedDB and filesystem data"
+    },
+    {
+      "risk": "Server must be running for app to work",
+      "mitigation": "Phase 5 adds offline support; could also bundle server with Electron for desktop app"
+    },
+    {
+      "risk": "Performance regression from network calls",
+      "mitigation": "SQLite is fast, localhost latency is minimal. Add caching if needed."
+    }
+  ],
+  "successCriteria": [
+    "MCP can create a node and browser sees it immediately (no refresh)",
+    "Browser can create a node and MCP can query it immediately",
+    "Project switching works without permission prompts",
+    "All existing E2E tests pass",
+    "Data migration from IndexedDB completes without data loss"
+  ]
+}

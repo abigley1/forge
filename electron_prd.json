@@ -1,0 +1,253 @@
+{
+  "title": "Forge Electron Wrapper",
+  "version": "0.1.0",
+  "status": "proposed",
+  "description": "Future Electron wrapper for Forge to enable native file system access, git integration, and desktop features.",
+
+  "overview": {
+    "summary": "Wrap the existing Forge React application in Electron to provide native desktop capabilities including direct file system access, git integration, menu bar, system tray, and auto-updates.",
+    "motivation": [
+      "Eliminate browser permission prompts for file system access",
+      "Enable native git integration for version control",
+      "Provide true offline-first experience with local data storage",
+      "Support system tray for quick access and notifications",
+      "Enable auto-update mechanism for seamless upgrades"
+    ],
+    "non_goals": [
+      "Mobile application (out of scope for this PRD)",
+      "Cloud sync or multi-device sync (users can use git for this)",
+      "Collaboration features (Forge is designed for solo makers)"
+    ]
+  },
+
+  "architecture": {
+    "overview": "Electron main process handles native operations while the existing React app runs in the renderer process.",
+    "components": {
+      "main_process": {
+        "description": "Node.js environment with full system access",
+        "responsibilities": [
+          "File system operations via Node.js fs module",
+          "Git operations via simple-git or child_process",
+          "IPC communication with renderer",
+          "Auto-update management",
+          "System tray management",
+          "Native menu creation"
+        ]
+      },
+      "renderer_process": {
+        "description": "Existing Forge React application",
+        "responsibilities": [
+          "All UI rendering",
+          "State management (Zustand stores)",
+          "Communication with main process via IPC"
+        ]
+      },
+      "preload_script": {
+        "description": "Bridge between main and renderer processes",
+        "responsibilities": [
+          "Expose safe IPC channels to renderer",
+          "Provide contextBridge API for file/git operations"
+        ]
+      }
+    },
+    "ipc_channels": {
+      "file_operations": [
+        "fs:read-file",
+        "fs:write-file",
+        "fs:delete-file",
+        "fs:list-directory",
+        "fs:create-directory",
+        "fs:exists",
+        "fs:watch"
+      ],
+      "git_operations": [
+        "git:init",
+        "git:status",
+        "git:add",
+        "git:commit",
+        "git:push",
+        "git:pull",
+        "git:log",
+        "git:branch"
+      ],
+      "app_operations": [
+        "app:get-version",
+        "app:check-updates",
+        "app:install-update",
+        "app:open-external",
+        "app:show-notification"
+      ]
+    }
+  },
+
+  "features": {
+    "native_file_system": {
+      "priority": "P0",
+      "description": "Direct file system access without browser permission prompts",
+      "implementation": [
+        "Replace BrowserFileSystemAdapter with ElectronFileSystemAdapter",
+        "Use Node.js fs module via IPC",
+        "Support file watching for external changes",
+        "Maintain existing adapter interface for compatibility"
+      ]
+    },
+    "git_integration": {
+      "priority": "P1",
+      "description": "Native git operations for version control",
+      "implementation": [
+        "Use simple-git npm package in main process",
+        "Expose git operations via IPC channels",
+        "Add UI components for git status and actions",
+        "Support commit, push, pull, branch operations"
+      ],
+      "ui_additions": [
+        "Git status indicator in header (branch name, uncommitted changes)",
+        "Commit dialog with message input",
+        "Push/Pull buttons in project settings",
+        "Conflict resolution UI"
+      ]
+    },
+    "auto_update": {
+      "priority": "P2",
+      "description": "Automatic updates via electron-updater",
+      "implementation": [
+        "Use electron-updater for update management",
+        "Support GitHub Releases as update source",
+        "Show update available notification",
+        "Download and install updates in background"
+      ]
+    },
+    "system_tray": {
+      "priority": "P2",
+      "description": "System tray icon for quick access",
+      "implementation": [
+        "Show/hide main window from tray",
+        "Display notification badges for pending tasks",
+        "Quick capture shortcut from tray menu"
+      ]
+    },
+    "native_menu": {
+      "priority": "P2",
+      "description": "Native application menu",
+      "implementation": [
+        "File menu: New Project, Open Project, Save, Export",
+        "Edit menu: Undo, Redo, Cut, Copy, Paste",
+        "View menu: Toggle Views, Toggle Sidebar, Zoom",
+        "Git menu: Commit, Push, Pull, Branch",
+        "Help menu: Documentation, About"
+      ]
+    }
+  },
+
+  "build_config": {
+    "tools": {
+      "bundler": "electron-builder",
+      "framework": "electron-vite or electron-forge"
+    },
+    "targets": [
+      {
+        "platform": "macOS",
+        "architectures": ["x64", "arm64"],
+        "format": "dmg",
+        "signing": "Apple Developer ID"
+      },
+      {
+        "platform": "Windows",
+        "architectures": ["x64"],
+        "format": "nsis",
+        "signing": "Code signing certificate"
+      },
+      {
+        "platform": "Linux",
+        "architectures": ["x64"],
+        "formats": ["AppImage", "deb", "rpm"]
+      }
+    ],
+    "estimated_bundle_sizes": {
+      "macOS_arm64": "~80MB",
+      "macOS_x64": "~90MB",
+      "windows_x64": "~85MB",
+      "linux_x64": "~80MB"
+    }
+  },
+
+  "migration_path": {
+    "phase_1": {
+      "name": "Basic Electron Wrapper",
+      "tasks": [
+        "Set up electron-vite or electron-forge project structure",
+        "Configure main process with basic window management",
+        "Create preload script with file system IPC",
+        "Implement ElectronFileSystemAdapter",
+        "Replace browser adapter detection logic",
+        "Test file persistence without permission prompts"
+      ]
+    },
+    "phase_2": {
+      "name": "Git Integration",
+      "tasks": [
+        "Add simple-git to main process",
+        "Implement git IPC channels",
+        "Create git status UI component",
+        "Add commit/push/pull functionality",
+        "Handle git conflicts in UI"
+      ]
+    },
+    "phase_3": {
+      "name": "Desktop Features",
+      "tasks": [
+        "Implement system tray",
+        "Add native menu",
+        "Configure auto-updater",
+        "Add global shortcuts",
+        "Implement deep linking (forge:// protocol)"
+      ]
+    },
+    "phase_4": {
+      "name": "Distribution",
+      "tasks": [
+        "Set up code signing for macOS and Windows",
+        "Configure electron-builder for all platforms",
+        "Create GitHub Actions workflow for releases",
+        "Set up auto-update infrastructure",
+        "Create documentation for installation"
+      ]
+    }
+  },
+
+  "dependencies": {
+    "main_process": {
+      "electron": "^28.0.0",
+      "simple-git": "^3.22.0",
+      "electron-updater": "^6.1.0",
+      "electron-store": "^8.1.0"
+    },
+    "dev": {
+      "electron-builder": "^24.9.0",
+      "electron-vite": "^2.0.0"
+    }
+  },
+
+  "security_considerations": [
+    "Use contextBridge for all IPC communication",
+    "Enable contextIsolation in renderer",
+    "Disable nodeIntegration in renderer",
+    "Validate all file paths in main process",
+    "Sanitize git commit messages",
+    "Use safeStorage for any sensitive data"
+  ],
+
+  "compatibility": {
+    "web_version": "The web version will continue to work alongside Electron. Users can choose based on their needs.",
+    "data_format": "Same markdown + YAML frontmatter format. Projects are fully portable between web and Electron versions.",
+    "feature_parity": "All features available in web version will be available in Electron. Git integration is Electron-only."
+  },
+
+  "timeline_estimate": {
+    "phase_1": "2-3 weeks",
+    "phase_2": "2-3 weeks",
+    "phase_3": "1-2 weeks",
+    "phase_4": "1-2 weeks",
+    "total": "6-10 weeks"
+  }
+}
