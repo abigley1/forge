@@ -290,6 +290,30 @@ export class BrowserFileSystemAdapter implements FileSystemAdapter {
     })
   }
 
+  async readBinaryFile(path: string): Promise<ArrayBuffer> {
+    const fileHandle = await this.getFileHandle(path)
+    const file = await fileHandle.getFile()
+    return await file.arrayBuffer()
+  }
+
+  async writeBinaryFile(path: string, content: ArrayBuffer): Promise<void> {
+    const existed = await this.exists(path)
+    const fileHandle = await this.getFileHandle(path, true)
+
+    const writable = await fileHandle.createWritable()
+    try {
+      await writable.write(content)
+    } finally {
+      await writable.close()
+    }
+
+    this.notifyWatchers({
+      type: existed ? 'modify' : 'create',
+      path: '/' + normalizeInternalPath(path).join('/'),
+      timestamp: Date.now(),
+    })
+  }
+
   async listDirectory(
     path: string,
     options?: ListDirectoryOptions
@@ -322,8 +346,12 @@ export class BrowserFileSystemAdapter implements FileSystemAdapter {
         try {
           const subEntries = await this.listDirectory(entryPath, options)
           entries.push(...subEntries)
-        } catch {
-          // Skip directories we can't access
+        } catch (error) {
+          // Log the failure but continue with other directories
+          console.warn(
+            `[BrowserFileSystemAdapter] Failed to list subdirectory "${entryPath}": ` +
+              `${error instanceof Error ? error.message : 'Unknown error'}. Directory will be skipped.`
+          )
         }
       }
     }

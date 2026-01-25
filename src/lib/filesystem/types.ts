@@ -101,6 +101,23 @@ export interface FileSystemAdapter {
   writeFile(path: string, content: string): Promise<void>
 
   /**
+   * Read file contents as binary (ArrayBuffer)
+   * @param path - Path to the file
+   * @returns Promise resolving to file contents as ArrayBuffer
+   * @throws Error if file doesn't exist or can't be read
+   */
+  readBinaryFile(path: string): Promise<ArrayBuffer>
+
+  /**
+   * Write binary content to a file
+   * @param path - Path to the file
+   * @param content - Binary content to write
+   * @returns Promise resolving when write is complete
+   * @throws Error if write fails (e.g., permission denied)
+   */
+  writeBinaryFile(path: string, content: ArrayBuffer): Promise<void>
+
+  /**
    * List contents of a directory
    * @param path - Path to the directory
    * @param options - Optional listing options

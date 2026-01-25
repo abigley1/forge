@@ -24,6 +24,7 @@ import {
 interface MemoryNode {
   isDirectory: boolean
   content?: string
+  binaryContent?: ArrayBuffer
   children?: Map<string, MemoryNode>
 }
 
@@ -226,6 +227,67 @@ export class MemoryFileSystemAdapter implements FileSystemAdapter {
     parent.children.set(name, {
       isDirectory: false,
       content,
+    })
+
+    this.notifyWatchers({
+      type: isCreate ? 'create' : 'modify',
+      path: normalized,
+      timestamp: Date.now(),
+    })
+  }
+
+  async readBinaryFile(path: string): Promise<ArrayBuffer> {
+    const normalized = normalizePath(path)
+    const node = this.getNode(normalized)
+
+    if (!node) {
+      throw new FileNotFoundError(normalized)
+    }
+
+    if (node.isDirectory) {
+      throw new InvalidPathError(
+        normalized,
+        `Cannot read directory as file: ${normalized}`
+      )
+    }
+
+    // If we have binary content, return it
+    if (node.binaryContent) {
+      return node.binaryContent
+    }
+
+    // Otherwise convert string content to ArrayBuffer
+    const content = node.content ?? ''
+    const encoder = new TextEncoder()
+    return encoder.encode(content).buffer as ArrayBuffer
+  }
+
+  async writeBinaryFile(path: string, content: ArrayBuffer): Promise<void> {
+    const normalized = normalizePath(path)
+    const name = getPathName(normalized)
+
+    if (!name) {
+      throw new InvalidPathError(normalized, 'Cannot write to root path')
+    }
+
+    const parent = this.ensureParentDirectories(normalized)
+    const existing = parent.children?.get(name)
+    const isCreate = !existing
+
+    if (existing?.isDirectory) {
+      throw new InvalidPathError(
+        normalized,
+        `Cannot overwrite directory with file: ${normalized}`
+      )
+    }
+
+    if (!parent.children) {
+      parent.children = new Map()
+    }
+
+    parent.children.set(name, {
+      isDirectory: false,
+      binaryContent: content,
     })
 
     this.notifyWatchers({

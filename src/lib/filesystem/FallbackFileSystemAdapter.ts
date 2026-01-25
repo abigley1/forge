@@ -26,6 +26,8 @@ import {
 
 interface LoadedFile {
   content: string
+  /** Binary content stored as base64 (for binary files) */
+  binaryContent?: string
   lastModified: number
 }
 
@@ -188,6 +190,71 @@ export class FallbackFileSystemAdapter implements FileSystemAdapter {
 
     this.files.set(normalizedPath, {
       content,
+      lastModified: Date.now(),
+    })
+
+    // Log warning about persistence
+    if (!existing) {
+      console.warn(
+        `FallbackFileSystemAdapter: File created in memory only. ` +
+          `Changes will not persist to disk: ${normalizedPath}`
+      )
+    }
+  }
+
+  async readBinaryFile(path: string): Promise<ArrayBuffer> {
+    const normalizedPath = this.normalizePath(path)
+    const file = this.files.get(normalizedPath)
+
+    if (!file) {
+      if (this.directories.has(normalizedPath)) {
+        throw new InvalidPathError(
+          normalizedPath,
+          `Cannot read directory as file: ${normalizedPath}`
+        )
+      }
+      throw new FileNotFoundError(normalizedPath)
+    }
+
+    // If we have binary content, decode it from base64
+    if (file.binaryContent) {
+      const binaryString = atob(file.binaryContent)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      return bytes.buffer
+    }
+
+    // Otherwise convert string content to ArrayBuffer
+    const encoder = new TextEncoder()
+    return encoder.encode(file.content).buffer as ArrayBuffer
+  }
+
+  async writeBinaryFile(path: string, content: ArrayBuffer): Promise<void> {
+    const normalizedPath = this.normalizePath(path)
+
+    // In fallback mode, we can only write to memory (changes won't persist)
+    const existing = this.files.get(normalizedPath)
+
+    // Ensure parent directories exist
+    const segments = normalizedPath.split('/').filter(Boolean)
+    for (let i = 1; i < segments.length; i++) {
+      const dirPath = '/' + segments.slice(0, i).join('/')
+      this.directories.add(dirPath)
+    }
+
+    // Convert ArrayBuffer to base64 string for storage
+    const bytes = new Uint8Array(content)
+    let binaryString = ''
+    for (let i = 0; i < bytes.length; i++) {
+      binaryString += String.fromCharCode(bytes[i])
+    }
+    const base64Content = btoa(binaryString)
+
+    this.files.set(normalizedPath, {
+      content: '', // Empty string content for binary files
+      binaryContent: base64Content,
       lastModified: Date.now(),
     })
 

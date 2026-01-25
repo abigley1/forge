@@ -2,7 +2,10 @@
  * File System Abstraction
  *
  * Provides a unified interface for file system operations across different
- * environments (browser with File System Access API, fallback, and memory).
+ * environments (browser with File System Access API, IndexedDB, and memory).
+ *
+ * Note: Sync services have been removed in favor of IndexedDB-only persistence
+ * with on-demand export to file system. See electron_prd.json for future git integration.
  */
 
 import {
@@ -45,43 +48,6 @@ export {
   needsFallback,
 } from './FallbackFileSystemAdapter'
 export { IndexedDBAdapter, isIndexedDBSupported } from './IndexedDBAdapter'
-
-// Hybrid Persistence Service
-export {
-  HybridPersistenceService,
-  isHybridPersistenceSupported,
-} from './HybridPersistenceService'
-export type {
-  ConnectionStatus,
-  SyncStatus,
-  PersistenceEvent,
-  PersistenceEventCallback,
-} from './HybridPersistenceService'
-
-// Sync Service
-export { SyncService } from './SyncService'
-export type {
-  SyncMode,
-  SyncDirection,
-  SyncNodeResult,
-  SyncResult,
-  SyncEvent,
-  SyncEventCallback,
-  SyncOptions,
-} from './SyncService'
-
-// Conflict Service
-export { ConflictService } from './ConflictService'
-export type {
-  Conflict,
-  ConflictResolution,
-  ConflictStatus,
-  ConflictDetectionResult,
-  ConflictResolutionResult,
-  ConflictEvent,
-  ConflictEventCallback,
-  ConflictHistoryEntry,
-} from './ConflictService'
 
 /**
  * Create the appropriate file system adapter for the current environment

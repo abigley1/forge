@@ -39,6 +39,8 @@ const DB_VERSION = 1
 interface FileRecord {
   path: string
   content: string
+  /** Binary content stored as base64 string (for binary files) */
+  binaryContent?: string
   lastModified: number
   lastSyncedAt: number | null
   isExternallyModified: boolean
@@ -307,6 +309,96 @@ export class IndexedDBAdapter implements FileSystemAdapter {
       await db.put('files', {
         path: fullPath,
         content,
+        lastModified: Date.now(),
+        lastSyncedAt: null,
+        isExternallyModified: false,
+      })
+    } catch (error) {
+      // Handle quota exceeded error
+      if (
+        error instanceof DOMException &&
+        (error.name === 'QuotaExceededError' ||
+          error.code === 22 ||
+          error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+      ) {
+        throw new Error(
+          `Storage quota exceeded when writing ${path}. Please free up space.`
+        )
+      }
+      throw error
+    }
+
+    this.notifyWatchers({
+      type: isCreate ? 'create' : 'modify',
+      path: normalized,
+      timestamp: Date.now(),
+    })
+  }
+
+  async readBinaryFile(path: string): Promise<ArrayBuffer> {
+    const db = await this.ensureDB()
+    const fullPath = this.getFullPath(path)
+    const file = await db.get('files', fullPath)
+
+    if (!file) {
+      throw new FileNotFoundError(path)
+    }
+
+    // If we have binary content, decode it from base64
+    if (file.binaryContent) {
+      const binaryString = atob(file.binaryContent)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      return bytes.buffer
+    }
+
+    // Otherwise convert string content to ArrayBuffer
+    const encoder = new TextEncoder()
+    return encoder.encode(file.content).buffer as ArrayBuffer
+  }
+
+  async writeBinaryFile(path: string, content: ArrayBuffer): Promise<void> {
+    const db = await this.ensureDB()
+    const normalized = normalizePath(path)
+    const fullPath = this.getFullPath(normalized)
+    const name = getPathName(normalized)
+
+    if (!name) {
+      throw new InvalidPathError(path, 'Cannot write to root path')
+    }
+
+    // Ensure parent directories exist
+    await this.ensureParentDirectories(normalized)
+
+    // Check if it's a directory
+    const existingDir = await db.get('directories', fullPath)
+    if (existingDir) {
+      throw new InvalidPathError(
+        path,
+        `Cannot overwrite directory with file: ${path}`
+      )
+    }
+
+    // Check if file exists (for event type)
+    const existing = await db.get('files', fullPath)
+    const isCreate = !existing
+
+    // Convert ArrayBuffer to base64 string for storage
+    const bytes = new Uint8Array(content)
+    let binaryString = ''
+    for (let i = 0; i < bytes.length; i++) {
+      binaryString += String.fromCharCode(bytes[i])
+    }
+    const base64Content = btoa(binaryString)
+
+    try {
+      // Write the file
+      await db.put('files', {
+        path: fullPath,
+        content: '', // Empty string content for binary files
+        binaryContent: base64Content,
         lastModified: Date.now(),
         lastSyncedAt: null,
         isExternallyModified: false,
