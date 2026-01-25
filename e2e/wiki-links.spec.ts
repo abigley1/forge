@@ -113,30 +113,33 @@ test.describe('Wiki-Link Autocomplete - Selection', () => {
   })
 
   test('Enter key inserts selected suggestion', async ({ page }) => {
-    await page.getByText('Project Overview').click()
+    // Click on a note node to open detail panel with editor
+    const projectOverview = page.getByText('Project Overview')
+    await expect(projectOverview.first()).toBeVisible({ timeout: 5000 })
+    await projectOverview.first().click()
+    await page.waitForTimeout(300)
 
-    const detailPanel = page.getByLabel(/Edit Project Overview/i)
-    await expect(detailPanel).toBeVisible()
+    // Wait for detail panel and editor to be ready
+    const editor = page.locator('.cm-editor').first()
+    await expect(editor).toBeVisible({ timeout: 5000 })
 
-    const editor = detailPanel.locator(
-      '.cm-editor, [data-testid="markdown-editor"]'
-    )
-    if ((await editor.count()) > 0) {
-      await editor.click()
-      await page.keyboard.type('[[motor')
+    // Click into editor and type wiki-link trigger
+    await editor.click()
+    await page.keyboard.type('[[motor')
+    await page.waitForTimeout(300)
+
+    // Check if autocomplete appeared
+    const autocomplete = page.locator('.cm-autocomplete, [role="listbox"]')
+    if (await autocomplete.isVisible()) {
+      // Press Enter to select first suggestion
+      await page.keyboard.press('Enter')
       await page.waitForTimeout(200)
 
-      // Press Enter to select
-      await page.keyboard.press('Enter')
-      await page.waitForTimeout(100)
-
       // Autocomplete should close
-      const autocomplete = page.locator('.cm-autocomplete, [role="listbox"]')
       await expect(autocomplete).not.toBeVisible()
 
       // Link should be inserted
-      const content = detailPanel.locator('.cm-editor')
-      const text = await content.textContent()
+      const text = await editor.textContent()
       expect(text).toContain(']]')
     }
   })

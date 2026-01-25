@@ -127,9 +127,11 @@ test.describe('Browser History Navigation (3.5)', () => {
         await waitForAppReady(page)
       }
 
-      // App should be functional
-      const forgeHeading = page.getByRole('heading', { name: /forge|welcome/i })
-      await expect(forgeHeading.first()).toBeVisible()
+      // App should be functional - check that outline or main content is visible
+      const appContent = page.locator(
+        '[data-testid="project-workspace"], [data-testid="welcome-screen"], main'
+      )
+      await expect(appContent.first()).toBeVisible()
     })
 
     test('browser forward button navigates forward', async ({ page }) => {

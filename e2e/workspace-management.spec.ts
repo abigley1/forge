@@ -467,18 +467,23 @@ test.describe('Workspace Management (11.1)', () => {
 
         const dialog = page.getByRole('dialog')
         if (await dialog.isVisible()) {
-          // Try to submit without filling required fields
+          // Submit button should be disabled when required fields are empty
           const submitButton = dialog.getByRole('button', {
             name: /create.*project/i,
           })
 
           if (await submitButton.isVisible()) {
-            await submitButton.click()
-            await page.waitForTimeout(200)
+            // Button should be disabled when name is empty
+            await expect(submitButton).toBeDisabled()
 
-            // Error should appear for empty required fields
-            const errorMessage = dialog.getByRole('alert')
-            await expect(errorMessage).toBeVisible()
+            // Fill in a name to enable the button
+            const nameInput = dialog.getByLabel(/project name/i)
+            await nameInput.fill('Test Project')
+            await expect(submitButton).toBeEnabled()
+
+            // Clear the name - button should be disabled again
+            await nameInput.clear()
+            await expect(submitButton).toBeDisabled()
           }
         }
       }
