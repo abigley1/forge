@@ -63,6 +63,40 @@ interface ResolvedValue {
 }
 
 /**
+ * Get component field value by field name
+ */
+function getComponentFieldValue(
+  component: ComponentNode,
+  fieldName: string
+): string | number | undefined {
+  const lowerFieldName = fieldName.toLowerCase()
+
+  // Check built-in fields first
+  if (lowerFieldName === 'cost' && component.cost !== null) {
+    return component.cost
+  } else if (lowerFieldName === 'supplier' && component.supplier) {
+    return component.supplier
+  } else if (
+    (lowerFieldName === 'part number' || lowerFieldName === 'partnumber') &&
+    component.partNumber
+  ) {
+    return component.partNumber
+  }
+
+  // Check customFields with case-insensitive matching
+  if (component.customFields) {
+    const matchingKey = Object.keys(component.customFields).find(
+      (key) => key.toLowerCase() === lowerFieldName
+    )
+    if (matchingKey) {
+      return component.customFields[matchingKey]
+    }
+  }
+
+  return undefined
+}
+
+/**
  * Get the resolved value for a criterion on a linked option
  */
 function getResolvedValue(
@@ -70,31 +104,15 @@ function getResolvedValue(
   criterion: DecisionCriterion,
   linkedComponent: ComponentNode | undefined
 ): ResolvedValue {
-  const criterionName = criterion.name.toLowerCase()
   const override = option.values[criterion.id]
 
   // Find matching component field
   let componentValue: string | number | undefined
 
   if (linkedComponent) {
-    if (criterionName === 'cost' && linkedComponent.cost !== null) {
-      componentValue = linkedComponent.cost
-    } else if (criterionName === 'supplier' && linkedComponent.supplier) {
-      componentValue = linkedComponent.supplier
-    } else if (
-      (criterionName === 'part number' || criterionName === 'partnumber') &&
-      linkedComponent.partNumber
-    ) {
-      componentValue = linkedComponent.partNumber
-    } else if (linkedComponent.customFields) {
-      // Check customFields with case-insensitive matching
-      const matchingKey = Object.keys(linkedComponent.customFields).find(
-        (key) => key.toLowerCase() === criterionName
-      )
-      if (matchingKey) {
-        componentValue = linkedComponent.customFields[matchingKey]
-      }
-    }
+    // Use explicit linkedField if set, otherwise fall back to name matching
+    const fieldToMatch = criterion.linkedField || criterion.name
+    componentValue = getComponentFieldValue(linkedComponent, fieldToMatch)
   }
 
   // Determine source and value
@@ -132,6 +150,7 @@ export function ComparisonTable({
   const [newCriterionName, setNewCriterionName] = useState('')
   const [newCriterionUnit, setNewCriterionUnit] = useState('')
   const [newCriterionWeight, setNewCriterionWeight] = useState(5)
+  const [newCriterionLinkedField, setNewCriterionLinkedField] = useState('')
   const [isAddingOption, setIsAddingOption] = useState(false)
   const [isAddingCriterion, setIsAddingCriterion] = useState(false)
   const [deleteOptionId, setDeleteOptionId] = useState<string | null>(null)
@@ -163,6 +182,35 @@ export function ComparisonTable({
         c.title.toLowerCase().includes(componentSearchValue.toLowerCase())
       )
   }, [availableNodes, options, componentSearchValue])
+
+  // Get available component fields from linked components for criterion linking
+  const availableComponentFields = useMemo(() => {
+    const fields = new Set<string>()
+    // Add built-in component fields
+    fields.add('cost')
+    fields.add('supplier')
+    fields.add('partNumber')
+
+    // Add custom fields from linked components
+    if (availableNodes) {
+      for (const option of options) {
+        if (option.linkedNodeId) {
+          const component = availableNodes.get(option.linkedNodeId)
+          if (
+            component &&
+            isComponentNode(component) &&
+            component.customFields
+          ) {
+            for (const key of Object.keys(component.customFields)) {
+              fields.add(key)
+            }
+          }
+        }
+      }
+    }
+
+    return Array.from(fields).sort()
+  }, [availableNodes, options])
 
   // Focus management for adding options
   useEffect(() => {
@@ -283,13 +331,15 @@ export function ComparisonTable({
       setNewCriterionName('')
       setNewCriterionUnit('')
       setNewCriterionWeight(5)
+      setNewCriterionLinkedField('')
       return
     }
 
     const newCriterion = createDecisionCriterion(
       newCriterionName.trim(),
       newCriterionWeight,
-      newCriterionUnit || undefined
+      newCriterionUnit || undefined,
+      newCriterionLinkedField || undefined
     )
     onChange({
       criteria: [...criteria, newCriterion],
@@ -297,11 +347,13 @@ export function ComparisonTable({
     setNewCriterionName('')
     setNewCriterionUnit('')
     setNewCriterionWeight(5)
+    setNewCriterionLinkedField('')
     setIsAddingCriterion(false)
   }, [
     newCriterionName,
     newCriterionUnit,
     newCriterionWeight,
+    newCriterionLinkedField,
     criteria,
     onChange,
   ])
@@ -466,6 +518,7 @@ export function ComparisonTable({
         setNewCriterionName('')
         setNewCriterionUnit('')
         setNewCriterionWeight(5)
+        setNewCriterionLinkedField('')
       }
     },
     [handleAddCriterion]
@@ -745,7 +798,11 @@ export function ComparisonTable({
                       {availableNodes && availableNodes.size > 0 && (
                         <button
                           type="button"
-                          onClick={() => setShowComponentSelector(true)}
+                          onMouseDown={(e) => {
+                            // Prevent blur from firing on the input before this click registers
+                            e.preventDefault()
+                            setShowComponentSelector(true)
+                          }}
                           className={cn(
                             'flex-shrink-0 rounded p-1.5',
                             'text-gray-400 hover:bg-blue-50 hover:text-blue-600',
@@ -802,6 +859,14 @@ export function ComparisonTable({
                         {criterion.unit && (
                           <span className="text-xs text-gray-400">
                             ({criterion.unit})
+                          </span>
+                        )}
+                        {criterion.linkedField && (
+                          <span
+                            className="rounded-sm bg-blue-100 px-1 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                            title={`Linked to component field: ${criterion.linkedField}`}
+                          >
+                            ← {criterion.linkedField}
                           </span>
                         )}
                       </div>
@@ -1009,6 +1074,33 @@ export function ComparisonTable({
                         {newCriterionWeight}
                       </span>
                     </div>
+                    {availableComponentFields.length > 0 && (
+                      <div className="w-32">
+                        <label
+                          htmlFor="new-criterion-linked-field"
+                          className="sr-only"
+                        >
+                          Link to field
+                        </label>
+                        <select
+                          id="new-criterion-linked-field"
+                          value={newCriterionLinkedField}
+                          onChange={(e) =>
+                            setNewCriterionLinkedField(e.target.value)
+                          }
+                          className={cn(inputClassName, 'py-1.5')}
+                          aria-label="Link to component field"
+                          title="Auto-fill from component field"
+                        >
+                          <option value="">No link</option>
+                          {availableComponentFields.map((field) => (
+                            <option key={field} value={field}>
+                              {field}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={handleAddCriterion}
@@ -1026,6 +1118,7 @@ export function ComparisonTable({
                         setNewCriterionName('')
                         setNewCriterionUnit('')
                         setNewCriterionWeight(5)
+                        setNewCriterionLinkedField('')
                       }}
                       className={cn(
                         'rounded-md px-2 py-1 text-sm text-gray-500',

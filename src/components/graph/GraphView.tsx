@@ -264,9 +264,43 @@ function GraphViewInner({
   const prevNodeIdsRef = useRef<string>('')
   const prevEdgeIdsRef = useRef<string>('')
 
+  // Track nodes that were manually dragged (excluded from auto-layout this session)
+  const manuallyPositionedNodesRef = useRef<Set<string>>(new Set())
+
+  // Track previous node/edge counts for detecting structural changes
+  const prevStructuralKeyRef = useRef<string>('')
+
+  // Debounce timer for auto-layout
+  const autoLayoutTimerRef = useRef<number | null>(null)
+
   // Sync graph data changes to React Flow (only when content actually changes)
   useEffect(() => {
-    // Create ID strings for comparison (cheaper than deep equality)
+    // Create key strings for comparison (cheaper than deep equality)
+    // Include both IDs and key data properties that should trigger re-renders
+    const nodeKey = allNodes
+      .map((n) => `${n.id}:${n.data?.status ?? ''}:${n.data?.label ?? ''}`)
+      .sort()
+      .join(',')
+    const edgeIds = graphData.edges
+      .map((e) => e.id)
+      .sort()
+      .join(',')
+
+    // Update if node IDs or data changed (avoids infinite loop from array reference changes)
+    if (nodeKey !== prevNodeIdsRef.current) {
+      prevNodeIdsRef.current = nodeKey
+      setRfNodes(allNodes)
+    }
+    if (edgeIds !== prevEdgeIdsRef.current) {
+      prevEdgeIdsRef.current = edgeIds
+      setRfEdges(graphData.edges)
+    }
+  }, [allNodes, graphData.edges, setRfNodes, setRfEdges])
+
+  // Auto-layout when structural changes occur (nodes added/removed, edges added/removed)
+  useEffect(() => {
+    // Create a structural key that only includes node and edge IDs
+    // This detects when nodes/edges are added or removed, not just data changes
     const nodeIds = allNodes
       .map((n) => n.id)
       .sort()
@@ -275,17 +309,114 @@ function GraphViewInner({
       .map((e) => e.id)
       .sort()
       .join(',')
+    const structuralKey = `${nodeIds}|${edgeIds}`
 
-    // Only update if IDs changed (avoids infinite loop from array reference changes)
-    if (nodeIds !== prevNodeIdsRef.current) {
-      prevNodeIdsRef.current = nodeIds
-      setRfNodes(allNodes)
+    // Skip if no structural change
+    if (structuralKey === prevStructuralKeyRef.current) return
+
+    // Skip initial render (when prev is empty)
+    const isInitialRender = prevStructuralKeyRef.current === ''
+    prevStructuralKeyRef.current = structuralKey
+
+    if (isInitialRender) return
+
+    // Clear any pending auto-layout timer
+    if (autoLayoutTimerRef.current) {
+      window.clearTimeout(autoLayoutTimerRef.current)
     }
-    if (edgeIds !== prevEdgeIdsRef.current) {
-      prevEdgeIdsRef.current = edgeIds
-      setRfEdges(graphData.edges)
+
+    // Debounce auto-layout (500ms quiet period)
+    autoLayoutTimerRef.current = window.setTimeout(async () => {
+      if (isLayouting || rfNodes.length === 0) return
+
+      // Clean up manually positioned nodes that no longer exist
+      const currentNodeIds = new Set(rfNodes.map((n) => n.id))
+      manuallyPositionedNodesRef.current.forEach((nodeId) => {
+        if (!currentNodeIds.has(nodeId)) {
+          manuallyPositionedNodesRef.current.delete(nodeId)
+        }
+      })
+
+      setIsLayouting(true)
+      try {
+        // Filter to only forgeNode type nodes (exclude clusters)
+        const forgeNodes = rfNodes.filter(
+          (n) => n.type === 'forgeNode'
+        ) as ForgeGraphNode[]
+
+        // Get edges for these nodes
+        const relevantEdges = rfEdges.filter(
+          (e) =>
+            forgeNodes.some((n) => n.id === e.source) &&
+            forgeNodes.some((n) => n.id === e.target)
+        )
+
+        // Calculate new layout
+        const newPositions = await calculateLayout(forgeNodes, relevantEdges)
+
+        // Apply new positions, preserving manually positioned nodes
+        setRfNodes((currentNodes) =>
+          currentNodes.map((node) => {
+            // Skip if this node was manually dragged
+            if (manuallyPositionedNodesRef.current.has(node.id)) {
+              return node
+            }
+            const newPos = newPositions[node.id]
+            if (newPos) {
+              return { ...node, position: newPos }
+            }
+            return node
+          })
+        )
+
+        // Merge new positions with manually positioned ones for persistence
+        const allPositions = { ...newPositions }
+        manuallyPositionedNodesRef.current.forEach((nodeId) => {
+          const node = rfNodes.find((n) => n.id === nodeId)
+          if (node) {
+            allPositions[nodeId] = node.position
+          }
+        })
+
+        // Persist positions to project metadata
+        if (project) {
+          updateMetadata({ nodePositions: allPositions })
+        }
+
+        onPositionsChange?.(allPositions)
+
+        // Fit view to show all nodes after layout
+        setTimeout(() => {
+          reactFlowInstance?.fitView({
+            padding: 0.2,
+            duration: reducedMotion ? 0 : 200,
+          })
+        }, 50)
+      } catch (error) {
+        console.error('Auto-layout failed:', error)
+      } finally {
+        setIsLayouting(false)
+      }
+    }, 500) // 500ms debounce
+
+    return () => {
+      if (autoLayoutTimerRef.current) {
+        window.clearTimeout(autoLayoutTimerRef.current)
+      }
     }
-  }, [allNodes, graphData.edges, setRfNodes, setRfEdges])
+  }, [
+    allNodes,
+    graphData.edges,
+    isLayouting,
+    rfNodes,
+    rfEdges,
+    setRfNodes,
+    project,
+    updateMetadata,
+    onPositionsChange,
+    reactFlowInstance,
+    reducedMotion,
+  ])
 
   // Keyboard navigation
   const handleKeyboardSelect = useCallback(
@@ -412,20 +543,26 @@ function GraphViewInner({
   )
 
   // Handle node drag end - persist positions
-  const handleNodeDragStop = useCallback<NodeMouseHandler>(() => {
-    // Extract all current positions and persist (filter out cluster nodes)
-    const forgeNodes = rfNodes.filter(
-      (n) => n.type === 'forgeNode'
-    ) as ForgeGraphNode[]
-    const positions = extractNodePositions(forgeNodes)
+  const handleNodeDragStop = useCallback<NodeMouseHandler>(
+    (_event, node) => {
+      // Mark this node as manually positioned (excluded from auto-layout)
+      manuallyPositionedNodesRef.current.add(node.id)
 
-    // Update project metadata
-    if (project) {
-      updateMetadata({ nodePositions: positions })
-    }
+      // Extract all current positions and persist (filter out cluster nodes)
+      const forgeNodes = rfNodes.filter(
+        (n) => n.type === 'forgeNode'
+      ) as ForgeGraphNode[]
+      const positions = extractNodePositions(forgeNodes)
 
-    onPositionsChange?.(positions)
-  }, [rfNodes, project, updateMetadata, onPositionsChange])
+      // Update project metadata
+      if (project) {
+        updateMetadata({ nodePositions: positions })
+      }
+
+      onPositionsChange?.(positions)
+    },
+    [rfNodes, project, updateMetadata, onPositionsChange]
+  )
 
   // Handle node selection
   const handleSelectionChange: OnSelectionChangeFunc = useCallback(
