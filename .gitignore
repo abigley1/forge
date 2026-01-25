@@ -24,3 +24,10 @@ coverage
 *.sln
 *.sw?
 .serena
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Project data (created by MCP)
+data/
