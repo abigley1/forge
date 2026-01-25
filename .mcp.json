@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "forge": {
+      "command": "node",
+      "args": [
+        "/Users/andrewbigley/Projects/ProjectAccelerator/packages/forge-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "FORGE_PROJECT_PATH": "/Users/andrewbigley/Projects/ProjectAccelerator/data/test-project"
+      }
+    }
+  }
+}

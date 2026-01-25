@@ -86,7 +86,31 @@
       "mcp__plugin_playwright_playwright__browser_press_key",
       "mcp__plugin_playwright_playwright__browser_close",
       "mcp__serena__onboarding",
-      "mcp__serena__write_memory"
+      "mcp__serena__write_memory",
+      "Skill(ralph-loop:ralph-loop)",
+      "mcp__serena__read_memory",
+      "mcp__serena__insert_before_symbol",
+      "mcp__plugin_serena_serena__read_memory",
+      "mcp__plugin_serena_serena__edit_memory",
+      "mcp__serena__edit_memory",
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "Bash(npm run build:prod:*)",
+      "Bash(VITE_BASE_PATH=/forge/ npm run build:prod:*)",
+      "Bash(FORGE_PROJECT_PATH=/Users/andrewbigley/Projects/ProjectAccelerator/data/test-project timeout 2 node:*)",
+      "Bash(FORGE_PROJECT_PATH=/Users/andrewbigley/Projects/ProjectAccelerator/data/test-project node:*)",
+      "Bash(FORGE_PROJECT_PATH=/Users/andrewbigley/Projects/ProjectAccelerator/data/test-project timeout 3 node:*)",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:flightory.com)",
+      "mcp__forge__list_projects",
+      "mcp__forge__create_node",
+      "mcp__forge__add_dependency",
+      "mcp__forge__get_blocked_tasks",
+      "mcp__forge__get_critical_path",
+      "mcp__forge__search_nodes",
+      "mcp__forge__find_components",
+      "mcp__forge__bulk_update"
     ]
-  }
+  },
+  "enabledMcpjsonServers": ["forge"]
 }
