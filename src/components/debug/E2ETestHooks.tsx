@@ -65,6 +65,11 @@ interface E2EWorkspaceData {
   activeProjectId: string
 }
 
+interface E2ESwitchProjectData {
+  projectId: string
+  nodes: E2ENodeData[]
+}
+
 export function E2ETestHooks(): null {
   const setNodes = useNodesStore((state) => state.setNodes)
   const clearNodes = useNodesStore((state) => state.clearNodes)
@@ -99,16 +104,22 @@ export function E2ETestHooks(): null {
 
       setNodes(nodesMap)
 
-      // Also set a fake project so the app shows the main UI
+      // Get active project info from workspace store if available
+      const workspaceState = useWorkspaceStore.getState()
+      const activeProject = workspaceState.projects.find(
+        (p) => p.id === workspaceState.activeProjectId
+      )
+
+      // Set up project store with proper project info
       useProjectStore.setState({
         project: {
-          id: 'e2e-test-project',
-          name: 'E2E Test Project',
-          path: '/e2e-test',
+          id: activeProject?.id || 'e2e-test-project',
+          name: activeProject?.name || 'E2E Test Project',
+          path: activeProject?.path || '/e2e-test',
           nodes: nodesMap,
           metadata: {
             createdAt: new Date(),
-            modifiedAt: new Date(),
+            modifiedAt: activeProject?.modifiedAt || new Date(),
           },
         },
         isDirty: false,
@@ -177,6 +188,132 @@ export function E2ETestHooks(): null {
       }
     }
 
+    const handleSwitchProject = (event: CustomEvent<E2ESwitchProjectData>) => {
+      const { projectId, nodes: nodeData } = event.detail
+
+      // Update workspace store to reflect new active project
+      useWorkspaceStore.setState((state) => ({
+        activeProjectId: projectId,
+        recentProjectIds: [
+          projectId,
+          ...state.recentProjectIds.filter((id) => id !== projectId),
+        ].slice(0, 5),
+      }))
+
+      // Load the new project's nodes
+      const nodesMap = new Map<string, ForgeNode>()
+      nodeData.forEach((node) => {
+        const processedNode = {
+          ...node,
+          dates: {
+            created: new Date(node.dates.created),
+            modified: new Date(node.dates.modified),
+          },
+        } as unknown as ForgeNode
+
+        if (node.selectedDate) {
+          ;(processedNode as unknown as Record<string, unknown>).selectedDate =
+            new Date(node.selectedDate)
+        }
+
+        nodesMap.set(node.id, processedNode)
+      })
+
+      setNodes(nodesMap)
+
+      // Update project store with new project info
+      const project = useWorkspaceStore
+        .getState()
+        .projects.find((p) => p.id === projectId)
+      if (project) {
+        useProjectStore.setState({
+          project: {
+            id: project.id,
+            name: project.name,
+            path: project.path,
+            nodes: nodesMap,
+            metadata: {
+              createdAt: new Date(),
+              modifiedAt: project.modifiedAt,
+            },
+          },
+          isDirty: false,
+          error: null,
+          parseErrors: [],
+        })
+      }
+    }
+
+    const handleAddNode = (event: CustomEvent<{ node: E2ENodeData }>) => {
+      const { node } = event.detail
+      const processedNode = {
+        ...node,
+        dates: {
+          created: new Date(node.dates.created),
+          modified: new Date(node.dates.modified),
+        },
+      } as unknown as ForgeNode
+
+      if (node.selectedDate) {
+        ;(processedNode as unknown as Record<string, unknown>).selectedDate =
+          new Date(node.selectedDate)
+      }
+
+      useNodesStore.getState().addNode(processedNode)
+    }
+
+    const handleDeleteNode = (event: CustomEvent<{ nodeId: string }>) => {
+      const { nodeId } = event.detail
+      useNodesStore.getState().deleteNode(nodeId)
+    }
+
+    const handleCreateLink = (
+      event: CustomEvent<{
+        sourceId: string
+        targetId: string
+        type: 'dependency' | 'reference'
+      }>
+    ) => {
+      const { sourceId, targetId, type } = event.detail
+
+      if (type === 'dependency') {
+        // For dependencies, add targetId to sourceId's dependsOn array
+        const sourceNode = useNodesStore.getState().nodes.get(sourceId)
+        if (sourceNode && sourceNode.type === 'task') {
+          const currentDeps =
+            (sourceNode as { dependsOn?: string[] }).dependsOn || []
+          if (!currentDeps.includes(targetId)) {
+            useNodesStore.getState().updateNode(sourceId, {
+              dependsOn: [...currentDeps, targetId],
+            } as unknown as Partial<ForgeNode>)
+          }
+        }
+      }
+      // For reference links, we'd update the content with a wiki-link
+      // but that's more complex - dependencies are sufficient for layout testing
+    }
+
+    const handleRemoveLink = (
+      event: CustomEvent<{
+        sourceId: string
+        targetId: string
+        type: 'dependency' | 'reference'
+      }>
+    ) => {
+      const { sourceId, targetId, type } = event.detail
+
+      if (type === 'dependency') {
+        const sourceNode = useNodesStore.getState().nodes.get(sourceId)
+        if (sourceNode && sourceNode.type === 'task') {
+          const currentDeps =
+            (sourceNode as { dependsOn?: string[] }).dependsOn || []
+          useNodesStore.getState().updateNode(sourceId, {
+            dependsOn: currentDeps.filter((id) => id !== targetId),
+          } as unknown as Partial<ForgeNode>)
+        }
+      }
+    }
+
     const handleSetupWorkspace = (event: CustomEvent<E2EWorkspaceData>) => {
       const { projects, activeProjectId } = event.detail
 
@@ -221,6 +358,23 @@ export function E2ETestHooks(): null {
       'e2e-set-task-parent',
       handleSetTaskParent as EventListener
     )
+    window.addEventListener(
+      'e2e-switch-project',
+      handleSwitchProject as EventListener
+    )
+    window.addEventListener('e2e-add-node', handleAddNode as EventListener)
+    window.addEventListener(
+      'e2e-delete-node',
+      handleDeleteNode as EventListener
+    )
+    window.addEventListener(
+      'e2e-create-link',
+      handleCreateLink as EventListener
+    )
+    window.addEventListener(
+      'e2e-remove-link',
+      handleRemoveLink as EventListener
+    )
 
     // Mark app as ready for E2E tests
     window.__e2eReady = true
@@ -247,6 +401,23 @@ export function E2ETestHooks(): null {
       window.removeEventListener(
         'e2e-set-task-parent',
         handleSetTaskParent as EventListener
+      )
+      window.removeEventListener(
+        'e2e-switch-project',
+        handleSwitchProject as EventListener
+      )
+      window.removeEventListener('e2e-add-node', handleAddNode as EventListener)
+      window.removeEventListener(
+        'e2e-delete-node',
+        handleDeleteNode as EventListener
+      )
+      window.removeEventListener(
+        'e2e-create-link',
+        handleCreateLink as EventListener
+      )
+      window.removeEventListener(
+        'e2e-remove-link',
+        handleRemoveLink as EventListener
       )
       window.__e2eReady = false
     }

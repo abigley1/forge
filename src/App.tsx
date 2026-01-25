@@ -1,30 +1,35 @@
-import { useState, useCallback, useMemo, useEffect, useContext } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Trash2, Loader2, FolderOpen } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, SaveIndicator, useSaveIndicator } from '@/components/ui'
-import { useProjectStore, useNodesStore, useAppStore } from '@/store'
+import {
+  useProjectStore,
+  useNodesStore,
+  useAppStore,
+  useWorkspaceStore,
+} from '@/store'
 import { useUndoRedo, useFilters, useHybridPersistence } from '@/hooks'
 import {
   QuickProjectSwitcher,
   CreateProjectDialog,
 } from '@/components/workspace'
-import { BrowserFileSystemAdapter } from '@/lib/filesystem/BrowserFileSystemAdapter'
 import { OutlineView, ViewToggle } from '@/components/outline'
 import { GraphView } from '@/components/graph'
-import { NodeDetailPanel, FrontmatterEditor } from '@/components/detail'
+import { KanbanView } from '@/components/kanban'
+import {
+  NodeDetailPanel,
+  FrontmatterEditor,
+  AttachmentsPanel,
+} from '@/components/detail'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
 import { CommandPalette } from '@/components/command'
 import { DeleteNodeDialog, useDeleteNodeDialog } from '@/components/nodes'
 import { ComparisonTable } from '@/components/decision'
 import { getAllTagsForClustering } from '@/lib/graph'
 import { cn } from '@/lib/utils'
-import type { TaskStatus, ForgeNode } from '@/types/nodes'
+import type { TaskStatus, ForgeNode, Attachment } from '@/types/nodes'
 import { isDecisionNode, type DecisionNode } from '@/types/nodes'
-import {
-  HybridPersistenceContext,
-  useOptionalHybridPersistence,
-} from '@/contexts'
-import { OfflineBanner } from '@/components/sync'
+import { HybridPersistenceContext } from '@/contexts'
 
 /**
  * Loading screen shown while initializing from IndexedDB
@@ -42,57 +47,14 @@ function LoadingScreen() {
  * Welcome screen shown when no project is loaded
  */
 function WelcomeScreen() {
-  const [isOpening, setIsOpening] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const loadProject = useProjectStore((state) => state.loadProject)
-  const persistence = useContext(HybridPersistenceContext)
+  // Get existing projects from workspace
+  const projects = useWorkspaceStore((state) => state.projects)
+  const setActiveProject = useWorkspaceStore((state) => state.setActiveProject)
 
-  const handleOpen = async () => {
-    setIsOpening(true)
-    setError(null)
-
-    try {
-      // Use hybrid persistence if available
-      if (persistence) {
-        const success = await persistence.connectToFileSystem()
-        if (!success) {
-          setError(
-            'Failed to load project. Make sure you selected a valid Forge project folder.'
-          )
-        }
-      } else {
-        // Fallback to direct file system access
-        const adapter = new BrowserFileSystemAdapter()
-        await adapter.requestDirectoryAccess()
-
-        const rootPath = adapter.getRootPath()
-        if (!rootPath) {
-          setError('Failed to access project folder.')
-          return
-        }
-
-        const success = await loadProject(adapter, rootPath)
-
-        if (!success) {
-          setError(
-            'Failed to load project. Make sure you selected a valid Forge project folder.'
-          )
-        }
-      }
-    } catch (err) {
-      if (
-        err instanceof Error &&
-        err.message === 'User cancelled directory selection'
-      ) {
-        // User cancelled - not an error
-        return
-      }
-      setError(err instanceof Error ? err.message : 'Failed to open project')
-    } finally {
-      setIsOpening(false)
-    }
+  const handleSelectProject = (projectId: string) => {
+    setActiveProject(projectId)
   }
 
   return (
@@ -100,25 +62,58 @@ function WelcomeScreen() {
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
         Welcome to Forge
       </h2>
-      <p className="text-gray-600 dark:text-gray-400">
-        Open an existing project or create a new one to get started.
+      <p className="max-w-md text-center text-gray-600 dark:text-gray-400">
+        {projects.length > 0
+          ? 'Select a project to continue, or create a new one.'
+          : 'Create a new project to get started.'}
       </p>
 
-      {error && (
-        <p className="max-w-md text-center text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
+      {/* Existing Projects */}
+      {projects.length > 0 && (
+        <div className="w-full max-w-md space-y-2">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Your Projects
+          </p>
+          <div className="space-y-2">
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                onClick={() => handleSelectProject(project.id)}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3',
+                  'text-left transition-colors',
+                  'hover:border-blue-300 hover:bg-blue-50',
+                  'dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/30',
+                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                )}
+              >
+                <FolderOpen
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                    {project.name}
+                  </p>
+                  {project.description && (
+                    <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+                      {project.description}
+                    </p>
+                  )}
+                </div>
+                <span className="text-xs text-gray-400">
+                  {project.nodeCount} nodes
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
-      <div className="flex gap-4">
-        <Button onClick={handleOpen} disabled={isOpening}>
-          {isOpening ? 'Opening...' : 'Open Project'}
-        </Button>
-
-        <Button onClick={() => setCreateDialogOpen(true)} disabled={isOpening}>
-          Create New Project
-        </Button>
-      </div>
+      {/* Create New Project Button */}
+      <Button onClick={() => setCreateDialogOpen(true)}>
+        Create New Project
+      </Button>
 
       <CreateProjectDialog
         open={createDialogOpen}
@@ -141,15 +136,6 @@ function ProjectWorkspace() {
   const getNodeById = useNodesStore((state) => state.getNodeById)
 
   const activeNode = activeNodeId ? getNodeById(activeNodeId) : null
-
-  // Hybrid persistence (optional - may not be available in tests)
-  const persistence = useOptionalHybridPersistence()
-
-  // Determine if we should show offline banner
-  const showOfflineBanner =
-    persistence?.isInitialized &&
-    persistence.connectionStatus !== 'connected' &&
-    persistence.hasStoredData
 
   // Get filters and apply them to nodes
   const { filterNodes, hasActiveFilters } = useFilters()
@@ -216,6 +202,16 @@ function ProjectWorkspace() {
     [activeNodeId, updateNode]
   )
 
+  // Handle attachment changes
+  const handleAttachmentsChange = useCallback(
+    (attachments: Attachment[]) => {
+      if (activeNodeId) {
+        updateNode(activeNodeId, { attachments })
+      }
+    },
+    [activeNodeId, updateNode]
+  )
+
   // Handle delete node (from detail panel or graph context menu)
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
@@ -236,14 +232,6 @@ function ProjectWorkspace() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Offline mode banner */}
-      <OfflineBanner
-        show={!!showOfflineBanner}
-        needsPermission={persistence?.needsPermission}
-        onRequestPermission={persistence?.requestPermission}
-        onConnectToFileSystem={persistence?.connectToFileSystem}
-      />
-
       {/* Header with view toggle */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-800">
         <div className="flex items-center gap-4">
@@ -259,14 +247,14 @@ function ProjectWorkspace() {
 
       {/* Main content area */}
       <div className="flex min-h-0 flex-1">
-        {/* Node list / Graph view - tabpanel for ViewToggle tabs */}
+        {/* Node list / Graph / Kanban view - tabpanel for ViewToggle tabs */}
         <div
           id={`${activeView}-panel`}
           role="tabpanel"
           aria-labelledby={`${activeView}-tab`}
           className="min-w-0 flex-1 overflow-auto"
         >
-          {activeView === 'outline' ? (
+          {activeView === 'outline' && (
             <OutlineView
               nodes={filteredNodes}
               activeNodeId={activeNodeId}
@@ -274,10 +262,18 @@ function ProjectWorkspace() {
               onTaskStatusToggle={handleTaskStatusToggle}
               className="p-4"
             />
-          ) : (
+          )}
+          {activeView === 'graph' && (
             <GraphView
               onNodeSelect={setActiveNode}
               onNodeDelete={handleDeleteNode}
+            />
+          )}
+          {activeView === 'kanban' && (
+            <KanbanView
+              nodes={filteredNodes}
+              onNodeSelect={setActiveNode}
+              activeNodeId={activeNodeId}
             />
           )}
         </div>
@@ -329,6 +325,12 @@ function ProjectWorkspace() {
                 />
               </div>
 
+              {/* Attachments panel */}
+              <AttachmentsPanel
+                node={activeNode}
+                onChange={handleAttachmentsChange}
+              />
+
               {/* Delete node button */}
               <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
                 <button
@@ -367,7 +369,7 @@ function App() {
   const project = useProjectStore((state) => state.project)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
 
-  // Initialize hybrid persistence (IndexedDB + file system)
+  // Initialize IndexedDB persistence
   const persistence = useHybridPersistence()
 
   // Enable global undo/redo keyboard shortcuts (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
@@ -396,8 +398,7 @@ function App() {
       return <LoadingScreen />
     }
 
-    // Have project loaded (from IndexedDB or file system)
-    // Note: If file system permission is needed, ProjectWorkspace shows the OfflineBanner
+    // Have project loaded (from IndexedDB)
     if (project) {
       return <ProjectWorkspace />
     }

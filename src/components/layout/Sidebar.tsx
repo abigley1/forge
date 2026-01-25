@@ -58,7 +58,6 @@ import {
   CreateProjectDialog,
   ProjectSettingsDialog,
 } from '@/components/workspace'
-import { SyncStatusIndicator } from '@/components/sync'
 import { useOptionalHybridPersistence } from '@/contexts'
 import type { Project } from '@/types/project'
 import { createProjectMetadata } from '@/types/project'
@@ -686,36 +685,19 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </div>
 
-      {/* Footer with Sync Status */}
+      {/* Footer */}
       <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-600 dark:text-gray-400">
             Forge v0.0.1
           </p>
-          {persistence && (
-            <SyncStatusIndicator
-              status={
-                persistence.syncStatus === 'synced'
-                  ? 'synced'
-                  : persistence.syncStatus === 'syncing'
-                    ? 'syncing'
-                    : persistence.error
-                      ? 'error'
-                      : 'offline'
-              }
-              isConnected={persistence.connectionStatus === 'connected'}
-              errorMessage={persistence.error ?? undefined}
-              onSyncNow={persistence.syncToFileSystem}
-              onReconnect={
-                persistence.needsPermission
-                  ? persistence.requestPermission
-                  : persistence.connectToFileSystem
-              }
-              autoSyncEnabled={persistence.autoSyncEnabled}
-              syncInterval={persistence.syncInterval}
-              onAutoSyncChange={persistence.setAutoSyncEnabled}
-              onSyncIntervalChange={persistence.setSyncInterval}
-            />
+          {persistence?.error && (
+            <span
+              className="text-xs text-red-600 dark:text-red-400"
+              title={persistence.error}
+            >
+              Storage error
+            </span>
           )}
         </div>
       </div>

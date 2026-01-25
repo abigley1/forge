@@ -9,13 +9,15 @@
  * Uses h-dvh (dynamic viewport height) for proper mobile browser support.
  */
 
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useCallback } from 'react'
 import { Menu, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { ErrorBoundary } from '@/components/ui'
 import { CreateNodeDialog } from '@/components/nodes'
-import { useAppStore } from '@/store'
+import { QuickCaptureModal } from '@/components/capture'
+import { useAppStore, useNodesStore } from '@/store'
+import { useHotkey } from '@/hooks'
 import { SkipLink } from './SkipLink'
 import { Sidebar } from './Sidebar'
 
@@ -37,6 +39,25 @@ export function AppShell({ children, sidebar, className }: AppShellProps) {
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
   const toggleSidebar = useAppStore((state) => state.toggleSidebar)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
+
+  // Quick capture modal state
+  const [quickCaptureOpen, setQuickCaptureOpen] = useState(false)
+  const setActiveNode = useNodesStore((state) => state.setActiveNode)
+
+  // Handle quick capture note created - navigate to the new note
+  const handleNoteCreated = useCallback(
+    (noteId: string) => {
+      setActiveNode(noteId)
+    },
+    [setActiveNode]
+  )
+
+  // Global hotkey for quick capture (Cmd/Ctrl+Shift+N)
+  useHotkey('n', () => setQuickCaptureOpen(true), {
+    ctrl: true,
+    shift: true,
+    preventDefault: true,
+  })
 
   return (
     <div className={cn('flex h-dvh flex-col', className)}>
@@ -111,8 +132,15 @@ export function AppShell({ children, sidebar, className }: AppShellProps) {
         </main>
       </div>
 
-      {/* Global create node dialog (Ctrl/Cmd+Shift+N) */}
-      <CreateNodeDialog enableHotkey />
+      {/* Global create node dialog (accessible via command palette) */}
+      <CreateNodeDialog enableHotkey={false} />
+
+      {/* Quick capture modal (Cmd/Ctrl+Shift+N) */}
+      <QuickCaptureModal
+        isOpen={quickCaptureOpen}
+        onClose={() => setQuickCaptureOpen(false)}
+        onNoteCreated={handleNoteCreated}
+      />
     </div>
   )
 }
