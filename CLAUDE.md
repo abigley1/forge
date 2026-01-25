@@ -13,6 +13,7 @@ Forge is a personal project brainstorming, planning, and tracking tool for compl
 ```bash
 npm run dev          # Start Vite dev server
 npm run build        # TypeScript build + Vite production build
+npm run build:prod   # Production build with NODE_ENV=production
 npm run test         # Run all Vitest tests once
 npm run test:watch   # Run tests in watch mode
 npm run test:coverage # Run tests with coverage report
@@ -32,6 +33,13 @@ npx vitest src/lib/validation.test.ts  # watch mode for single file
 npx playwright test e2e/node-operations.spec.ts  # single E2E test
 ```
 
+Server commands (in `server/` directory):
+```bash
+cd server && npm run dev    # Start Express server with tsx watch
+cd server && npm run build  # Build TypeScript
+cd server && npm test       # Run server tests
+```
+
 ## Architecture
 
 ### Layered Structure
@@ -39,7 +47,7 @@ npx playwright test e2e/node-operations.spec.ts  # single E2E test
 ```
 src/
 ├── types/           # TypeScript interfaces & Zod-validated types
-│   ├── nodes.ts     # ForgeNode discriminated union (Decision|Component|Task|Note)
+│   ├── nodes.ts     # ForgeNode discriminated union (7 types, see below)
 │   └── project.ts   # Project, Workspace, WorkspaceConfig
 ├── lib/             # Core logic (no React dependencies)
 │   ├── validation.ts      # Zod schemas, validateNode() returns Result type
@@ -50,31 +58,56 @@ src/
 │   ├── blockedStatus.ts   # Calculate blocked status from dependencies
 │   ├── criticalPath.ts    # Longest path through incomplete tasks
 │   └── filesystem/        # Adapter pattern for file I/O
-│       ├── types.ts             # FileSystemAdapter interface
-│       ├── MemoryFileSystemAdapter.ts   # For tests
-│       └── BrowserFileSystemAdapter.ts  # File System Access API
+│       ├── types.ts                    # FileSystemAdapter interface
+│       ├── MemoryFileSystemAdapter.ts  # For tests
+│       ├── BrowserFileSystemAdapter.ts # File System Access API
+│       ├── IndexedDBAdapter.ts         # IndexedDB storage
+│       ├── FallbackFileSystemAdapter.ts # Fallback when no FS access
+│       ├── HybridPersistenceService.ts # Combines IndexedDB + File System
+│       ├── SyncService.ts              # Sync between adapters
+│       └── ConflictService.ts          # Handle sync conflicts
 ├── store/           # Zustand stores with devtools
 │   ├── useNodesStore.ts      # Node CRUD, dirty tracking, link index
 │   ├── useProjectStore.ts    # Project metadata and file system adapter
+│   ├── useWorkspaceStore.ts  # Multi-project workspace management
 │   ├── useAppStore.ts        # UI state (sidebar, activeView)
 │   ├── useUndoStore.ts       # Undo/redo history
 │   ├── useTemplatesStore.ts  # Node templates management
 │   └── useCommandRegistry.ts # Command palette commands
 ├── hooks/           # React hooks for business logic
-│   ├── useBlockedStatus.ts  # Compute blocked status for nodes
-│   ├── useCriticalPath.ts   # Compute critical path through tasks
-│   ├── useFilters.ts        # URL-synced filtering (uses nuqs)
-│   └── useSorting.ts        # URL-synced sorting (uses nuqs)
+│   ├── useHybridPersistence.ts # Manage hybrid storage
+│   ├── useBlockedStatus.ts     # Compute blocked status for nodes
+│   ├── useCriticalPath.ts      # Compute critical path through tasks
+│   ├── useFilters.ts           # URL-synced filtering (uses nuqs)
+│   ├── useSorting.ts           # URL-synced sorting (uses nuqs)
+│   └── useCommands.ts          # Command palette registration
 └── components/
     ├── ui/          # Base UI primitives (Dialog, Button, Toast, AlertDialog)
     └── layout/      # App shell, Sidebar, SkipLink
+
+server/              # Express server for production deployment
+├── src/
+│   ├── index.ts              # Server entry point
+│   ├── routes/               # API endpoints (health, files)
+│   ├── adapters/             # ServerFileSystemAdapter
+│   └── middleware/           # CORS, etc.
 ```
 
 ### Key Patterns
 
-**Node Type System:** Uses discriminated unions with type guards. Always narrow with `isTaskNode(node)` etc. before accessing type-specific fields.
+**Node Type System:** Uses discriminated unions with type guards. Seven node types:
+- **Leaf nodes:** Decision, Component, Task, Note (all have `parent` field)
+- **Container nodes:** Subsystem, Assembly, Module (organize other nodes hierarchically)
 
-**File System Abstraction:** All file I/O goes through `FileSystemAdapter` interface. Use `MemoryFileSystemAdapter` in tests; production will use `BrowserFileSystemAdapter` (File System Access API).
+Always narrow with `isTaskNode(node)`, `isContainerNode(node)`, etc. before accessing type-specific fields.
+
+**File System Abstraction:** All file I/O goes through `FileSystemAdapter` interface. Implementations:
+- `MemoryFileSystemAdapter` - For tests
+- `BrowserFileSystemAdapter` - File System Access API (full read/write)
+- `IndexedDBAdapter` - Browser IndexedDB storage
+- `FallbackFileSystemAdapter` - When File System Access unavailable
+
+The `HybridPersistenceService` combines IndexedDB (fast, always available) with File System Access (optional sync to disk).
 
 **Validation:** `validateNode()` in `src/lib/validation.ts` returns `ValidationResult<ForgeNode>` - a Result type that's either `{ success: true, data: ForgeNode }` or `{ success: false, error: ValidationError }`. Never throw on validation failure.
 
@@ -93,7 +126,11 @@ project-name/
 ├── decisions/       # Decision nodes as .md files
 ├── components/      # Component nodes
 ├── tasks/           # Task nodes
-└── notes/           # Note nodes
+├── notes/           # Note nodes
+├── subsystems/      # Container: high-level functional areas
+├── assemblies/      # Container: physical component groupings
+├── modules/         # Container: logical feature groupings
+└── attachments/     # Binary files (PDFs, images) organized by node ID
 ```
 
 ### Path Alias
@@ -128,6 +165,8 @@ E2E tests are in `e2e/` and use helper utilities from `e2e/test-utils.ts`. Key h
 - `TEST_NODES` - Pre-defined test fixtures for decisions, components, tasks, notes
 
 E2E tests communicate with Zustand stores via custom events (`e2e-setup-nodes`, `e2e-clear-nodes`).
+
+The app exposes `window.__e2eReady` and `window.__e2eHybridPersistenceReady` flags that tests wait for before interacting.
 
 ## Ralph Loop (Automated Development)
 

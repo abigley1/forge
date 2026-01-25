@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "status": "active",
-  "lastUpdated": "2026-01-22T00:00:00Z",
+  "lastUpdated": "2026-01-23T00:00:00Z",
   "projectName": "Forge",
   "description": "A personal project brainstorming, planning, and tracking tool for complex hardware and engineering projects.",
   "metadata": {
@@ -107,9 +107,9 @@
     {
       "id": "obj-12",
       "sprint": 12,
-      "title": "Self-Hosted Deployment (Tailscale + Home Assistant)",
-      "description": "Deploy Forge as a self-hosted application accessible via Tailscale VPN on Home Assistant",
-      "demoGoal": "Access Forge from any Tailscale-connected device, data persists on Home Assistant storage"
+      "title": "Home Assistant Deployment",
+      "description": "Deploy Forge as a Home Assistant add-on accessible via existing Tailscale VPN with persistent storage",
+      "demoGoal": "Access Forge from MacBook or iPhone via Tailscale, data persists on Home Assistant Green"
     },
     {
       "id": "obj-13",
@@ -124,6 +124,20 @@
       "title": "Hybrid Persistence Layer (IndexedDB + File System Sync)",
       "description": "Implement IndexedDB as primary storage for instant persistence across page reloads, with bidirectional sync to the file system. Users can work offline with automatic reconnection to their project directory.",
       "demoGoal": "Close browser, reopen, see all data instantly without re-selecting folder. Make external edit to .md file, see it sync into app."
+    },
+    {
+      "id": "obj-15",
+      "sprint": 15,
+      "title": "Component Sourcing, Attachments, Quick Capture & Kanban",
+      "description": "Streamline component sourcing with automatic data import from supplier links, image and PDF attachments, quick capture for fast note-taking, Kanban view for task management, and an MCP server for AI agent integration.",
+      "demoGoal": "Paste DigiKey link, see component auto-populate with specs. Attach photos and datasheets. Hit Cmd+Shift+N to quick-capture an idea. View tasks in Kanban board by status."
+    },
+    {
+      "id": "obj-16",
+      "sprint": 16,
+      "title": "Supplier API Integrations & Scrapers",
+      "description": "Full supplier integration with DigiKey and Mouser APIs for real-time part data, plus scrapers for Adafruit, LCSC, and Amazon. Includes proxy server infrastructure to handle CORS and API credentials management.",
+      "demoGoal": "Paste DigiKey link, see full product data including price, stock, datasheet URL auto-populated. Configure API keys in settings. Works with Mouser, Adafruit, LCSC links too."
     }
   ],
   "tasks": [
@@ -972,82 +986,52 @@
     {
       "id": "12.1",
       "sprint": 12,
-      "title": "Production Build & Static Export",
-      "description": "Optimize build for self-hosted deployment with configurable base path",
+      "title": "Production Build",
+      "description": "Vite production build with configurable base path for Home Assistant deployment",
       "acceptanceCriteria": [
         "npm run build:prod generates optimized static files in dist/",
         "Configurable base path via VITE_BASE_PATH environment variable",
         "All assets use relative paths or respect base path",
-        "Service worker for offline capability (optional)",
         "Build output includes version.json with build timestamp and git hash"
       ]
     },
     {
       "id": "12.2",
       "sprint": 12,
-      "title": "Server-Side File System Adapter",
-      "description": "File system adapter for server-hosted deployment with REST API",
+      "title": "Express File Server",
+      "description": "Minimal Node.js Express server to serve static files and provide REST API for file operations",
       "acceptanceCriteria": [
-        "ServerFileSystemAdapter implements FileSystemAdapter interface",
+        "Express server serves static files from dist/",
         "REST API endpoints: GET/PUT/DELETE /api/files/:path",
         "Directory listing endpoint: GET /api/files/:path?list=true",
-        "File watching via polling or Server-Sent Events",
-        "Authentication token support for API requests",
-        "CORS configuration for Tailscale hostnames"
+        "Health check endpoint: GET /api/health",
+        "ServerFileSystemAdapter implements FileSystemAdapter interface",
+        "CORS configured for Tailscale hostnames (*.ts.net)"
       ]
     },
     {
       "id": "12.3",
       "sprint": 12,
-      "title": "Home Assistant Add-on Package",
-      "description": "Package Forge as a Home Assistant add-on with configuration UI",
+      "title": "Home Assistant Add-on",
+      "description": "Package Forge as a Home Assistant add-on with persistent storage and Ingress support",
       "acceptanceCriteria": [
         "Add-on config.yaml with name, version, ports, options",
         "Dockerfile builds Node.js server with static files",
-        "Data stored in /data (persistent across updates)",
-        "Add-on options: port, base_path, auth_required",
-        "Ingress support for seamless HA integration",
-        "README with installation instructions for HACS or manual install"
+        "Data stored in /data (persistent across add-on updates)",
+        "Ingress support for seamless HA sidebar integration",
+        "README with manual installation instructions"
       ]
     },
     {
       "id": "12.4",
       "sprint": 12,
-      "title": "Tailscale Network Configuration",
-      "description": "Documentation and configuration for Tailscale access",
+      "title": "Tailscale CORS Configuration",
+      "description": "Configure CORS for Tailscale access from Mac and iPhone",
       "acceptanceCriteria": [
         "TAILSCALE_HOSTNAME environment variable for CORS whitelist",
-        "Documentation: enabling Tailscale on Home Assistant",
-        "Documentation: accessing Forge via MagicDNS (e.g., homeassistant.tail1234.ts.net)",
-        "Optional: Tailscale Funnel configuration for public sharing",
-        "Security guidance: recommended Tailscale ACL policies"
-      ]
-    },
-    {
-      "id": "12.5",
-      "sprint": 12,
-      "title": "Docker Compose Deployment",
-      "description": "Alternative deployment via Docker Compose for non-HA setups",
-      "acceptanceCriteria": [
-        "docker-compose.yml with forge service and volume mounts",
-        "Dockerfile with multi-stage build (build + nginx)",
-        "Environment variable configuration via .env file",
-        "Health check endpoint at /api/health",
-        "docker-compose.tailscale.yml variant with Tailscale sidecar container",
-        "README with quick-start instructions"
-      ]
-    },
-    {
-      "id": "12.6",
-      "sprint": 12,
-      "title": "Backup & Sync",
-      "description": "Backup mechanisms for self-hosted data",
-      "acceptanceCriteria": [
-        "Manual backup: export all projects as .zip via UI",
-        "Scheduled backup option (daily/weekly) to configured path",
-        "Restore from backup functionality",
-        "Optional: sync to remote git repository on schedule",
-        "Backup status indicator in settings"
+        "CORS allows requests from *.ts.net domains",
+        "Works with existing Tailscale setup on Home Assistant Green",
+        "Accessible from MacBook and iPhone via MagicDNS"
       ]
     },
     {
@@ -1488,18 +1472,6 @@
             "Can view recent commits",
             "Can trigger manual commit"
           ]
-        },
-        {
-          "name": "Backup & Restore (12.6)",
-          "file": "e2e/backup-restore.spec.ts",
-          "tests": [
-            "Manual backup exports all projects as .zip",
-            "Backup download triggers correctly",
-            "Restore from backup option available",
-            "Restore validates backup format",
-            "Restore replaces current project data",
-            "Backup status indicator in settings"
-          ]
         }
       ],
       "acceptanceCriteria": [
@@ -1765,6 +1737,387 @@
         "Test: conflict dialog appears for conflicting changes",
         "Test: offline mode allows continued editing",
         "Test: reconnection flow works after permission re-grant"
+      ]
+    },
+    {
+      "id": "15.1",
+      "sprint": 15,
+      "title": "Supplier Link Parser Service",
+      "description": "Parse product links from Amazon, DigiKey, Mouser, and other suppliers to extract component metadata automatically",
+      "acceptanceCriteria": [
+        "SupplierLinkParser service with parseLink(url) method",
+        "Supported suppliers: Amazon, DigiKey, Mouser, LCSC, McMaster-Carr",
+        "Extracts: title, price, part number, manufacturer, description, image URL",
+        "Uses URL patterns to identify supplier type",
+        "Fetches page metadata via proxy/CORS-friendly approach",
+        "Falls back to Open Graph / meta tags when structured data unavailable",
+        "Returns PartialComponentData with extracted fields",
+        "Handles rate limiting and errors gracefully",
+        "Unit tests with mocked responses for each supplier"
+      ]
+    },
+    {
+      "id": "15.2",
+      "sprint": 15,
+      "title": "Link Paste Auto-Import UI",
+      "description": "Paste a supplier link to auto-create or update a component node with extracted data",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Paste detection in component creation dialog (Ctrl/Cmd+V with URL)",
+        "'Import from Link' button opens link input field",
+        "Loading spinner while fetching/parsing link",
+        "Preview of extracted data before confirming import",
+        "User can edit/override any extracted fields",
+        "Creates new ComponentNode with populated fields on confirm",
+        "Supplier link stored in component's 'supplier_url' field",
+        "Toast notification on successful import",
+        "Error handling for unsupported URLs or failed fetches",
+        "'Re-import' action on existing components to refresh data from link"
+      ]
+    },
+    {
+      "id": "15.3",
+      "sprint": 15,
+      "title": "PDF Attachment Storage",
+      "description": "File storage system for attaching PDFs and other documents to nodes",
+      "acceptanceCriteria": [
+        "Attachments stored in project_root/attachments/{node-id}/ directory",
+        "FileSystemAdapter extended with copyFile, deleteFile for binary files",
+        "Attachment metadata stored in node frontmatter: attachments: [{name, path, type, size, addedAt}]",
+        "Maximum file size limit configurable (default 50MB)",
+        "Supported types: PDF, images (PNG, JPG, SVG), text files",
+        "Attachments synced with IndexedDB for offline access (Sprint 14 integration)",
+        "Cleanup: delete attachment files when node is deleted"
+      ]
+    },
+    {
+      "id": "15.4",
+      "sprint": 15,
+      "title": "Datasheet Attachment UI",
+      "description": "UI for attaching, viewing, and managing PDF datasheets on component nodes",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "AttachmentsPanel in component detail view",
+        "Drag-and-drop zone for adding attachments",
+        "File picker button as alternative to drag-drop",
+        "Attachment list shows: filename, size, date added, delete button",
+        "Click attachment to open in new tab or inline viewer",
+        "Inline PDF viewer using browser's native PDF support or pdf.js",
+        "Image attachments show thumbnail preview",
+        "Download button for each attachment",
+        "Confirm dialog before deleting attachment",
+        "Keyboard accessible: Tab through attachments, Enter to open, Delete to remove"
+      ]
+    },
+    {
+      "id": "15.5",
+      "sprint": 15,
+      "title": "Graph Auto-Layout on Link Changes",
+      "description": "Automatically trigger graph re-layout when links or dependencies change",
+      "acceptanceCriteria": [
+        "Graph layout recalculates when: node added, node deleted, link created, link removed",
+        "Layout animation smoothly transitions nodes to new positions",
+        "Debounce layout recalculation (500ms) for rapid changes",
+        "Option to disable auto-layout in graph settings",
+        "Manual 'Re-layout' button always available",
+        "Preserve user-pinned node positions (nodes manually dragged don't auto-move)",
+        "Node pinning: double-click to pin/unpin, visual indicator for pinned nodes",
+        "Layout algorithm respects existing clusters/groups",
+        "Animation respects prefers-reduced-motion"
+      ]
+    },
+    {
+      "id": "15.6",
+      "sprint": 15,
+      "title": "Forge MCP Server - Core Infrastructure",
+      "description": "MCP server that exposes Forge project operations to AI agents like Claude Code",
+      "acceptanceCriteria": [
+        "Node.js MCP server package in packages/forge-mcp-server/",
+        "Connects to Forge project directory via file system",
+        "MCP resources: list projects, get project metadata, list nodes",
+        "MCP tools: create_node, update_node, delete_node, search_nodes",
+        "Tool parameters validated with Zod schemas",
+        "Returns structured JSON responses suitable for LLM consumption",
+        "Error responses include actionable error messages",
+        "Server configuration via environment variables or config file",
+        "README with installation and Claude Code integration instructions"
+      ]
+    },
+    {
+      "id": "15.7",
+      "sprint": 15,
+      "title": "Forge MCP Server - Advanced Operations",
+      "description": "Extended MCP tools for project management and component sourcing",
+      "acceptanceCriteria": [
+        "create_project tool: initialize new project with directory structure",
+        "link_nodes tool: create wiki-link or dependency between nodes",
+        "unlink_nodes tool: remove link between nodes",
+        "add_dependency tool: add task dependency with cycle detection",
+        "import_from_link tool: fetch supplier URL and create component",
+        "find_components tool: search for components by criteria (type, tags, status)",
+        "get_blocked_tasks tool: return tasks blocked by incomplete dependencies",
+        "get_critical_path tool: return critical path through project tasks",
+        "bulk_update tool: update multiple nodes with same field changes"
+      ]
+    },
+    {
+      "id": "15.8",
+      "sprint": 15,
+      "title": "Forge MCP Server - Prompts & Context",
+      "description": "MCP prompts for common AI-assisted workflows",
+      "acceptanceCriteria": [
+        "MCP prompt: 'plan_subsystem' - guide AI to create subsystem with components and tasks",
+        "MCP prompt: 'source_components' - guide AI to find and import components for requirements",
+        "MCP prompt: 'review_dependencies' - analyze task dependencies and suggest improvements",
+        "MCP prompt: 'project_status' - summarize project state, blocked items, critical path",
+        "Prompts include relevant context from project data",
+        "Prompts return structured guidance for AI to follow",
+        "Documentation for each prompt with example interactions"
+      ]
+    },
+    {
+      "id": "15.9",
+      "sprint": 15,
+      "title": "Fix Project Switching",
+      "description": "Project switcher dropdown selects but doesn't actually switch the active project",
+      "acceptanceCriteria": [
+        "Clicking project in switcher dropdown loads that project's data",
+        "Active project indicator updates to selected project",
+        "Node list refreshes to show new project's nodes",
+        "URL updates to reflect new project context",
+        "Unsaved changes prompt appears if switching with dirty state",
+        "Graph view resets/reloads for new project",
+        "Recently active project stored for 'Recent Projects' list"
+      ]
+    },
+    {
+      "id": "15.10",
+      "sprint": 15,
+      "title": "Image Attachments with Annotation",
+      "description": "Extend attachment system to support images (photos, screenshots, sketches) with optional annotation capabilities for hardware project documentation",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Image types supported: PNG, JPG, JPEG, GIF, SVG, WebP",
+        "Drag-drop or file picker to attach images to any node",
+        "Thumbnail preview in attachments panel (max 200px)",
+        "Click thumbnail to open full-size viewer overlay",
+        "Viewer supports zoom, pan, and download",
+        "Optional annotation layer: draw arrows, circles, text labels",
+        "Annotations saved as separate JSON file alongside image",
+        "Annotations rendered on thumbnail and full view",
+        "Paste from clipboard (Cmd/Ctrl+V) to attach screenshot",
+        "Image attachments synced with IndexedDB for offline access",
+        "Lazy loading for nodes with many image attachments"
+      ]
+    },
+    {
+      "id": "15.11",
+      "sprint": 15,
+      "title": "Quick Capture Notes",
+      "description": "Fast note-taking system for capturing ideas without leaving current context, with optional triage workflow",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "Global hotkey Cmd/Ctrl+Shift+N opens quick capture modal",
+        "Modal appears as floating overlay, doesn't navigate away from current view",
+        "Single text input with placeholder 'Quick note...'",
+        "Enter submits and closes, Escape cancels",
+        "Creates NoteNode with title from first line, rest as content",
+        "Optional: assign to container (Subsystem/Assembly/Module) via dropdown",
+        "Optional: add tags via inline #tag syntax",
+        "Quick capture notes tagged with 'inbox' by default for later triage",
+        "Inbox filter in sidebar shows uncategorized quick notes",
+        "Toast confirmation with 'View' action to navigate to created note",
+        "Command palette integration: 'Quick Capture' command available",
+        "Works from any view (outline, graph, detail panel)"
+      ]
+    },
+    {
+      "id": "15.12",
+      "sprint": 15,
+      "title": "Kanban View for Tasks",
+      "description": "Visual board view organizing tasks by status columns with drag-and-drop status changes",
+      "tools": ["frontend-design"],
+      "acceptanceCriteria": [
+        "New view option: Outline | Graph | Kanban in view toggle",
+        "Keyboard shortcut Ctrl/Cmd+3 switches to Kanban view",
+        "Columns for each task status: Pending, In Progress, Complete, On Hold",
+        "Task cards show: title, priority badge, blocked indicator, tags",
+        "Drag task card between columns to change status",
+        "Drag within column to reorder (custom sort order)",
+        "Column header shows task count",
+        "Collapsed columns option for focus (e.g., hide Complete)",
+        "Filter integration: type/tag/container filters apply to Kanban",
+        "Click card to open detail panel (same as outline click)",
+        "Quick actions on card hover: mark complete, edit, delete",
+        "Swimlanes option: group rows by container or milestone",
+        "Empty column shows drop zone with helpful text",
+        "Keyboard accessible: arrow keys navigate cards, Enter opens detail",
+        "Respects prefers-reduced-motion for drag animations"
+      ]
+    },
+    {
+      "id": "15.13",
+      "sprint": 15,
+      "title": "E2E Tests for Sprint 15 Features",
+      "description": "End-to-end tests for component sourcing, attachments, quick capture, Kanban, and MCP integration",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Test: paste DigiKey link creates component with extracted data",
+        "Test: import preview shows extracted fields before confirm",
+        "Test: drag-drop PDF creates attachment on component",
+        "Test: attachment list shows added files",
+        "Test: clicking attachment opens viewer",
+        "Test: deleting attachment removes from list and disk",
+        "Test: adding link triggers graph re-layout",
+        "Test: pinned nodes don't move during auto-layout",
+        "Test: project switcher actually switches projects",
+        "Test: switching projects with unsaved changes shows prompt",
+        "Test: drag-drop image creates attachment with thumbnail",
+        "Test: clicking image thumbnail opens full viewer",
+        "Test: paste screenshot from clipboard creates attachment",
+        "Test: image annotation tools appear in viewer",
+        "Test: Cmd+Shift+N opens quick capture modal",
+        "Test: submitting quick capture creates note with inbox tag",
+        "Test: quick capture modal closes on Escape",
+        "Test: Kanban view shows tasks in status columns",
+        "Test: dragging task card between columns changes status",
+        "Test: Kanban respects active filters",
+        "Test: clicking Kanban card opens detail panel"
+      ]
+    },
+    {
+      "id": "16.1",
+      "sprint": 16,
+      "title": "Self-Hosted Proxy Server",
+      "description": "Lightweight Express/Fastify proxy server for CORS handling, designed to run alongside Home Assistant. Handles supplier API calls and HTML scraping with credentials stored locally.",
+      "acceptanceCriteria": [
+        "Simple Node.js server (Express or Fastify) with minimal dependencies",
+        "Runs on configurable port (default 3001) alongside Forge app",
+        "Proxies GET requests to supplier APIs with proper headers",
+        "Returns CORS headers allowing requests from Forge frontend",
+        "Reads API credentials from environment variables or local config file",
+        "Rate limiting to prevent accidental abuse (10 req/min per endpoint)",
+        "Health check endpoint at /health returns 200 OK",
+        "Docker container option for easy deployment on Home Assistant",
+        "Startup script and systemd service file for non-Docker deployment",
+        "README with Home Assistant add-on installation instructions"
+      ]
+    },
+    {
+      "id": "16.2",
+      "sprint": 16,
+      "title": "DigiKey API Integration",
+      "description": "Integrate DigiKey's Product Information API for real-time component data. Requires OAuth2 client credentials flow.",
+      "acceptanceCriteria": [
+        "DigiKey OAuth2 token exchange via proxy server",
+        "Product search endpoint: search by part number or keyword",
+        "Product details endpoint: full specs, pricing, stock, datasheet URL",
+        "Extracted data maps to ForgeNode component fields",
+        "Token refresh happens automatically before expiry",
+        "Graceful fallback to URL parsing if API unavailable",
+        "API errors displayed to user with actionable message"
+      ]
+    },
+    {
+      "id": "16.3",
+      "sprint": 16,
+      "title": "Mouser API Integration",
+      "description": "Integrate Mouser's Search API for component data. Uses simple API key authentication.",
+      "acceptanceCriteria": [
+        "Mouser API calls via proxy server with API key",
+        "Search by part number returns matching products",
+        "Product details include: description, manufacturer, price, stock, datasheet",
+        "Extracted data maps to ForgeNode component fields",
+        "Rate limiting respected (max 30 requests/minute)",
+        "Graceful fallback to URL parsing if API unavailable"
+      ]
+    },
+    {
+      "id": "16.4",
+      "sprint": 16,
+      "title": "Adafruit Product Scraper",
+      "description": "Scrape Adafruit product pages for component data since no public API exists. Parse HTML via proxy.",
+      "acceptanceCriteria": [
+        "Fetch Adafruit product page HTML via proxy",
+        "Extract: title, description, price, stock status, images",
+        "Parse Open Graph and JSON-LD structured data",
+        "Handle product variations (size, color options)",
+        "Graceful degradation if page structure changes",
+        "Cache scraped data for 24 hours to reduce requests"
+      ]
+    },
+    {
+      "id": "16.5",
+      "sprint": 16,
+      "title": "LCSC Product Scraper",
+      "description": "Scrape LCSC/EasyEDA product pages for component data. May use unofficial API endpoints discovered via network inspection.",
+      "acceptanceCriteria": [
+        "Fetch LCSC product data via proxy",
+        "Extract: part number, description, manufacturer, price, stock, datasheet",
+        "Handle LCSC part number format (C######)",
+        "Parse component specifications table",
+        "Graceful fallback if API/page structure changes"
+      ]
+    },
+    {
+      "id": "16.6",
+      "sprint": 16,
+      "title": "Amazon Link Parser Enhancement",
+      "description": "Enhanced Amazon link parsing with better metadata extraction. Limited by Amazon's anti-scraping measures.",
+      "acceptanceCriteria": [
+        "Extract ASIN from various Amazon URL formats",
+        "Attempt metadata fetch via proxy (may fail due to Amazon blocks)",
+        "Graceful fallback to ASIN-only extraction",
+        "Support for Amazon short links (amzn.to) via redirect following",
+        "Display warning that Amazon data may be limited"
+      ]
+    },
+    {
+      "id": "16.7",
+      "sprint": 16,
+      "title": "API Credentials Settings UI",
+      "description": "Settings panel for users to enter their DigiKey and Mouser API credentials.",
+      "acceptanceCriteria": [
+        "Settings page section for 'Supplier APIs'",
+        "DigiKey: client ID and client secret fields",
+        "Mouser: API key field",
+        "Credentials stored securely in IndexedDB (encrypted at rest)",
+        "'Test Connection' button validates credentials",
+        "Success/error feedback for credential validation",
+        "Clear explanation of how to obtain API keys (with links)"
+      ]
+    },
+    {
+      "id": "16.8",
+      "sprint": 16,
+      "title": "Enhanced Import Preview Dialog",
+      "description": "Improved preview dialog showing all extracted data before creating a component node.",
+      "acceptanceCriteria": [
+        "Dialog shows extracted fields in organized sections",
+        "Product image displayed if available",
+        "Price and stock shown with timestamp",
+        "Datasheet link clickable to preview",
+        "User can edit any field before import",
+        "Supplier source clearly indicated",
+        "'Create Component' and 'Cancel' actions"
+      ]
+    },
+    {
+      "id": "16.9",
+      "sprint": 16,
+      "title": "E2E Tests for Sprint 16 Features",
+      "description": "End-to-end tests for supplier API integrations and scrapers",
+      "tools": ["playwright"],
+      "acceptanceCriteria": [
+        "Test: DigiKey link triggers API call and populates preview",
+        "Test: Mouser link triggers API call and populates preview",
+        "Test: Adafruit link scrapes page and shows preview",
+        "Test: LCSC link scrapes page and shows preview",
+        "Test: Amazon link extracts ASIN even if scraping fails",
+        "Test: API credentials can be saved in settings",
+        "Test: Test Connection button validates credentials",
+        "Test: Import preview allows field editing before save",
+        "Test: graceful degradation when proxy unavailable"
       ]
     }
   ],
