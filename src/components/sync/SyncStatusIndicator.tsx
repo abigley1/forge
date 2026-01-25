@@ -18,11 +18,17 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Popover, Button, Switch, useToast } from '@/components/ui'
-import type { SyncResult } from '@/lib/filesystem'
 
 // ============================================================================
 // Types
 // ============================================================================
+
+/** Result from sync operations (simplified from removed SyncService) */
+interface SyncResultLike {
+  success: boolean
+  syncedNodes: { nodeId: string }[]
+  failedNodes: { nodeId: string; error: string }[]
+}
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error'
 
@@ -49,7 +55,7 @@ export interface SyncStatusIndicatorProps {
   /** Error message when status is 'error' */
   errorMessage?: string
   /** Callback to trigger manual sync */
-  onSyncNow?: () => Promise<SyncResult | null | void>
+  onSyncNow?: () => Promise<SyncResultLike | null | void>
   /** Callback to reconnect to file system */
   onReconnect?: () => Promise<boolean | void>
   /** Whether auto-sync is enabled */
@@ -97,8 +103,8 @@ const STATUS_CONFIG: Record<
   offline: {
     icon: CloudOff,
     label: 'Offline',
-    iconClass: 'text-gray-400',
-    textClass: 'text-gray-500 dark:text-gray-400',
+    iconClass: 'text-gray-500',
+    textClass: 'text-gray-600 dark:text-gray-400',
     bgClass: 'bg-gray-100 dark:bg-gray-800',
   },
   error: {

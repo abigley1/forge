@@ -1,35 +1,25 @@
 /**
- * Hook for managing hybrid persistence with IndexedDB and file system
+ * Hook for managing IndexedDB persistence
  *
  * This hook provides:
- * - Initialization from IndexedDB on app load (fast)
- * - Auto-reconnection to file system when permissions are available
- * - Connection status and sync status tracking
- * - Methods for connecting to file system and triggering syncs
+ * - IndexedDB initialization on app load
+ * - Auto-save of nodes to IndexedDB on store changes
+ * - Project switching support
+ * - clearIndexedDB() for troubleshooting
+ *
+ * Note: File system sync has been removed in favor of on-demand export.
+ * Use the "Save to Folder" feature in Project Settings to export to file system.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import {
-  HybridPersistenceService,
-  isHybridPersistenceSupported,
-  IndexedDBAdapter,
-  SyncService,
-  ConflictService,
-  type ConnectionStatus,
-  type SyncStatus,
-  type PersistenceEvent,
-  type SyncResult,
-  type Conflict,
-} from '@/lib/filesystem'
+import { IndexedDBAdapter, isIndexedDBSupported } from '@/lib/filesystem'
 import { loadProject, serializeNode } from '@/lib/project'
 import { useNodesStore } from '@/store/useNodesStore'
 import { useProjectStore } from '@/store/useProjectStore'
+import { useWorkspaceStore } from '@/store/useWorkspaceStore'
 import type { ForgeNode } from '@/types/nodes'
-import {
-  SYNC_INTERVALS,
-  type SyncInterval,
-} from '@/components/sync/SyncStatusIndicator'
+import { createProject } from '@/types/project'
 
 // Extend Window interface for E2E communication
 declare global {
@@ -38,125 +28,31 @@ declare global {
   }
 }
 
-export interface HybridPersistenceState {
+export interface IndexedDBPersistenceState {
   /** Whether the service is initialized */
   isInitialized: boolean
   /** Whether the service is currently loading data */
   isLoading: boolean
-  /** Connection status to file system */
-  connectionStatus: ConnectionStatus
-  /** Sync status with file system */
-  syncStatus: SyncStatus
   /** Whether IndexedDB has stored data */
   hasStoredData: boolean
-  /** Whether file system permission is needed */
-  needsPermission: boolean
-  /** Whether sync is in progress */
-  isSyncing: boolean
-  /** Last sync result */
-  lastSyncResult: SyncResult | null
-  /** Pending conflicts */
-  conflicts: Conflict[]
   /** Error message if any */
   error: string | null
   /** Persistence errors (write/delete failures) that need user attention */
   persistenceErrors: string[]
-  /** Whether auto-sync is enabled */
-  autoSyncEnabled: boolean
-  /** Sync interval in seconds */
-  syncInterval: SyncInterval
 }
 
-export interface HybridPersistenceActions {
-  /** Connect to file system (opens folder picker) */
-  connectToFileSystem: () => Promise<boolean>
-  /** Request permission for stored handle (must be called from user gesture) */
-  requestPermission: () => Promise<boolean>
-  /** Disconnect from file system */
-  disconnect: (clearHandle?: boolean) => Promise<void>
-  /** Sync to file system */
-  syncToFileSystem: () => Promise<SyncResult | null>
-  /** Sync from file system */
-  syncFromFileSystem: () => Promise<SyncResult | null>
-  /** Resolve a conflict */
-  resolveConflict: (
-    conflictId: string,
-    resolution: 'keepLocal' | 'keepExternal'
-  ) => Promise<boolean>
+export interface IndexedDBPersistenceActions {
   /** Clear IndexedDB data (for troubleshooting) */
   clearIndexedDB: () => Promise<void>
   /** Clear persistence errors */
   clearPersistenceErrors: () => void
-  /** Set auto-sync enabled */
-  setAutoSyncEnabled: (enabled: boolean) => void
-  /** Set sync interval in seconds */
-  setSyncInterval: (interval: SyncInterval) => void
 }
 
-export type UseHybridPersistenceReturn = HybridPersistenceState &
-  HybridPersistenceActions
+export type UseHybridPersistenceReturn = IndexedDBPersistenceState &
+  IndexedDBPersistenceActions
 
 // Default project ID for single-project mode
 const DEFAULT_PROJECT_ID = 'default'
-
-// Sync settings localStorage keys
-const SYNC_SETTINGS_KEY = 'forge-sync-settings'
-const DEFAULT_AUTO_SYNC = true
-const DEFAULT_SYNC_INTERVAL: SyncInterval = 30 // seconds
-
-/**
- * Load sync settings from localStorage
- */
-function loadSyncSettings(): {
-  autoSyncEnabled: boolean
-  syncInterval: SyncInterval
-} {
-  if (typeof window === 'undefined') {
-    return {
-      autoSyncEnabled: DEFAULT_AUTO_SYNC,
-      syncInterval: DEFAULT_SYNC_INTERVAL,
-    }
-  }
-  try {
-    const stored = localStorage.getItem(SYNC_SETTINGS_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      // Validate syncInterval is a valid SyncInterval value
-      const validIntervals = SYNC_INTERVALS.map((i) => i.value)
-      const parsedInterval = parsed.syncInterval
-      const syncInterval =
-        typeof parsedInterval === 'number' &&
-        validIntervals.includes(parsedInterval as SyncInterval)
-          ? (parsedInterval as SyncInterval)
-          : DEFAULT_SYNC_INTERVAL
-      return {
-        autoSyncEnabled: parsed.autoSyncEnabled ?? DEFAULT_AUTO_SYNC,
-        syncInterval,
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return {
-    autoSyncEnabled: DEFAULT_AUTO_SYNC,
-    syncInterval: DEFAULT_SYNC_INTERVAL,
-  }
-}
-
-/**
- * Save sync settings to localStorage
- */
-function saveSyncSettings(settings: {
-  autoSyncEnabled: boolean
-  syncInterval: SyncInterval
-}): void {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify(settings))
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 /**
  * Get the file path for a node based on its type
@@ -275,44 +171,30 @@ async function deleteNodeFromIndexedDB(
 }
 
 /**
- * Hook for managing hybrid persistence
+ * Hook for managing IndexedDB persistence
  */
 export function useHybridPersistence(): UseHybridPersistenceReturn {
-  // Load sync settings from localStorage on mount
-  const initialSyncSettings = loadSyncSettings()
-
-  const [state, setState] = useState<HybridPersistenceState>({
+  const [state, setState] = useState<IndexedDBPersistenceState>({
     isInitialized: false,
     isLoading: true,
-    connectionStatus: 'disconnected',
-    syncStatus: 'idle',
     hasStoredData: false,
-    needsPermission: false,
-    isSyncing: false,
-    lastSyncResult: null,
-    conflicts: [],
     error: null,
     persistenceErrors: [],
-    autoSyncEnabled: initialSyncSettings.autoSyncEnabled,
-    syncInterval: initialSyncSettings.syncInterval,
   })
 
-  // Service references
-  const serviceRef = useRef<HybridPersistenceService | null>(null)
-  const syncServiceRef = useRef<SyncService | null>(null)
-  const conflictServiceRef = useRef<ConflictService | null>(null)
+  // IndexedDB adapter reference
+  const adapterRef = useRef<IndexedDBAdapter | null>(null)
 
-  // Ref to avoid stale closure in background sync interval
-  const isSyncingRef = useRef(state.isSyncing)
+  // Get active project ID from workspace store
+  const activeProjectId = useWorkspaceStore((s) => s.activeProjectId)
+  const projectId = activeProjectId || DEFAULT_PROJECT_ID
 
-  // Keep isSyncingRef in sync with state
-  useEffect(() => {
-    isSyncingRef.current = state.isSyncing
-  }, [state.isSyncing])
+  // Track current project ID to detect switches
+  const currentProjectIdRef = useRef<string>(projectId)
 
   // Store actions
   const setNodes = useNodesStore((s) => s.setNodes)
-  const loadProjectAction = useProjectStore((s) => s.loadProject)
+  const setActiveNode = useNodesStore((s) => s.setActiveNode)
   const setAdapter = useProjectStore((s) => s.setAdapter)
 
   /**
@@ -360,88 +242,108 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
   )
 
   /**
-   * Initialize the hybrid persistence service
+   * Initialize IndexedDB
+   * Re-runs when projectId changes to switch projects
    */
   useEffect(() => {
-    if (!isHybridPersistenceSupported()) {
+    if (!isIndexedDBSupported()) {
       setState((prev) => ({
         ...prev,
         isInitialized: true,
         isLoading: false,
-        error: 'Hybrid persistence is not supported in this browser',
+        error: 'IndexedDB is not supported in this browser',
       }))
       return
     }
 
-    let mounted = true
-    const service = new HybridPersistenceService(DEFAULT_PROJECT_ID)
-    serviceRef.current = service
-
-    // Handle persistence events
-    const unsubscribe = service.subscribe((event: PersistenceEvent) => {
-      if (!mounted) return
-
-      switch (event.type) {
-        case 'connection-changed':
-          setState((prev) => ({
-            ...prev,
-            connectionStatus: event.status,
-            needsPermission: event.status === 'permission-needed',
-          }))
-          break
-        case 'sync-changed':
-          setState((prev) => ({ ...prev, syncStatus: event.status }))
-          break
-        case 'permission-request':
-          setState((prev) => ({ ...prev, needsPermission: true }))
-          break
-        case 'error':
-          setState((prev) => ({ ...prev, error: event.message }))
-          break
+    // Check if this is a project switch
+    const isProjectSwitch = currentProjectIdRef.current !== projectId
+    if (isProjectSwitch) {
+      console.log(
+        `[useHybridPersistence] Switching from project "${currentProjectIdRef.current}" to "${projectId}"`
+      )
+      // Clean up old adapter
+      if (adapterRef.current) {
+        adapterRef.current.close()
+        adapterRef.current = null
       }
-    })
 
-    // Initialize the service
+      // Reset state for new project
+      setState((prev) => ({
+        ...prev,
+        isInitialized: false,
+        isLoading: true,
+        hasStoredData: false,
+        error: null,
+        persistenceErrors: [],
+      }))
+    }
+    currentProjectIdRef.current = projectId
+
+    let mounted = true
+
     const init = async () => {
       try {
-        await service.initialize()
+        // Create IndexedDB adapter (it initializes lazily on first use)
+        const adapter = new IndexedDBAdapter(projectId)
+        adapterRef.current = adapter
 
-        // Check if we have stored data
-        const indexedDBAdapter = service.getIndexedDBAdapter()
-        let hasData = false
+        // Get project info from workspace store (needed for project name)
+        const workspaceProjects = useWorkspaceStore.getState().projects
+        const projectInfo = workspaceProjects.find((p) => p.id === projectId)
 
-        if (indexedDBAdapter) {
-          // Check if there's any data in IndexedDB
-          const files = await indexedDBAdapter.listDirectory('/', {
-            recursive: false,
-          })
-          hasData = files.length > 0
-
-          if (hasData) {
-            // Load data from IndexedDB
-            await loadFromIndexedDB(indexedDBAdapter)
-          }
-
-          // Set up sync service
-          syncServiceRef.current = new SyncService(indexedDBAdapter)
-
-          // Connect sync service if we have file system access
-          const fsAdapter = service.getFileSystemAdapter()
-          if (fsAdapter) {
-            syncServiceRef.current.connect(fsAdapter)
-            conflictServiceRef.current = new ConflictService(indexedDBAdapter)
-            conflictServiceRef.current.connect(fsAdapter)
-          }
+        // Set the project name on the adapter so loadProject can use it
+        if (projectInfo) {
+          adapter.setProjectName(projectInfo.name)
         }
 
+        // Check if we have stored data
+        let hasData = false
+        try {
+          const files = await adapter.listDirectory('/', { recursive: false })
+          hasData = files.length > 0
+        } catch {
+          // Directory may not exist yet for new projects
+          hasData = false
+        }
+
+        // Load data from IndexedDB
+        let loadedSuccessfully = false
+        if (hasData) {
+          loadedSuccessfully = await loadFromIndexedDB(adapter)
+        }
+
+        // If no data loaded, create an empty project from workspace metadata
+        if (!loadedSuccessfully && projectInfo) {
+          // Create empty project with workspace metadata
+          const emptyProject = createProject(
+            projectInfo.id,
+            projectInfo.name,
+            projectInfo.path,
+            projectInfo.description
+          )
+
+          // Set up the project store with the empty project
+          useProjectStore.setState({
+            project: emptyProject,
+            isDirty: false,
+            error: null,
+            parseErrors: [],
+          })
+
+          // Update project store with IndexedDB adapter
+          setAdapter(adapter)
+
+          // Clear nodes for new/empty project
+          setNodes(new Map())
+          setActiveNode(null)
+        }
         if (mounted) {
           setState((prev) => ({
             ...prev,
             isInitialized: true,
             isLoading: false,
             hasStoredData: hasData,
-            connectionStatus: service.getConnectionStatus(),
-            syncStatus: service.getSyncStatus(),
           }))
           // Signal to E2E tests that hybrid persistence is ready
           if (import.meta.env.DEV) {
@@ -470,14 +372,12 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
 
     return () => {
       mounted = false
-      unsubscribe()
-      service.close()
       // Clean up E2E flag
       if (import.meta.env.DEV) {
         window.__e2eHybridPersistenceReady = false
       }
     }
-  }, [loadFromIndexedDB])
+  }, [projectId, loadFromIndexedDB, setNodes, setActiveNode])
 
   /**
    * Subscribe to store changes and sync to IndexedDB
@@ -487,11 +387,8 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
     // Only set up subscription after initialization is complete
     if (!state.isInitialized) return
 
-    const service = serviceRef.current
-    if (!service) return
-
-    const indexedDBAdapter = service.getIndexedDBAdapter()
-    if (!indexedDBAdapter) return
+    const adapter = adapterRef.current
+    if (!adapter) return
 
     // Track previous nodes to detect changes
     // Use current state as baseline (may already have data from E2E setup)
@@ -521,7 +418,7 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
         const previousNode = previousNodesSnapshot.get(id)
         if (!previousNode || previousNode !== node) {
           // Node was added or updated - write to IndexedDB
-          writePromises.push(writeNodeToIndexedDB(indexedDBAdapter, node))
+          writePromises.push(writeNodeToIndexedDB(adapter, node))
         }
       }
 
@@ -530,7 +427,7 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
         if (!currentNodes.has(id)) {
           // Node was deleted - remove from IndexedDB
           writePromises.push(
-            deleteNodeFromIndexedDB(indexedDBAdapter, id, previousNode.type)
+            deleteNodeFromIndexedDB(adapter, id, previousNode.type)
           )
         }
       }
@@ -550,6 +447,17 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
       const previousNodesSnapshot = new Map(previousNodes)
       previousNodes = new Map(currentNodes)
 
+      // Update workspace store node count if it changed
+      if (currentNodes.size !== previousNodesSnapshot.size) {
+        const activeId = useWorkspaceStore.getState().activeProjectId
+        if (activeId) {
+          useWorkspaceStore.getState().updateProject(activeId, {
+            nodeCount: currentNodes.size,
+            modifiedAt: new Date(),
+          })
+        }
+      }
+
       // Process async but don't block the subscription
       processWriteOperations(currentNodes, previousNodesSnapshot).catch(
         (error) => {
@@ -568,7 +476,7 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
     const currentNodes = useNodesStore.getState().nodes
     if (currentNodes.size > 0) {
       const initialWritePromises = Array.from(currentNodes.values()).map(
-        (node) => writeNodeToIndexedDB(indexedDBAdapter, node)
+        (node) => writeNodeToIndexedDB(adapter, node)
       )
       Promise.all(initialWritePromises)
         .then((results) => {
@@ -593,247 +501,14 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
   }, [state.isInitialized])
 
   /**
-   * Connect to file system
-   */
-  const connectToFileSystem = useCallback(async (): Promise<boolean> => {
-    const service = serviceRef.current
-    if (!service) return false
-
-    setState((prev) => ({ ...prev, isLoading: true, error: null }))
-
-    try {
-      const success = await service.connectToDirectory()
-
-      if (success) {
-        const fsAdapter = service.getFileSystemAdapter()
-        const indexedDBAdapter = service.getIndexedDBAdapter()
-        const rootPath = fsAdapter?.getRootPath()
-
-        if (fsAdapter && rootPath) {
-          // Load project from file system
-          const loaded = await loadProjectAction(fsAdapter, rootPath)
-
-          if (loaded && indexedDBAdapter) {
-            // Sync data to IndexedDB for offline access
-            if (syncServiceRef.current) {
-              syncServiceRef.current.connect(fsAdapter)
-            } else {
-              syncServiceRef.current = new SyncService(indexedDBAdapter)
-              syncServiceRef.current.connect(fsAdapter)
-            }
-
-            // Set up conflict service
-            conflictServiceRef.current = new ConflictService(indexedDBAdapter)
-            conflictServiceRef.current.connect(fsAdapter)
-
-            // Sync from file system to IndexedDB
-            await syncServiceRef.current.syncFromFileSystem()
-          }
-        }
-
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          connectionStatus: 'connected',
-          syncStatus: 'synced',
-          hasStoredData: true,
-        }))
-        return true
-      }
-
-      setState((prev) => ({ ...prev, isLoading: false }))
-      return false
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to connect',
-      }))
-      return false
-    }
-  }, [loadProjectAction])
-
-  /**
-   * Request permission for stored handle
-   */
-  const requestPermission = useCallback(async (): Promise<boolean> => {
-    const service = serviceRef.current
-    if (!service) return false
-
-    setState((prev) => ({ ...prev, isLoading: true, error: null }))
-
-    try {
-      const success = await service.requestPermission()
-
-      if (success) {
-        const fsAdapter = service.getFileSystemAdapter()
-        const indexedDBAdapter = service.getIndexedDBAdapter()
-
-        if (fsAdapter && indexedDBAdapter) {
-          // Set up sync service
-          if (syncServiceRef.current) {
-            syncServiceRef.current.connect(fsAdapter)
-          } else {
-            syncServiceRef.current = new SyncService(indexedDBAdapter)
-            syncServiceRef.current.connect(fsAdapter)
-          }
-
-          // Set up conflict service
-          conflictServiceRef.current = new ConflictService(indexedDBAdapter)
-          conflictServiceRef.current.connect(fsAdapter)
-
-          // Update project store with file system adapter
-          setAdapter(fsAdapter)
-        }
-
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          needsPermission: false,
-          connectionStatus: 'connected',
-          syncStatus: 'synced',
-        }))
-        return true
-      }
-
-      setState((prev) => ({ ...prev, isLoading: false }))
-      return false
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Permission denied',
-      }))
-      return false
-    }
-  }, [setAdapter])
-
-  /**
-   * Disconnect from file system
-   */
-  const disconnect = useCallback(async (clearHandle = false): Promise<void> => {
-    const service = serviceRef.current
-    if (!service) return
-
-    await service.disconnect(clearHandle)
-
-    if (syncServiceRef.current) {
-      syncServiceRef.current.disconnect()
-    }
-
-    setState((prev) => ({
-      ...prev,
-      connectionStatus: 'disconnected',
-      syncStatus: 'offline',
-      needsPermission: false,
-    }))
-  }, [])
-
-  /**
-   * Sync to file system
-   */
-  const syncToFileSystem = useCallback(async (): Promise<SyncResult | null> => {
-    const syncService = syncServiceRef.current
-    if (!syncService || !syncService.isConnected()) return null
-
-    setState((prev) => ({ ...prev, isSyncing: true }))
-
-    try {
-      const result = await syncService.syncToFileSystem()
-      setState((prev) => ({
-        ...prev,
-        isSyncing: false,
-        lastSyncResult: result,
-        syncStatus: result.success ? 'synced' : 'error',
-      }))
-      return result
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isSyncing: false,
-        error: error instanceof Error ? error.message : 'Sync failed',
-      }))
-      return null
-    }
-  }, [])
-
-  /**
-   * Sync from file system
-   */
-  const syncFromFileSystem =
-    useCallback(async (): Promise<SyncResult | null> => {
-      const syncService = syncServiceRef.current
-      if (!syncService || !syncService.isConnected()) return null
-
-      setState((prev) => ({ ...prev, isSyncing: true }))
-
-      try {
-        const result = await syncService.syncFromFileSystem()
-        setState((prev) => ({
-          ...prev,
-          isSyncing: false,
-          lastSyncResult: result,
-          syncStatus: result.success ? 'synced' : 'error',
-        }))
-        return result
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isSyncing: false,
-          error: error instanceof Error ? error.message : 'Sync failed',
-        }))
-        return null
-      }
-    }, [])
-
-  /**
-   * Resolve a conflict
-   */
-  const resolveConflict = useCallback(
-    async (
-      conflictId: string,
-      resolution: 'keepLocal' | 'keepExternal'
-    ): Promise<boolean> => {
-      const conflictService = conflictServiceRef.current
-      if (!conflictService) return false
-
-      try {
-        const result = await conflictService.resolveConflict(
-          conflictId,
-          resolution
-        )
-
-        if (result.success) {
-          // Update conflicts list
-          const pending = conflictService.getPendingConflicts()
-          setState((prev) => ({ ...prev, conflicts: pending }))
-        }
-
-        return result.success
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to resolve conflict',
-        }))
-        return false
-      }
-    },
-    []
-  )
-
-  /**
    * Clear IndexedDB data
    */
   const clearIndexedDB = useCallback(async (): Promise<void> => {
-    const service = serviceRef.current
-    const indexedDBAdapter = service?.getIndexedDBAdapter()
+    const adapter = adapterRef.current
 
-    if (indexedDBAdapter) {
+    if (adapter) {
       // Close and delete the database
-      indexedDBAdapter.close()
+      adapter.close()
       await new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase('forge-db')
         request.onsuccess = () => resolve()
@@ -844,8 +519,6 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
     setState((prev) => ({
       ...prev,
       hasStoredData: false,
-      connectionStatus: 'disconnected',
-      syncStatus: 'idle',
       persistenceErrors: [],
     }))
   }, [])
@@ -857,94 +530,14 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
     setState((prev) => ({ ...prev, persistenceErrors: [] }))
   }, [])
 
-  /**
-   * Set auto-sync enabled
-   */
-  const setAutoSyncEnabled = useCallback((enabled: boolean) => {
-    setState((prev) => {
-      const newSettings = {
-        autoSyncEnabled: enabled,
-        syncInterval: prev.syncInterval,
-      }
-      saveSyncSettings(newSettings)
-      return { ...prev, autoSyncEnabled: enabled }
-    })
-  }, [])
-
-  /**
-   * Set sync interval
-   */
-  const setSyncInterval = useCallback((interval: SyncInterval) => {
-    setState((prev) => {
-      const newSettings = {
-        autoSyncEnabled: prev.autoSyncEnabled,
-        syncInterval: interval,
-      }
-      saveSyncSettings(newSettings)
-      return { ...prev, syncInterval: interval }
-    })
-  }, [])
-
-  /**
-   * Background sync interval
-   * Only syncs to file system when connected and auto-sync is enabled
-   */
-  useEffect(() => {
-    // Only run if initialized, connected, and auto-sync enabled
-    if (
-      !state.isInitialized ||
-      !state.autoSyncEnabled ||
-      state.connectionStatus !== 'connected'
-    ) {
-      return
-    }
-
-    const syncService = syncServiceRef.current
-    if (!syncService) return
-
-    // Set up interval for background sync
-    const intervalId = setInterval(async () => {
-      // Don't sync if page is hidden (Page Visibility API)
-      if (document.hidden) {
-        return
-      }
-
-      // Don't sync if already syncing (use ref to avoid stale closure)
-      if (isSyncingRef.current) {
-        return
-      }
-
-      try {
-        await syncService.syncToFileSystem()
-      } catch (error) {
-        console.warn('[useHybridPersistence] Background sync failed:', error)
-      }
-    }, state.syncInterval * 1000)
-
-    return () => clearInterval(intervalId)
-  }, [
-    state.isInitialized,
-    state.autoSyncEnabled,
-    state.connectionStatus,
-    state.syncInterval,
-  ])
-
   return {
     ...state,
-    connectToFileSystem,
-    requestPermission,
-    disconnect,
-    syncToFileSystem,
-    syncFromFileSystem,
-    resolveConflict,
     clearIndexedDB,
     clearPersistenceErrors,
-    setAutoSyncEnabled,
-    setSyncInterval,
   }
 }
 
 /**
- * Check if hybrid persistence is supported
+ * Check if IndexedDB persistence is supported
  */
-export { isHybridPersistenceSupported }
+export { isIndexedDBSupported as isHybridPersistenceSupported }
