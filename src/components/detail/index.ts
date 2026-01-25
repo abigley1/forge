@@ -46,6 +46,11 @@ export type {
 export { MilestoneSelector, extractMilestones } from './MilestoneSelector'
 export type { MilestoneSelectorProps } from './MilestoneSelector'
 
+export { AttachmentsPanel } from './AttachmentsPanel'
+export type { AttachmentsPanelProps } from './AttachmentsPanel'
+
+export { ImageViewer } from './ImageViewer'
+
 // Main frontmatter editor
 export { FrontmatterEditor } from './FrontmatterEditor'
 export type { FrontmatterEditorProps } from './FrontmatterEditor'
