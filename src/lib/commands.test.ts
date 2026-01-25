@@ -33,6 +33,7 @@ function createMockContext(
     setStatusFilter: vi.fn(),
     clearFilters: vi.fn(),
     openTemplateManager: vi.fn(),
+    openQuickCapture: vi.fn(),
     undo: vi.fn(),
     redo: vi.fn(),
     canUndo: vi.fn(() => false),

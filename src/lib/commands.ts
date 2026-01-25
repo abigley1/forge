@@ -129,7 +129,7 @@ export const createCommands: CommandInput[] = [
     name: 'Create New Node...',
     description: 'Open the create node dialog',
     category: 'create',
-    shortcut: { key: 'N', ctrl: true, shift: true },
+    // Note: No shortcut - Ctrl+Shift+N is used by Quick Capture
     icon: 'Plus',
     keywords: ['new', 'add', 'node', 'create'],
     execute: (ctx) => ctx.createNode('task'), // Opens create dialog; type can be changed in the dialog
@@ -159,6 +159,16 @@ export const viewCommands: CommandInput[] = [
     icon: 'Share2',
     keywords: ['graph', 'network', 'visualization', 'nodes'],
     execute: (ctx) => ctx.setActiveView('graph'),
+  },
+  {
+    id: 'switch-to-kanban',
+    name: 'Switch to Kanban View',
+    description: 'Show the Kanban board view for tasks',
+    category: 'view',
+    shortcut: { key: '3', ctrl: true },
+    icon: 'Columns3',
+    keywords: ['kanban', 'board', 'tasks', 'columns', 'status'],
+    execute: (ctx) => ctx.setActiveView('kanban'),
   },
   {
     id: 'toggle-sidebar',
@@ -226,6 +236,16 @@ export const actionCommands: CommandInput[] = [
     keywords: ['redo', 'forward'],
     execute: (ctx) => ctx.redo(),
     isAvailable: (ctx) => ctx.canRedo(),
+  },
+  {
+    id: 'quick-capture',
+    name: 'Quick Capture',
+    description: 'Quickly capture a note without leaving the current view',
+    category: 'actions',
+    shortcut: { key: 'N', ctrl: true, shift: true },
+    icon: 'FileText',
+    keywords: ['quick', 'capture', 'note', 'inbox', 'idea'],
+    execute: (ctx) => ctx.openQuickCapture(),
   },
 ]
 

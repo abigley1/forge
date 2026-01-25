@@ -76,6 +76,8 @@ export interface DecisionCriterion {
   weight: number
   /** Optional unit (e.g., "Nm", "V", "$") */
   unit?: string
+  /** Optional link to a component field (e.g., "cost", "supplier", or custom field name) */
+  linkedField?: string
 }
 
 /**
@@ -86,6 +88,50 @@ export interface ChecklistItem {
   text: string
   completed: boolean
 }
+
+/**
+ * An attachment on a node (PDF, image, or text file)
+ */
+export interface Attachment {
+  /** Unique identifier for the attachment */
+  id: string
+  /** Original filename */
+  name: string
+  /** Relative path from project root (e.g., attachments/node-id/filename.pdf) */
+  path: string
+  /** MIME type (e.g., application/pdf, image/png) */
+  type: string
+  /** File size in bytes */
+  size: number
+  /** ISO timestamp when the attachment was added */
+  addedAt: string
+}
+
+/**
+ * Supported attachment MIME types
+ */
+export const SUPPORTED_ATTACHMENT_TYPES = [
+  'application/pdf',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/svg+xml',
+  'image/webp',
+  'image/gif',
+  'text/plain',
+  'text/markdown',
+] as const
+
+/**
+ * Type derived from SUPPORTED_ATTACHMENT_TYPES for type-safe MIME type checking
+ */
+export type SupportedAttachmentType =
+  (typeof SUPPORTED_ATTACHMENT_TYPES)[number]
+
+/**
+ * Maximum attachment file size in bytes (default: 50MB)
+ */
+export const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024
 
 // ============================================================================
 // Base Node Interface
@@ -107,6 +153,8 @@ export interface BaseNode {
   dates: NodeDates
   /** Markdown content body */
   content: string
+  /** File attachments (PDFs, images, text files) */
+  attachments?: Attachment[]
 }
 
 // ============================================================================
@@ -366,13 +414,15 @@ export function createLinkedDecisionOption(
 export function createDecisionCriterion(
   name: string,
   weight: number = 5,
-  unit?: string
+  unit?: string,
+  linkedField?: string
 ): DecisionCriterion {
   return {
     id: crypto.randomUUID(),
     name,
     weight,
     unit,
+    linkedField,
   }
 }
 

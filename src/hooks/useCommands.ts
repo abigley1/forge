@@ -32,6 +32,8 @@ export interface CommandCallbacks {
   onOpenSettings?: () => void
   /** Called when template manager should open */
   onOpenTemplateManager?: () => void
+  /** Called when quick capture modal should open */
+  onOpenQuickCapture?: () => void
   /** Called to toggle dark mode */
   onToggleDarkMode?: () => void
   /** Get list of recent node IDs */
@@ -115,7 +117,7 @@ export function useCommands(
           warnMissingCallback('onCreateNode')
         }
       },
-      setActiveView: (view: 'outline' | 'graph') => {
+      setActiveView: (view: 'outline' | 'graph' | 'kanban') => {
         setActiveView(view)
       },
       toggleSidebar: () => {
@@ -178,6 +180,13 @@ export function useCommands(
           cbs.onOpenTemplateManager()
         } else {
           warnMissingCallback('onOpenTemplateManager')
+        }
+      },
+      openQuickCapture: () => {
+        if (cbs.onOpenQuickCapture) {
+          cbs.onOpenQuickCapture()
+        } else {
+          warnMissingCallback('onOpenQuickCapture')
         }
       },
       undo: () => {

@@ -6,7 +6,11 @@
  */
 
 import { z } from 'zod'
-import { NodeType } from '../types/nodes'
+import {
+  NodeType,
+  SUPPORTED_ATTACHMENT_TYPES,
+  MAX_ATTACHMENT_SIZE,
+} from '../types/nodes'
 import type { ForgeNode } from '../types/nodes'
 
 // ============================================================================
@@ -78,6 +82,7 @@ const decisionCriterionSchema = z.object({
   name: z.string(),
   weight: z.number().min(0).max(10).default(5),
   unit: z.string().optional(),
+  linkedField: z.string().optional(),
 })
 
 /**
@@ -87,6 +92,31 @@ const checklistItemSchema = z.object({
   id: z.string(),
   text: z.string(),
   completed: z.boolean().default(false),
+})
+
+/**
+ * Schema for Attachment with proper validation
+ */
+const attachmentSchema = z.object({
+  id: z.string().uuid({ message: 'Attachment ID must be a valid UUID' }),
+  name: z.string().min(1, 'Attachment name is required'),
+  path: z
+    .string()
+    .regex(/^attachments\/[^/]+\/[^/]+$/, 'Invalid attachment path format'),
+  type: z.enum(SUPPORTED_ATTACHMENT_TYPES, {
+    errorMap: () => ({ message: 'Unsupported attachment type' }),
+  }),
+  size: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(
+      MAX_ATTACHMENT_SIZE,
+      `Attachment size must not exceed ${MAX_ATTACHMENT_SIZE / 1024 / 1024}MB`
+    ),
+  addedAt: z
+    .string()
+    .datetime({ message: 'Invalid datetime format for addedAt' }),
 })
 
 // ============================================================================
@@ -101,6 +131,7 @@ const baseNodeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   tags: stringArraySchema,
   content: z.string().default(''),
+  attachments: z.array(attachmentSchema).optional(),
 })
 
 /**

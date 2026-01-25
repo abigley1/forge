@@ -1060,3 +1060,203 @@ export function exportBOM(project: Project): BOMExportResult {
     filename,
   }
 }
+
+// ============================================================================
+// Export to Folder (File System Access API)
+// ============================================================================
+
+/**
+ * Result of exporting a project to a folder
+ */
+export interface ExportToFolderResult {
+  /** Whether the export was successful */
+  success: boolean
+  /** Number of files exported */
+  fileCount: number
+  /** Directory name where files were saved (if available) */
+  directoryName?: string
+  /** Error message if export failed */
+  error?: string
+}
+
+/**
+ * Check if the File System Access API is supported
+ */
+export function isFileSystemAccessSupported(): boolean {
+  return 'showDirectoryPicker' in window
+}
+
+/**
+ * Export a project to a folder using the File System Access API
+ *
+ * This function:
+ * 1. Prompts the user to select a folder via showDirectoryPicker()
+ * 2. Creates subdirectories for each node type (decisions/, components/, tasks/, notes/)
+ * 3. Writes each node as a markdown file with YAML frontmatter
+ * 4. Writes project.json with project metadata
+ *
+ * @param nodes - Map of nodes to export
+ * @param projectName - Name of the project (used in project.json)
+ * @param projectMetadata - Optional project metadata to include
+ * @returns ExportToFolderResult indicating success/failure
+ */
+export async function exportProjectToFolder(
+  nodes: Map<string, ForgeNode>,
+  projectName: string,
+  projectMetadata?: {
+    id?: string
+    description?: string
+    createdAt?: Date
+    modifiedAt?: Date
+    nodeOrder?: string[]
+    nodePositions?: Record<string, { x: number; y: number }>
+  }
+): Promise<ExportToFolderResult> {
+  // Check if File System Access API is supported
+  if (!isFileSystemAccessSupported()) {
+    return {
+      success: false,
+      fileCount: 0,
+      error:
+        'File System Access API is not supported in this browser. Try using Chrome, Edge, or Opera.',
+    }
+  }
+
+  try {
+    // Prompt user to select a directory
+    const directoryHandle = await (
+      window as Window & {
+        showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
+      }
+    ).showDirectoryPicker()
+
+    // Create subdirectories for each node type
+    const directories = [
+      'decisions',
+      'components',
+      'tasks',
+      'notes',
+      'subsystems',
+      'assemblies',
+      'modules',
+    ]
+
+    const dirHandles: Record<string, FileSystemDirectoryHandle> = {}
+    for (const dir of directories) {
+      try {
+        dirHandles[dir] = await directoryHandle.getDirectoryHandle(dir, {
+          create: true,
+        })
+      } catch (error) {
+        console.warn(`Failed to create directory ${dir}:`, error)
+      }
+    }
+
+    // Write each node to the appropriate directory
+    let fileCount = 0
+    const errors: string[] = []
+
+    for (const node of nodes.values()) {
+      const dirName = NODE_DIRECTORIES[node.type]
+      const dirHandle = dirHandles[dirName]
+
+      if (!dirHandle) {
+        errors.push(`No directory handle for type ${node.type}`)
+        continue
+      }
+
+      try {
+        // Create the file
+        const filename = `${node.id}.md`
+        const fileHandle = await dirHandle.getFileHandle(filename, {
+          create: true,
+        })
+
+        // Generate markdown content
+        const content = exportNodeToMarkdown(node)
+
+        // Write the content
+        const writable = await fileHandle.createWritable()
+        await writable.write(content)
+        await writable.close()
+
+        fileCount++
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        errors.push(`Failed to write ${node.id}.md: ${message}`)
+      }
+    }
+
+    // Write project.json
+    try {
+      const projectJsonHandle = await directoryHandle.getFileHandle(
+        'project.json',
+        { create: true }
+      )
+      const projectData = {
+        id:
+          projectMetadata?.id ||
+          projectName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, ''),
+        name: projectName,
+        description: projectMetadata?.description || '',
+        createdAt:
+          projectMetadata?.createdAt?.toISOString() || new Date().toISOString(),
+        modifiedAt:
+          projectMetadata?.modifiedAt?.toISOString() ||
+          new Date().toISOString(),
+        nodeOrder: projectMetadata?.nodeOrder || [],
+        nodePositions: projectMetadata?.nodePositions || {},
+      }
+      const projectJsonContent = JSON.stringify(projectData, null, 2)
+
+      const writable = await projectJsonHandle.createWritable()
+      await writable.write(projectJsonContent)
+      await writable.close()
+
+      fileCount++ // Count project.json
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      errors.push(`Failed to write project.json: ${message}`)
+    }
+
+    // Return result
+    if (errors.length > 0 && fileCount === 0) {
+      return {
+        success: false,
+        fileCount: 0,
+        directoryName: directoryHandle.name,
+        error: errors.join('; '),
+      }
+    }
+
+    return {
+      success: true,
+      fileCount,
+      directoryName: directoryHandle.name,
+      error:
+        errors.length > 0
+          ? `Some files failed: ${errors.join('; ')}`
+          : undefined,
+    }
+  } catch (error) {
+    // Handle user cancellation
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: false,
+        fileCount: 0,
+        error: 'Export cancelled',
+      }
+    }
+
+    // Handle other errors
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return {
+      success: false,
+      fileCount: 0,
+      error: `Export failed: ${message}`,
+    }
+  }
+}

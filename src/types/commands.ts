@@ -69,8 +69,8 @@ export interface CommandContext {
   navigateToNode: (nodeId: string) => void
   /** Create a new node of the specified type */
   createNode: (type: NodeType) => void
-  /** Switch between views (outline/graph) */
-  setActiveView: (view: 'outline' | 'graph') => void
+  /** Switch between views (outline/graph/kanban) */
+  setActiveView: (view: 'outline' | 'graph' | 'kanban') => void
   /** Toggle sidebar visibility */
   toggleSidebar: () => void
   /** Open export dialog */
@@ -91,6 +91,8 @@ export interface CommandContext {
   clearFilters: () => void
   /** Open template manager */
   openTemplateManager: () => void
+  /** Open quick capture modal */
+  openQuickCapture: () => void
   /** Undo last action */
   undo: () => void
   /** Redo last undone action */
