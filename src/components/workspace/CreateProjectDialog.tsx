@@ -4,7 +4,7 @@
  * Dialog for creating a new project with:
  * - Project name input (required)
  * - Description input (optional)
- * - Creates project in IndexedDB (no folder selection required)
+ * - Creates project via server API
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
@@ -15,7 +15,7 @@ import { Dialog } from '@/components/ui'
 import { useWorkspaceStore } from '@/store'
 import { slugify } from '@/lib/project'
 import { Z_MODAL } from '@/lib/z-index'
-import { IndexedDBAdapter } from '@/lib/filesystem'
+import { api } from '@/lib/api'
 
 // ============================================================================
 // Types
@@ -91,33 +91,28 @@ export function CreateProjectDialog({
       setError(null)
 
       try {
-        // Initialize IndexedDB storage for the new project
-        const adapter = new IndexedDBAdapter(id)
-        try {
-          // Create the directory structure for node types
-          await adapter.mkdir('/decisions')
-          await adapter.mkdir('/components')
-          await adapter.mkdir('/tasks')
-          await adapter.mkdir('/notes')
-          await adapter.mkdir('/subsystems')
-          await adapter.mkdir('/assemblies')
-          await adapter.mkdir('/modules')
-        } finally {
-          // Close the adapter - it will be reopened by useHybridPersistence
-          adapter.close()
+        // Create project via server API
+        const result = await api.createProject({
+          id,
+          name: name.trim(),
+          description: description.trim() || undefined,
+        })
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to create project')
         }
 
         // Add to workspace
         addProject({
           id,
           name: name.trim(),
-          path: `indexeddb://${id}`, // Virtual path indicating IndexedDB storage
+          path: '', // Server projects don't have local paths
           nodeCount: 0,
           modifiedAt: new Date(),
           description: description.trim() || undefined,
         })
 
-        // Set as active project - this triggers useHybridPersistence to switch
+        // Set as active project - this triggers useServerPersistence to load
         setActiveProject(id)
 
         // Notify parent
@@ -250,8 +245,8 @@ export function CreateProjectDialog({
 
               {/* Info about storage */}
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Your project will be stored in your browser. Use "Save to
-                Folder" in Project Settings to export to your file system.
+                Your project will be stored on the server and synced across
+                devices.
               </p>
             </div>
 

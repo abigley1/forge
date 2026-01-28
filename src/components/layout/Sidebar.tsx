@@ -58,7 +58,7 @@ import {
   CreateProjectDialog,
   ProjectSettingsDialog,
 } from '@/components/workspace'
-import { useOptionalHybridPersistence } from '@/contexts'
+import { useOptionalServerPersistence } from '@/contexts'
 import type { Project } from '@/types/project'
 import { createProjectMetadata } from '@/types/project'
 
@@ -411,8 +411,8 @@ export function Sidebar({ className }: SidebarProps) {
   const filters = useFilters()
   const sorting = useSorting()
 
-  // Hybrid persistence (optional - may not be available in tests)
-  const persistence = useOptionalHybridPersistence()
+  // Server persistence (optional - may not be available in tests)
+  const persistence = useOptionalServerPersistence()
 
   // Import/Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false)

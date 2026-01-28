@@ -3,12 +3,6 @@
  */
 
 export {
-  HybridPersistenceContext,
-  useHybridPersistenceContext,
-  useOptionalHybridPersistence,
-} from './HybridPersistenceContext'
-
-export {
   ServerPersistenceContext,
   useServerPersistenceContext,
   useOptionalServerPersistence,
