@@ -65,8 +65,8 @@ COPY --from=server-builder /build/server/dist ./server/dist
 COPY --from=server-builder /build/server/node_modules ./server/node_modules
 COPY --from=server-builder /build/server/package.json ./server/package.json
 
-# Create data directory and set ownership to node user (UID 1000, already exists in alpine)
-RUN mkdir -p /data && chown -R node:node /data /app
+# Create data directory
+RUN mkdir -p /data
 
 # Copy startup script
 COPY forge/run.sh /run.sh
@@ -86,8 +86,7 @@ EXPOSE 8099
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8099/api/health || exit 1
 
-# Run as non-root user (node user already exists in node:alpine)
-USER node
+# Run as root (standard for HA add-ons, container is already sandboxed)
 
 # Start server
 CMD ["/run.sh"]

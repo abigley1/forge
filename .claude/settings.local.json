@@ -134,7 +134,8 @@
       "Bash(docker login:*)",
       "Bash(docker buildx create:*)",
       "Bash(docker buildx use:*)",
-      "Bash(docker buildx build:*)"
+      "Bash(docker buildx build:*)",
+      "Bash(gh api:*)"
     ]
   },
   "enabledMcpjsonServers": ["forge"]

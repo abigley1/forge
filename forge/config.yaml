@@ -2,7 +2,7 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: Forge
-version: "0.0.1"
+version: "0.0.2"
 slug: forge
 description: Personal project brainstorming and tracking for hardware/engineering projects
 url: https://github.com/abigley1/forge
