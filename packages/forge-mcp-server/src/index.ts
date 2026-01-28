@@ -6,7 +6,7 @@
  * to AI agents like Claude Code.
  *
  * Usage:
- *   FORGE_PROJECT_PATH=/path/to/project forge-mcp-server
+ *   FORGE_API_URL=http://localhost:3000/api FORGE_PROJECT_ID=my-project forge-mcp-server
  *
  * Or configure in Claude Code settings:
  *   {
@@ -15,11 +15,15 @@
  *         "command": "npx",
  *         "args": ["forge-mcp-server"],
  *         "env": {
- *           "FORGE_PROJECT_PATH": "/path/to/your/project"
+ *           "FORGE_API_URL": "http://localhost:3000/api",
+ *           "FORGE_PROJECT_ID": "my-project"
  *         }
  *       }
  *     }
  *   }
+ *
+ * Legacy mode (filesystem-based) still supported:
+ *   FORGE_PROJECT_PATH=/path/to/project forge-mcp-server
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
@@ -44,43 +48,66 @@ import {
 import {
   loadProject,
   saveNode,
-  deleteNode,
-  createNode,
-  updateNode,
-  searchNodes,
+  deleteNode as deleteNodeFromFs,
+  createNode as createNodeInMemory,
+  updateNode as updateNodeInMemory,
+  searchNodes as searchNodesInMemory,
   listProjects,
 } from './project-loader.js'
 import {
   buildDependencyGraph,
   wouldCreateCycle,
-  getBlockedTasks,
-  getCriticalPath,
+  getBlockedTasks as getBlockedTasksFromMemory,
+  getCriticalPath as getCriticalPathFromMemory,
 } from './dependency-utils.js'
 import type { TaskNode, ComponentNode } from './types.js'
+import { createApiClient, type ApiClient, type ApiNode } from './api-client.js'
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
 interface ServerConfig {
-  projectPath: string
+  mode: 'api' | 'filesystem'
+  // API mode
+  apiUrl?: string
+  projectId?: string
+  // Filesystem mode (legacy)
+  projectPath?: string
   workspacePath?: string
 }
 
+let apiClient: ApiClient | null = null
+
 function loadConfig(): ServerConfig {
+  const apiUrl = process.env.FORGE_API_URL
+  const projectId = process.env.FORGE_PROJECT_ID
   const projectPath = process.env.FORGE_PROJECT_PATH
   const workspacePath = process.env.FORGE_WORKSPACE_PATH
 
-  if (!projectPath) {
-    console.error('Error: FORGE_PROJECT_PATH environment variable is required')
-    console.error('Set it to the path of your Forge project directory')
-    process.exit(1)
+  // Prefer API mode if both URL and project ID are set
+  if (apiUrl && projectId) {
+    apiClient = createApiClient({ baseUrl: apiUrl })
+    return {
+      mode: 'api',
+      apiUrl,
+      projectId,
+    }
   }
 
-  return {
-    projectPath,
-    workspacePath,
+  // Fall back to filesystem mode
+  if (projectPath) {
+    return {
+      mode: 'filesystem',
+      projectPath,
+      workspacePath,
+    }
   }
+
+  console.error('Error: Missing required configuration')
+  console.error('API mode: Set FORGE_API_URL and FORGE_PROJECT_ID')
+  console.error('Filesystem mode: Set FORGE_PROJECT_PATH')
+  process.exit(1)
 }
 
 // ============================================================================
@@ -126,9 +153,75 @@ function formatNodeForLLM(node: ForgeNode): Record<string, unknown> {
   }
 }
 
+/**
+ * Format an API node for LLM output
+ */
+function formatApiNodeForLLM(node: ApiNode): Record<string, unknown> {
+  return {
+    id: node.id,
+    type: node.type,
+    title: node.title,
+    tags: node.tags,
+    created: node.created_at,
+    modified: node.modified_at,
+    content:
+      (node.content ?? '').substring(0, 500) +
+      ((node.content?.length ?? 0) > 500 ? '...' : ''),
+    parent: node.parent_id,
+    ...(node.type === 'task' && {
+      status: node.status,
+      priority: node.priority,
+      dependsOn: node.depends_on,
+    }),
+    ...(node.type === 'decision' && {
+      status: node.status,
+      selected: node.selected_option,
+    }),
+    ...(node.type === 'component' && {
+      status: node.status,
+      cost: node.cost,
+      supplier: node.supplier,
+      partNumber: node.part_number,
+    }),
+    ...(['subsystem', 'assembly', 'module'].includes(node.type) && {
+      status: node.status,
+    }),
+  }
+}
+
+/**
+ * Check if we're in API mode
+ */
+function isApiMode(): boolean {
+  return config.mode === 'api' && apiClient !== null
+}
+
 async function ensureProjectLoaded(): Promise<Project> {
-  if (!currentProject) {
+  if (config.mode === 'api') {
+    // In API mode, we don't use the Project object for storage
+    // Return a minimal project for compatibility
+    if (!currentProject) {
+      currentProject = {
+        id: config.projectId!,
+        name: config.projectId!,
+        path: '',
+        nodes: new Map(),
+        metadata: {
+          name: config.projectId!,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+        },
+      }
+    }
+    return currentProject
+  }
+
+  // Filesystem mode
+  if (!currentProject && config.projectPath) {
     currentProject = await loadProject(config.projectPath)
+  }
+  if (!currentProject) {
+    throw new Error('No project loaded')
   }
   return currentProject
 }
@@ -140,12 +233,61 @@ async function ensureProjectLoaded(): Promise<Project> {
 async function handleCreateNode(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const input = CreateNodeInputSchema.parse(args)
 
-  const node = createNode(input)
+  if (isApiMode()) {
+    // API mode - create via HTTP
+    const result = await apiClient!.createNode(config.projectId!, {
+      type: input.type,
+      title: input.title,
+      content: input.content,
+      status: input.status,
+      priority: input.priority,
+      parent_id: input.parent,
+      tags: input.tags,
+      depends_on: input.dependsOn,
+      supplier: input.supplier,
+      part_number: input.partNumber,
+      cost: input.cost,
+    })
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              message: `Created ${result.data.type} node: ${result.data.title}`,
+              node: formatApiNodeForLLM(result.data),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
+  const node = createNodeInMemory(input)
   project.nodes.set(node.id, node)
-  await saveNode(config.projectPath, node)
+  await saveNode(config.projectPath!, node)
 
   return {
     content: [
@@ -168,9 +310,57 @@ async function handleCreateNode(
 async function handleUpdateNode(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const input = UpdateNodeInputSchema.parse(args)
 
+  if (isApiMode()) {
+    // API mode - update via HTTP
+    const result = await apiClient!.updateNode(config.projectId!, input.id, {
+      title: input.title,
+      content: input.content,
+      status: input.status,
+      priority: input.priority,
+      parent_id: input.parent,
+      tags: input.tags,
+      depends_on: input.dependsOn,
+      supplier: input.supplier,
+      part_number: input.partNumber,
+      cost: input.cost,
+    })
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              message: `Updated ${result.data.type} node: ${result.data.title}`,
+              node: formatApiNodeForLLM(result.data),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const existing = project.nodes.get(input.id)
   if (!existing) {
     return {
@@ -186,9 +376,9 @@ async function handleUpdateNode(
     }
   }
 
-  const updated = updateNode(existing, input)
+  const updated = updateNodeInMemory(existing, input)
   project.nodes.set(updated.id, updated)
-  await saveNode(config.projectPath, updated)
+  await saveNode(config.projectPath!, updated)
 
   return {
     content: [
@@ -211,9 +401,58 @@ async function handleUpdateNode(
 async function handleDeleteNode(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const input = DeleteNodeInputSchema.parse(args)
 
+  if (isApiMode()) {
+    // API mode - first get the node to get its info, then delete
+    const getResult = await apiClient!.getNode(config.projectId!, input.id)
+    if (!getResult.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: `Node not found: ${input.id}`,
+            }),
+          },
+        ],
+      }
+    }
+
+    const nodeInfo = getResult.data
+    const result = await apiClient!.deleteNode(config.projectId!, input.id)
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            message: `Deleted ${nodeInfo.type} node: ${nodeInfo.title}`,
+            deletedId: input.id,
+          }),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const node = project.nodes.get(input.id)
   if (!node) {
     return {
@@ -229,7 +468,7 @@ async function handleDeleteNode(
     }
   }
 
-  await deleteNode(config.projectPath, node.id, node.type)
+  await deleteNodeFromFs(config.projectPath!, node.id, node.type)
   project.nodes.delete(input.id)
 
   return {
@@ -249,10 +488,58 @@ async function handleDeleteNode(
 async function handleSearchNodes(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const input = SearchNodesInputSchema.parse(args)
 
-  const results = searchNodes(project.nodes, input)
+  if (isApiMode()) {
+    // API mode - use listNodes with filters
+    const result = await apiClient!.listNodes(config.projectId!, {
+      type: input.type as ApiNode['type'],
+      status: input.status,
+      tags: input.tags,
+      parent_id: input.parent,
+      q: input.query,
+    })
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    let nodes = result.data
+    if (input.limit) {
+      nodes = nodes.slice(0, input.limit)
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              count: nodes.length,
+              nodes: nodes.map(formatApiNodeForLLM),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
+  const results = searchNodesInMemory(project.nodes, input)
 
   return {
     content: [
@@ -275,7 +562,6 @@ async function handleSearchNodes(
 async function handleGetNode(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const { id } = args as { id: string }
 
   if (!id) {
@@ -292,6 +578,47 @@ async function handleGetNode(
     }
   }
 
+  if (isApiMode()) {
+    // API mode - get via HTTP
+    const result = await apiClient!.getNode(config.projectId!, id)
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: `Node not found: ${id}`,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Return full content for get_node
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              node: {
+                ...formatApiNodeForLLM(result.data),
+                content: result.data.content, // Full content
+              },
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const node = project.nodes.get(id)
   if (!node) {
     return {
@@ -331,6 +658,53 @@ async function handleGetNode(
 async function handleListProjects(): Promise<{
   content: Array<{ type: string; text: string }>
 }> {
+  if (isApiMode()) {
+    // API mode - list projects via HTTP
+    const result = await apiClient!.listProjects()
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              count: result.data.length,
+              projects: result.data.map((p) => ({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+              })),
+              currentProject: config.projectId
+                ? {
+                    id: config.projectId,
+                    name: config.projectId,
+                  }
+                : null,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
   const workspacePath = config.workspacePath || config.projectPath + '/..'
   const projects = await listProjects(workspacePath)
 
@@ -366,7 +740,6 @@ async function handleListProjects(): Promise<{
 async function handleAddDependency(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const { taskId, dependsOnId } = args as {
     taskId: string
     dependsOnId: string
@@ -386,6 +759,50 @@ async function handleAddDependency(
     }
   }
 
+  if (isApiMode()) {
+    // API mode - add dependency via HTTP
+    const result = await apiClient!.addDependency(
+      config.projectId!,
+      taskId,
+      dependsOnId
+    )
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Get the updated task to return
+    const taskResult = await apiClient!.getNode(config.projectId!, taskId)
+    const depResult = await apiClient!.getNode(config.projectId!, dependsOnId)
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            message: `Added dependency: ${taskResult.success ? taskResult.data.title : taskId} now depends on ${depResult.success ? depResult.data.title : dependsOnId}`,
+            task: taskResult.success
+              ? formatApiNodeForLLM(taskResult.data)
+              : null,
+          }),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const task = project.nodes.get(taskId)
   const dependency = project.nodes.get(dependsOnId)
 
@@ -465,13 +882,13 @@ async function handleAddDependency(
   }
 
   // Add the dependency
-  const updated = updateNode(taskNode, {
+  const updated = updateNodeInMemory(taskNode, {
     id: taskId,
     dependsOn: [...taskNode.dependsOn, dependsOnId],
   }) as TaskNode
 
   project.nodes.set(taskId, updated)
-  await saveNode(config.projectPath, updated)
+  await saveNode(config.projectPath!, updated)
 
   return {
     content: [
@@ -490,7 +907,6 @@ async function handleAddDependency(
 async function handleRemoveDependency(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const { taskId, dependsOnId } = args as {
     taskId: string
     dependsOnId: string
@@ -510,6 +926,49 @@ async function handleRemoveDependency(
     }
   }
 
+  if (isApiMode()) {
+    // API mode - remove dependency via HTTP
+    const result = await apiClient!.removeDependency(
+      config.projectId!,
+      taskId,
+      dependsOnId
+    )
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Get the updated task to return
+    const taskResult = await apiClient!.getNode(config.projectId!, taskId)
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            message: `Removed dependency from ${taskResult.success ? taskResult.data.title : taskId}`,
+            task: taskResult.success
+              ? formatApiNodeForLLM(taskResult.data)
+              : null,
+          }),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const task = project.nodes.get(taskId)
   if (!task || task.type !== 'task') {
     return {
@@ -540,13 +999,13 @@ async function handleRemoveDependency(
     }
   }
 
-  const updated = updateNode(taskNode, {
+  const updated = updateNodeInMemory(taskNode, {
     id: taskId,
     dependsOn: taskNode.dependsOn.filter((d) => d !== dependsOnId),
   }) as TaskNode
 
   project.nodes.set(taskId, updated)
-  await saveNode(config.projectPath, updated)
+  await saveNode(config.projectPath!, updated)
 
   return {
     content: [
@@ -565,8 +1024,62 @@ async function handleRemoveDependency(
 async function handleGetBlockedTasks(): Promise<{
   content: Array<{ type: string; text: string }>
 }> {
+  if (isApiMode()) {
+    // API mode - get blocked tasks via HTTP
+    const result = await apiClient!.getBlockedTasks(config.projectId!)
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Get all nodes to resolve dependency info
+    const allNodesResult = await apiClient!.listNodes(config.projectId!)
+    const nodesMap = new Map<string, ApiNode>()
+    if (allNodesResult.success) {
+      for (const node of allNodesResult.data) {
+        nodesMap.set(node.id, node)
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              count: result.data.length,
+              blockedTasks: result.data.map((t) => ({
+                ...formatApiNodeForLLM(t),
+                blockedBy: t.depends_on.map((depId) => {
+                  const dep = nodesMap.get(depId)
+                  return dep
+                    ? { id: depId, title: dep.title, type: dep.type }
+                    : { id: depId, title: 'Unknown', type: 'unknown' }
+                }),
+              })),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
   const project = await ensureProjectLoaded()
-  const blocked = getBlockedTasks(project.nodes)
+  const blocked = getBlockedTasksFromMemory(project.nodes)
 
   return {
     content: [
@@ -597,8 +1110,52 @@ async function handleGetBlockedTasks(): Promise<{
 async function handleGetCriticalPath(): Promise<{
   content: Array<{ type: string; text: string }>
 }> {
+  if (isApiMode()) {
+    // API mode - get critical path via HTTP
+    const result = await apiClient!.getCriticalPath(config.projectId!)
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              length: result.data.length,
+              description:
+                result.data.length > 0
+                  ? `The critical path has ${result.data.length} tasks that must be completed in sequence`
+                  : 'No critical path found (no incomplete tasks with dependencies)',
+              criticalPath: result.data.map((t, i) => ({
+                step: i + 1,
+                ...formatApiNodeForLLM(t),
+              })),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
   const project = await ensureProjectLoaded()
-  const criticalPath = getCriticalPath(project.nodes)
+  const criticalPath = getCriticalPathFromMemory(project.nodes)
 
   return {
     content: [
@@ -628,7 +1185,6 @@ async function handleGetCriticalPath(): Promise<{
 async function handleBulkUpdate(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const { updates } = args as {
     updates: Array<{
       id: string
@@ -652,6 +1208,60 @@ async function handleBulkUpdate(
     }
   }
 
+  if (isApiMode()) {
+    // API mode - bulk update via HTTP (update nodes one by one)
+    const results: Array<{ id: string; success: boolean; error?: string }> = []
+
+    for (const update of updates) {
+      const { id, ...fields } = update
+      if (!id) {
+        results.push({ id: 'unknown', success: false, error: 'id is required' })
+        continue
+      }
+
+      try {
+        const result = await apiClient!.updateNode(config.projectId!, id, {
+          status: fields.status,
+          priority: fields.priority,
+          tags: fields.tags,
+        })
+
+        if (!result.success) {
+          results.push({ id, success: false, error: result.error })
+        } else {
+          results.push({ id, success: true })
+        }
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: successCount === updates.length,
+              message: `Updated ${successCount}/${updates.length} nodes`,
+              results,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   const results: Array<{ id: string; success: boolean; error?: string }> = []
 
   for (const update of updates) {
@@ -668,9 +1278,9 @@ async function handleBulkUpdate(
     }
 
     try {
-      const updated = updateNode(node, { id, ...fields })
+      const updated = updateNodeInMemory(node, { id, ...fields })
       project.nodes.set(id, updated)
-      await saveNode(config.projectPath, updated)
+      await saveNode(config.projectPath!, updated)
       results.push({ id, success: true })
     } catch (error) {
       results.push({
@@ -704,7 +1314,6 @@ async function handleBulkUpdate(
 async function handleFindComponents(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const project = await ensureProjectLoaded()
   const { status, supplier, minCost, maxCost, tags, query, limit } = args as {
     status?: string
     supplier?: string
@@ -715,6 +1324,62 @@ async function handleFindComponents(
     limit?: number
   }
 
+  if (isApiMode()) {
+    // API mode - find components via HTTP
+    const result = await apiClient!.findComponents(config.projectId!, {
+      status,
+      supplier,
+      minCost,
+      maxCost,
+      tags,
+      query,
+      limit,
+    })
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: result.error,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Calculate total cost
+    const totalCost = result.data.reduce((sum, c) => sum + (c.cost || 0), 0)
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              count: result.data.length,
+              totalCost: totalCost.toFixed(2),
+              components: result.data.map((c) => ({
+                ...formatApiNodeForLLM(c),
+                cost: c.cost,
+                supplier: c.supplier,
+                partNumber: c.part_number,
+                datasheetUrl: c.datasheet_url,
+              })),
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode
+  const project = await ensureProjectLoaded()
   let components = Array.from(project.nodes.values()).filter(
     (n) => n.type === 'component'
   ) as ComponentNode[]
@@ -1496,20 +2161,20 @@ Proceed step by step, researching and adding components one at a time.`,
 
       case 'review_dependencies': {
         // Get dependency analysis
-        const blockedTasks = getBlockedTasks(project.nodes)
-        const criticalPath = getCriticalPath(project.nodes)
+        const blockedTasks = getBlockedTasksFromMemory(project.nodes)
+        const criticalPath = getCriticalPathFromMemory(project.nodes)
 
         const blockedList = blockedTasks
-          .map((t) => {
+          .map((t: TaskNode) => {
             const blockingDeps = t.dependsOn
-              .map((id) => project.nodes.get(id)?.title ?? id)
+              .map((id: string) => project.nodes.get(id)?.title ?? id)
               .join(', ')
             return `- ${t.title} (blocked by: ${blockingDeps})`
           })
           .join('\n')
 
         const criticalPathList = criticalPath
-          .map((t, i) => `${i + 1}. ${t.title} [${t.status}]`)
+          .map((t: TaskNode, i: number) => `${i + 1}. ${t.title} [${t.status}]`)
           .join('\n')
 
         // Get all tasks for context
@@ -1577,8 +2242,8 @@ Provide your analysis and any recommended changes.`,
         ) as ComponentNode[]
         const decisions = allNodes.filter((n) => n.type === 'decision')
 
-        const blockedTasks = getBlockedTasks(project.nodes)
-        const criticalPath = getCriticalPath(project.nodes)
+        const blockedTasks = getBlockedTasksFromMemory(project.nodes)
+        const criticalPath = getCriticalPathFromMemory(project.nodes)
 
         const statusCounts = {
           pending: tasks.filter((t) => t.status === 'pending').length,
@@ -1595,7 +2260,7 @@ Provide your analysis and any recommended changes.`,
 
         const criticalPathSummary = criticalPath
           .slice(0, 5)
-          .map((t, i) => `${i + 1}. ${t.title}`)
+          .map((t: TaskNode, i: number) => `${i + 1}. ${t.title}`)
           .join('\n')
 
         const recentlyModified = [...allNodes]

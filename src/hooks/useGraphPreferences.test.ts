@@ -24,6 +24,7 @@ describe('useGraphPreferences', () => {
       expect(result.current.preferences).toEqual({
         showMinimap: true,
         showBackground: true,
+        showGroupBackgrounds: true,
       })
     })
 
@@ -31,6 +32,7 @@ describe('useGraphPreferences', () => {
       const stored: GraphPreferences = {
         showMinimap: false,
         showBackground: false,
+        showGroupBackgrounds: false,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
 
@@ -46,6 +48,7 @@ describe('useGraphPreferences', () => {
 
       expect(result.current.preferences.showMinimap).toBe(false)
       expect(result.current.preferences.showBackground).toBe(true)
+      expect(result.current.preferences.showGroupBackgrounds).toBe(true)
     })
 
     it('handles invalid JSON in localStorage', () => {
@@ -56,6 +59,7 @@ describe('useGraphPreferences', () => {
       expect(result.current.preferences).toEqual({
         showMinimap: true,
         showBackground: true,
+        showGroupBackgrounds: true,
       })
     })
 
@@ -70,6 +74,7 @@ describe('useGraphPreferences', () => {
       expect(result.current.preferences).toEqual({
         showMinimap: true,
         showBackground: true,
+        showGroupBackgrounds: true,
       })
     })
   })
@@ -179,6 +184,7 @@ describe('useGraphPreferences', () => {
       expect(result.current.preferences).toEqual({
         showMinimap: true,
         showBackground: true,
+        showGroupBackgrounds: true,
       })
     })
 
@@ -203,7 +209,11 @@ describe('useGraphPreferences', () => {
     it('preserves other preferences when toggling one', () => {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ showMinimap: true, showBackground: false })
+        JSON.stringify({
+          showMinimap: true,
+          showBackground: false,
+          showGroupBackgrounds: true,
+        })
       )
 
       const { result } = renderHook(() => useGraphPreferences())
@@ -215,6 +225,7 @@ describe('useGraphPreferences', () => {
       expect(result.current.preferences).toEqual({
         showMinimap: false,
         showBackground: false,
+        showGroupBackgrounds: true,
       })
     })
   })

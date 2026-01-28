@@ -105,16 +105,26 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
   const isOnCriticalPath = data.isOnCriticalPath ?? false
   const isContainer = data.isContainer ?? false
 
+  // Common handle styles
+  const handleClass = cn(
+    '!size-2',
+    isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
+  )
+
   return (
     <>
-      {/* Input handle for incoming edges */}
+      {/* Target handles - where incoming edges connect */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className={handleClass}
+      />
       <Handle
         type="target"
         position={Position.Left}
-        className={cn(
-          '!size-2',
-          isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
-        )}
+        id="left"
+        className={handleClass}
       />
 
       <div
@@ -190,14 +200,18 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
         )}
       </div>
 
-      {/* Output handle for outgoing edges */}
+      {/* Source handles - where outgoing edges originate */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        className={handleClass}
+      />
       <Handle
         type="source"
         position={Position.Right}
-        className={cn(
-          '!size-2',
-          isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
-        )}
+        id="right"
+        className={handleClass}
       />
     </>
   )

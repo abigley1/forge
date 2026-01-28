@@ -6,19 +6,26 @@ import * as os from 'node:os'
 import { createApp } from '../index.js'
 import type { Express } from 'express'
 import { ServerFileSystemAdapter } from '../adapters/ServerFileSystemAdapter.js'
+import { createTestDatabase, type DatabaseInstance } from '../db/index.js'
 
 describe('Health API', () => {
   let tempDir: string
   let app: Express
   let adapter: ServerFileSystemAdapter
+  let db: DatabaseInstance
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'forge-health-test-'))
+    db = createTestDatabase()
 
     const result = createApp({
-      port: 3000,
-      dataDir: tempDir,
-      staticDir: tempDir,
+      config: {
+        port: 3000,
+        dataDir: tempDir,
+        staticDir: tempDir,
+        dbPath: ':memory:',
+      },
+      db,
     })
     app = result.app
     adapter = result.adapter
@@ -26,6 +33,7 @@ describe('Health API', () => {
 
   afterEach(async () => {
     adapter.close()
+    db.close()
     await fs.rm(tempDir, { recursive: true, force: true })
   })
 

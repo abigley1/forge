@@ -307,11 +307,19 @@ export async function waitForAppReady(page: Page): Promise<void> {
     }
   )
 
-  // Wait for hybrid persistence to be ready
+  // Wait for persistence to be ready (either server or hybrid)
   await page.waitForFunction(
-    () =>
-      (window as unknown as { __e2eHybridPersistenceReady?: boolean })
-        .__e2eHybridPersistenceReady === true,
+    () => {
+      const w = window as unknown as {
+        __e2eHybridPersistenceReady?: boolean
+        __e2eServerPersistenceReady?: boolean
+      }
+      // At least one persistence layer should be ready
+      return (
+        w.__e2eHybridPersistenceReady === true ||
+        w.__e2eServerPersistenceReady === true
+      )
+    },
     {
       timeout: 5000,
     }

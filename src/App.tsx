@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Trash2, Loader2, FolderOpen } from 'lucide-react'
+import { Trash2, Loader2, FolderOpen, Save } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { Button, SaveIndicator, useSaveIndicator } from '@/components/ui'
 import {
@@ -8,7 +8,12 @@ import {
   useAppStore,
   useWorkspaceStore,
 } from '@/store'
-import { useUndoRedo, useFilters, useHybridPersistence } from '@/hooks'
+import {
+  useUndoRedo,
+  useFilters,
+  useHybridPersistence,
+  useServerPersistence,
+} from '@/hooks'
 import {
   QuickProjectSwitcher,
   CreateProjectDialog,
@@ -29,7 +34,12 @@ import { getAllTagsForClustering } from '@/lib/graph'
 import { cn } from '@/lib/utils'
 import type { TaskStatus, ForgeNode, Attachment } from '@/types/nodes'
 import { isDecisionNode, type DecisionNode } from '@/types/nodes'
-import { HybridPersistenceContext } from '@/contexts'
+import { HybridPersistenceContext, ServerPersistenceContext } from '@/contexts'
+import type { PersistenceContextValue } from '@/contexts'
+
+// Check if server persistence is enabled via environment variable
+const USE_SERVER_PERSISTENCE =
+  import.meta.env.VITE_USE_SERVER_PERSISTENCE === 'true'
 
 /**
  * Loading screen shown while initializing from IndexedDB
@@ -151,8 +161,31 @@ function ProjectWorkspace() {
   }, [nodes, filterNodes])
 
   // Enable auto-save and get save status
-  const { status: saveStatus, errorMessage: saveErrorMessage } =
-    useSaveIndicator()
+  const {
+    status: saveStatus,
+    errorMessage: saveErrorMessage,
+    saveNow,
+    isSaving,
+    hasUnsavedChanges,
+  } = useSaveIndicator()
+
+  // Keyboard shortcut for manual save (Cmd+S / Ctrl+S)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const modifier = isMac ? event.metaKey : event.ctrlKey
+
+      if (modifier && event.key.toLowerCase() === 's') {
+        event.preventDefault()
+        if (hasUnsavedChanges && !isSaving) {
+          saveNow()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [hasUnsavedChanges, isSaving, saveNow])
 
   // Delete node dialog state
   const {
@@ -240,7 +273,28 @@ function ProjectWorkspace() {
               ? `${filteredNodes.size} of ${nodes.size} nodes`
               : `${nodes.size} ${nodes.size === 1 ? 'node' : 'nodes'}`}
           </h2>
-          <SaveIndicator status={saveStatus} errorMessage={saveErrorMessage} />
+          <div className="flex items-center gap-2">
+            <SaveIndicator
+              status={saveStatus}
+              errorMessage={saveErrorMessage}
+            />
+            <button
+              type="button"
+              onClick={() => saveNow()}
+              disabled={!hasUnsavedChanges || isSaving}
+              aria-label="Save all changes"
+              title="Save all changes (⌘S / Ctrl+S)"
+              className={cn(
+                'rounded-md p-1.5 transition-colors',
+                'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+                hasUnsavedChanges && !isSaving
+                  ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50'
+                  : 'cursor-not-allowed text-gray-300 dark:text-gray-600'
+              )}
+            >
+              <Save className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
         <ViewToggle value={activeView} onChange={setActiveView} />
       </div>
@@ -365,7 +419,10 @@ function ProjectWorkspace() {
   )
 }
 
-function App() {
+/**
+ * App component using hybrid persistence (IndexedDB)
+ */
+function AppWithHybridPersistence() {
   const project = useProjectStore((state) => state.project)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
 
@@ -419,6 +476,144 @@ function App() {
       </AppShell>
     </HybridPersistenceContext.Provider>
   )
+}
+
+/**
+ * App component using server persistence (SQLite via Express API)
+ */
+function AppWithServerPersistence() {
+  const project = useProjectStore((state) => state.project)
+  const activeProjectId = useWorkspaceStore((state) => state.activeProjectId)
+  const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
+  const [projectsSynced, setProjectsSynced] = useState(false)
+
+  // Initialize server persistence
+  const serverPersistence = useServerPersistence()
+
+  // Sync projects from server to workspace store
+  useEffect(() => {
+    const syncProjects = async () => {
+      try {
+        const { api } = await import('@/lib/api')
+        const result = await api.listProjects(true) // includeStats for node count
+
+        if (result.success && Array.isArray(result.data)) {
+          const projects = result.data.map(
+            (p: {
+              id: string
+              name: string
+              description?: string | null
+              created_at: string
+              modified_at: string
+              node_count?: number
+            }) => ({
+              id: p.id,
+              name: p.name,
+              path: '', // Server projects don't have local paths
+              description: p.description || undefined,
+              nodeCount: p.node_count || 0,
+              modifiedAt: new Date(p.modified_at),
+            })
+          )
+          useWorkspaceStore.getState().setProjects(projects)
+        }
+      } catch (error) {
+        console.error('[App] Failed to sync projects from server:', error)
+      } finally {
+        setProjectsSynced(true)
+      }
+    }
+
+    syncProjects()
+  }, [])
+
+  // Create context value with isInitialized alias for compatibility
+  const persistenceContextValue: PersistenceContextValue = {
+    ...serverPersistence,
+    isInitialized: serverPersistence.isConnected,
+  }
+
+  // Enable global undo/redo keyboard shortcuts (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
+  useUndoRedo({ enableHotkeys: true })
+
+  // Keyboard shortcut for quick project switcher (Cmd+Shift+P / Ctrl+Shift+P)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+      const modifier = isMac ? event.metaKey : event.ctrlKey
+
+      if (modifier && event.shiftKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault()
+        setQuickSwitcherOpen(true)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Determine what to render based on state
+  const renderContent = () => {
+    // Still syncing project list from server
+    if (!projectsSynced) {
+      return <LoadingScreen />
+    }
+
+    // No project selected - show welcome screen to pick one
+    if (!activeProjectId) {
+      return <WelcomeScreen />
+    }
+
+    // Project selected but still loading data from server
+    if (serverPersistence.isLoading) {
+      return <LoadingScreen />
+    }
+
+    // Show error if connection failed (only when trying to load a project)
+    if (serverPersistence.error) {
+      return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+          <p className="text-red-600 dark:text-red-400">
+            Failed to connect to server: {serverPersistence.error}
+          </p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Make sure the server is running: cd server && npm run dev
+          </p>
+        </div>
+      )
+    }
+
+    // Have project loaded (from server)
+    if (project) {
+      return <ProjectWorkspace />
+    }
+
+    // Fallback - show welcome screen
+    return <WelcomeScreen />
+  }
+
+  return (
+    <ServerPersistenceContext.Provider value={persistenceContextValue}>
+      <AppShell>
+        {renderContent()}
+        <CommandPalette />
+        <QuickProjectSwitcher
+          open={quickSwitcherOpen}
+          onOpenChange={setQuickSwitcherOpen}
+        />
+      </AppShell>
+    </ServerPersistenceContext.Provider>
+  )
+}
+
+/**
+ * Main App component that selects persistence mode based on environment variable
+ */
+function App() {
+  if (USE_SERVER_PERSISTENCE) {
+    return <AppWithServerPersistence />
+  }
+  return <AppWithHybridPersistence />
 }
 
 export default App

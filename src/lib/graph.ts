@@ -685,6 +685,11 @@ export function getAllTagsForClustering(
 const elk = new ELK()
 
 /**
+ * Index mapping parent IDs to their children
+ */
+type ParentChildIndex = Map<string, string[]>
+
+/**
  * Layout direction options for the graph
  */
 export type LayoutDirection = 'DOWN' | 'RIGHT' | 'UP' | 'LEFT'
@@ -836,6 +841,288 @@ export async function calculateCenteredLayout(
   options: AutoLayoutOptions = {}
 ): Promise<NodePositions> {
   const positions = await calculateLayout(nodes, edges, options)
+
+  if (Object.keys(positions).length === 0) {
+    return positions
+  }
+
+  // Calculate bounding box of laid out nodes
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+
+  Object.values(positions).forEach(({ x, y }) => {
+    minX = Math.min(minX, x)
+    maxX = Math.max(maxX, x + GRID_CONFIG.nodeWidth)
+    minY = Math.min(minY, y)
+    maxY = Math.max(maxY, y + GRID_CONFIG.nodeHeight)
+  })
+
+  // Calculate layout dimensions
+  const layoutWidth = maxX - minX
+  const layoutHeight = maxY - minY
+
+  // Calculate offset to center layout in viewport
+  const offsetX =
+    Math.max(0, (viewportWidth - layoutWidth) / 2) - minX + GRID_CONFIG.startX
+  const offsetY =
+    Math.max(0, (viewportHeight - layoutHeight) / 2) - minY + GRID_CONFIG.startY
+
+  // Apply offset to all positions
+  const centeredPositions: NodePositions = {}
+  Object.entries(positions).forEach(([nodeId, pos]) => {
+    centeredPositions[nodeId] = {
+      x: pos.x + offsetX,
+      y: pos.y + offsetY,
+    }
+  })
+
+  return centeredPositions
+}
+
+// ============================================================================
+// Hierarchical Layout (Compound Graph for Parent-Child Proximity)
+// ============================================================================
+
+/**
+ * Build an index of parent -> children relationships from nodes
+ */
+function buildParentChildIndex(nodes: ForgeGraphNode[]): ParentChildIndex {
+  const index: ParentChildIndex = new Map()
+
+  nodes.forEach((node) => {
+    const parentId = node.data?.parentId
+    if (parentId) {
+      const children = index.get(parentId) ?? []
+      children.push(node.id)
+      index.set(parentId, children)
+    }
+  })
+
+  return index
+}
+
+/**
+ * Recursively build ELK node structure with children nested inside parents
+ */
+function buildElkNodeWithChildren(
+  node: ForgeGraphNode,
+  parentChildIndex: ParentChildIndex,
+  allNodesMap: Map<string, ForgeGraphNode>,
+  visitedIds: Set<string>
+): ElkNode {
+  // Mark as visited to prevent infinite loops
+  visitedIds.add(node.id)
+
+  const children = parentChildIndex.get(node.id) ?? []
+  const elkChildren: ElkNode[] = []
+
+  // Recursively build children
+  children.forEach((childId) => {
+    if (!visitedIds.has(childId)) {
+      const childNode = allNodesMap.get(childId)
+      if (childNode) {
+        elkChildren.push(
+          buildElkNodeWithChildren(
+            childNode,
+            parentChildIndex,
+            allNodesMap,
+            visitedIds,
+            true // This node has a parent
+          )
+        )
+      }
+    }
+  })
+
+  // Container nodes get extra padding for their children
+  const isContainer = children.length > 0
+  const padding = isContainer ? 60 : 0
+
+  // Configure port constraints for cleaner edge routing:
+  // - Containers: edges to children exit from SOUTH (bottom)
+  // - Children: edges from parent enter from NORTH (top)
+  // - Allow FREE ports for dependency/reference edges
+  const nodeLayoutOptions: Record<string, string> = {
+    // Allow ports on any side for flexibility
+    'elk.portConstraints': 'FREE',
+  }
+
+  if (isContainer) {
+    // Container nodes: extra padding and layout for children
+    nodeLayoutOptions['elk.padding'] =
+      `[top=${padding + 20},left=${padding},bottom=${padding},right=${padding}]`
+    // Children should be laid out below the parent label area
+    nodeLayoutOptions['elk.direction'] = 'DOWN'
+  }
+
+  return {
+    id: node.id,
+    width: GRID_CONFIG.nodeWidth,
+    height: GRID_CONFIG.nodeHeight,
+    children: elkChildren.length > 0 ? elkChildren : undefined,
+    layoutOptions: nodeLayoutOptions,
+  }
+}
+
+/**
+ * Convert React Flow graph to ELK compound graph format
+ * Children are nested inside their parent containers for layout calculation
+ */
+function toCompoundElkGraph(
+  nodes: ForgeGraphNode[],
+  edges: ForgeGraphEdge[],
+  options: AutoLayoutOptions = {}
+): ElkNode {
+  const mergedOptions = { ...DEFAULT_LAYOUT_OPTIONS, ...options }
+
+  // Build indices
+  const parentChildIndex = buildParentChildIndex(nodes)
+  const allNodesMap = new Map(nodes.map((n) => [n.id, n]))
+  const visitedIds = new Set<string>()
+
+  // Find root nodes (nodes without parents or with missing parents)
+  const rootNodes = nodes.filter((node) => {
+    const parentId = node.data?.parentId
+    // Root if: no parent, or parent doesn't exist in the graph
+    return !parentId || !allNodesMap.has(parentId)
+  })
+
+  // Build nested ELK structure from roots
+  const elkChildren: ElkNode[] = []
+  rootNodes.forEach((rootNode) => {
+    if (!visitedIds.has(rootNode.id)) {
+      elkChildren.push(
+        buildElkNodeWithChildren(
+          rootNode,
+          parentChildIndex,
+          allNodesMap,
+          visitedIds,
+          false // Root nodes have no parent
+        )
+      )
+    }
+  })
+
+  // Convert edges to ELK format
+  const elkEdges: ElkExtendedEdge[] = edges.map((edge) => ({
+    id: edge.id,
+    sources: [edge.source],
+    targets: [edge.target],
+  }))
+
+  // ELK layout options for compound graphs with flexible edge routing
+  const layoutOptions: Record<string, string> = {
+    'elk.algorithm': 'layered',
+    'elk.direction': mergedOptions.direction,
+    'elk.spacing.nodeNode': String(mergedOptions.nodeSpacing),
+    'elk.layered.spacing.nodeNodeBetweenLayers': String(
+      mergedOptions.levelSpacing
+    ),
+    'elk.spacing.edgeEdge': String(mergedOptions.edgeSpacing),
+    'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+    'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    'elk.layered.considerModelOrder.strategy': 'PREFER_EDGES',
+    // Edge routing: allow edges to connect from any side
+    'elk.layered.edgeRouting.selfLoopDistribution': 'EQUALLY',
+    // Better edge spacing around nodes
+    'elk.spacing.edgeNode': '25',
+    'elk.spacing.edgeNodeBetweenLayers': '20',
+    // Merge edges going to same target for cleaner look
+    'elk.layered.mergeEdges': 'true',
+  }
+
+  return {
+    id: 'root',
+    layoutOptions,
+    children: elkChildren,
+    edges: elkEdges,
+  }
+}
+
+/**
+ * Recursively extract positions from nested ELK graph, converting to absolute coordinates
+ */
+function extractNestedPositions(
+  elkNode: ElkNode,
+  offsetX: number = 0,
+  offsetY: number = 0,
+  positions: NodePositions = {}
+): NodePositions {
+  elkNode.children?.forEach((child) => {
+    const absoluteX = (child.x ?? 0) + offsetX
+    const absoluteY = (child.y ?? 0) + offsetY
+
+    positions[child.id] = {
+      x: absoluteX,
+      y: absoluteY,
+    }
+
+    // Recursively handle nested children
+    if (child.children && child.children.length > 0) {
+      extractNestedPositions(child, absoluteX, absoluteY, positions)
+    }
+  })
+
+  return positions
+}
+
+/**
+ * Calculate hierarchical layout using ELK compound graph
+ *
+ * This creates a nested graph structure where children are positioned
+ * inside their parent containers during layout calculation. The result
+ * is then flattened to absolute positions for React Flow rendering.
+ *
+ * Benefits:
+ * - Children cluster spatially near their parents
+ * - Reduces edge crossings within hierarchies
+ * - Dependencies flow more naturally within container boundaries
+ *
+ * @param nodes - React Flow nodes to layout
+ * @param edges - React Flow edges (all types: dependency, reference, containment)
+ * @param options - Layout options
+ * @returns Promise resolving to absolute node positions
+ */
+export async function calculateHierarchicalLayout(
+  nodes: ForgeGraphNode[],
+  edges: ForgeGraphEdge[],
+  options: AutoLayoutOptions = {}
+): Promise<NodePositions> {
+  if (nodes.length === 0) {
+    return {}
+  }
+
+  // Build compound ELK graph
+  const elkGraph = toCompoundElkGraph(nodes, edges, options)
+
+  // Run layout algorithm
+  const layoutedGraph = await elk.layout(elkGraph)
+
+  // Extract positions with absolute coordinates
+  return extractNestedPositions(layoutedGraph)
+}
+
+/**
+ * Calculate hierarchical layout with offset to center in viewport
+ *
+ * @param nodes - React Flow nodes to layout
+ * @param edges - React Flow edges
+ * @param viewportWidth - Width of the viewport
+ * @param viewportHeight - Height of the viewport
+ * @param options - Layout options
+ * @returns Promise resolving to centered absolute node positions
+ */
+export async function calculateCenteredHierarchicalLayout(
+  nodes: ForgeGraphNode[],
+  edges: ForgeGraphEdge[],
+  viewportWidth: number,
+  viewportHeight: number,
+  options: AutoLayoutOptions = {}
+): Promise<NodePositions> {
+  const positions = await calculateHierarchicalLayout(nodes, edges, options)
 
   if (Object.keys(positions).length === 0) {
     return positions

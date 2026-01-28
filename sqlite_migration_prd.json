@@ -268,12 +268,6 @@
       "description": "Migrate existing data and comprehensive testing",
       "tasks": [
         {
-          "id": "4.1",
-          "title": "Create Migration Script",
-          "description": "Script to migrate existing IndexedDB data to SQLite",
-          "files": ["scripts/migrate-indexeddb-to-sqlite.ts"]
-        },
-        {
           "id": "4.2",
           "title": "Create Markdown Import Script",
           "description": "Script to import existing markdown files (from MCP filesystem) to SQLite",

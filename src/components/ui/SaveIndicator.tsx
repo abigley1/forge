@@ -142,6 +142,8 @@ export interface UseSaveIndicatorReturn {
   isSaving: boolean
   /** Whether there are unsaved changes */
   hasUnsavedChanges: boolean
+  /** Whether saving is possible (project and adapter exist) */
+  canSave: boolean
   /** Manually trigger a save */
   saveNow: () => Promise<boolean>
 }
@@ -168,6 +170,8 @@ export function useSaveIndicator(
 
   const hasDirtyNodes = useNodesStore((state) => state.hasDirtyNodes())
   const storeError = useProjectStore((state) => state.error)
+  const hasProject = useProjectStore((state) => state.hasProject())
+  const hasAdapter = useProjectStore((state) => state.hasAdapter())
 
   const { isSaving, hasUnsavedChanges, saveNow } = useAutoSave({
     onSaveSuccess: () => {
@@ -213,11 +217,15 @@ export function useSaveIndicator(
     status = 'unsaved'
   }
 
+  // Can only save if we have both a project and an adapter
+  const canSave = hasProject && hasAdapter
+
   return {
     status,
     errorMessage: errorMessage || storeError || undefined,
     isSaving,
     hasUnsavedChanges,
+    canSave,
     saveNow,
   }
 }

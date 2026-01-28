@@ -37,6 +37,7 @@ import { ChildNodesSection } from './ChildNodesSection'
 import { ParentSelector } from './ParentSelector'
 import { DependencyEditor } from './DependencyEditor'
 import { MilestoneSelector, extractMilestones } from './MilestoneSelector'
+import { RelatedNodesSection } from './RelatedNodesSection'
 
 export interface FrontmatterEditorProps {
   /** The node being edited */
@@ -258,6 +259,9 @@ export function FrontmatterEditor({
           <ChildNodesSection containerId={node.id} onNavigate={onNavigate} />
         </>
       )}
+
+      {/* Related nodes via wiki-links (shown for all node types) */}
+      <RelatedNodesSection nodeId={node.id} onNavigate={onNavigate} />
     </div>
   )
 }

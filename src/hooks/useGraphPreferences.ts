@@ -11,11 +11,14 @@ export interface GraphPreferences {
   showMinimap: boolean
   /** Whether the background grid is visible */
   showBackground: boolean
+  /** Whether group backgrounds for container relationships are visible */
+  showGroupBackgrounds: boolean
 }
 
 const DEFAULT_PREFERENCES: GraphPreferences = {
   showMinimap: true,
   showBackground: true,
+  showGroupBackgrounds: true,
 }
 
 /**
@@ -39,6 +42,10 @@ function loadPreferences(): GraphPreferences {
           typeof parsed.showBackground === 'boolean'
             ? parsed.showBackground
             : DEFAULT_PREFERENCES.showBackground,
+        showGroupBackgrounds:
+          typeof parsed.showGroupBackgrounds === 'boolean'
+            ? parsed.showGroupBackgrounds
+            : DEFAULT_PREFERENCES.showGroupBackgrounds,
       }
     }
   } catch (error) {
@@ -70,10 +77,14 @@ export interface UseGraphPreferencesReturn {
   toggleMinimap: () => void
   /** Toggle background visibility */
   toggleBackground: () => void
+  /** Toggle group backgrounds visibility */
+  toggleGroupBackgrounds: () => void
   /** Set minimap visibility */
   setShowMinimap: (show: boolean) => void
   /** Set background visibility */
   setShowBackground: (show: boolean) => void
+  /** Set group backgrounds visibility */
+  setShowGroupBackgrounds: (show: boolean) => void
   /** Reset to defaults */
   resetPreferences: () => void
 }
@@ -116,6 +127,13 @@ export function useGraphPreferences(): UseGraphPreferencesReturn {
     }))
   }, [])
 
+  const toggleGroupBackgrounds = useCallback(() => {
+    setPreferences((prev) => ({
+      ...prev,
+      showGroupBackgrounds: !prev.showGroupBackgrounds,
+    }))
+  }, [])
+
   const setShowMinimap = useCallback((show: boolean) => {
     setPreferences((prev) => ({
       ...prev,
@@ -130,6 +148,13 @@ export function useGraphPreferences(): UseGraphPreferencesReturn {
     }))
   }, [])
 
+  const setShowGroupBackgrounds = useCallback((show: boolean) => {
+    setPreferences((prev) => ({
+      ...prev,
+      showGroupBackgrounds: show,
+    }))
+  }, [])
+
   const resetPreferences = useCallback(() => {
     setPreferences(DEFAULT_PREFERENCES)
   }, [])
@@ -138,8 +163,10 @@ export function useGraphPreferences(): UseGraphPreferencesReturn {
     preferences,
     toggleMinimap,
     toggleBackground,
+    toggleGroupBackgrounds,
     setShowMinimap,
     setShowBackground,
+    setShowGroupBackgrounds,
     resetPreferences,
   }
 }
