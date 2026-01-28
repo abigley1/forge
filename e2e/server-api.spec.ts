@@ -320,6 +320,306 @@ test.describe('Server API E2E', () => {
       expect(response.ok()).toBe(true)
     })
   })
+
+  test.describe('Projects API', () => {
+    test('POST /projects creates a new project', async ({ request }) => {
+      const response = await request.post(`${SERVER_URL}/api/projects`, {
+        data: {
+          id: 'e2e-test-project',
+          name: 'E2E Test Project',
+          description: 'Test project for E2E tests',
+        },
+      })
+
+      expect(response.status()).toBe(201)
+      const body = await response.json()
+      expect(body.data.id).toBe('e2e-test-project')
+      expect(body.data.name).toBe('E2E Test Project')
+    })
+
+    test('GET /projects lists all projects', async ({ request }) => {
+      // Create a project first
+      await request.post(`${SERVER_URL}/api/projects`, {
+        data: { id: 'list-test', name: 'List Test' },
+      })
+
+      const response = await request.get(`${SERVER_URL}/api/projects`)
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(Array.isArray(body.data)).toBe(true)
+      expect(body.data.some((p: { id: string }) => p.id === 'list-test')).toBe(
+        true
+      )
+    })
+
+    test('GET /projects/:id returns a specific project', async ({
+      request,
+    }) => {
+      // Create a project first
+      await request.post(`${SERVER_URL}/api/projects`, {
+        data: { id: 'get-test', name: 'Get Test' },
+      })
+
+      const response = await request.get(`${SERVER_URL}/api/projects/get-test`)
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(body.data.id).toBe('get-test')
+    })
+  })
+
+  test.describe('Nodes API', () => {
+    const PROJECT_ID = 'nodes-e2e-test'
+
+    test.beforeAll(async ({ request }) => {
+      // Create a test project for nodes tests
+      await request.post(`${SERVER_URL}/api/projects`, {
+        data: { id: PROJECT_ID, name: 'Nodes E2E Test' },
+      })
+    })
+
+    test('POST creates a task node', async ({ request }) => {
+      const response = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'task',
+            title: 'E2E Test Task',
+            content: 'This is a test task',
+            status: 'pending',
+            priority: 'high',
+            tags: ['e2e', 'test'],
+          },
+        }
+      )
+
+      expect(response.status()).toBe(201)
+      const body = await response.json()
+      expect(body.data.type).toBe('task')
+      expect(body.data.title).toBe('E2E Test Task')
+      expect(body.data.status).toBe('pending')
+      expect(body.data.priority).toBe('high')
+      expect(body.data.tags).toEqual(['e2e', 'test'])
+    })
+
+    test('POST creates a component node', async ({ request }) => {
+      const response = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'component',
+            title: 'E2E Test Component',
+            supplier: 'DigiKey',
+            part_number: 'ABC-123',
+            cost: 29.99,
+            custom_fields: { voltage: '12V' },
+          },
+        }
+      )
+
+      expect(response.status()).toBe(201)
+      const body = await response.json()
+      expect(body.data.type).toBe('component')
+      expect(body.data.supplier).toBe('DigiKey')
+      expect(body.data.cost).toBe(29.99)
+      expect(body.data.custom_fields).toEqual({ voltage: '12V' })
+    })
+
+    test('POST creates a decision node', async ({ request }) => {
+      const response = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'decision',
+            title: 'E2E Test Decision',
+            status: 'pending',
+            comparison_data: { options: ['A', 'B'] },
+          },
+        }
+      )
+
+      expect(response.status()).toBe(201)
+      const body = await response.json()
+      expect(body.data.type).toBe('decision')
+      expect(body.data.comparison_data).toEqual({ options: ['A', 'B'] })
+    })
+
+    test('GET /nodes returns all nodes for a project', async ({ request }) => {
+      const response = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`
+      )
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(Array.isArray(body.data)).toBe(true)
+      expect(body.data.length).toBeGreaterThan(0)
+    })
+
+    test('GET /nodes?type=task filters by type', async ({ request }) => {
+      const response = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes?type=task`
+      )
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(body.data.every((n: { type: string }) => n.type === 'task')).toBe(
+        true
+      )
+    })
+
+    test('PUT updates a node', async ({ request }) => {
+      // Create a node first
+      const createResponse = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'task',
+            title: 'To Update',
+            status: 'pending',
+          },
+        }
+      )
+      const created = await createResponse.json()
+      const nodeId = created.data.id
+
+      // Update it
+      const response = await request.put(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${nodeId}`,
+        {
+          data: {
+            title: 'Updated Title',
+            status: 'complete',
+          },
+        }
+      )
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(body.data.title).toBe('Updated Title')
+      expect(body.data.status).toBe('complete')
+    })
+
+    test('DELETE removes a node', async ({ request }) => {
+      // Create a node first
+      const createResponse = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'note',
+            title: 'To Delete',
+          },
+        }
+      )
+      const created = await createResponse.json()
+      const nodeId = created.data.id
+
+      // Delete it
+      const response = await request.delete(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${nodeId}`
+      )
+
+      expect(response.status()).toBe(204)
+
+      // Verify it's gone
+      const getResponse = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${nodeId}`
+      )
+      expect(getResponse.status()).toBe(404)
+    })
+
+    test('dependencies can be added and removed', async ({ request }) => {
+      // Create two tasks
+      const task1Response = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: { type: 'task', title: 'Task 1', status: 'pending' },
+        }
+      )
+      const task1 = await task1Response.json()
+
+      const task2Response = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: { type: 'task', title: 'Task 2', status: 'pending' },
+        }
+      )
+      const task2 = await task2Response.json()
+
+      // Add dependency: task2 depends on task1
+      const addResponse = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${task2.data.id}/dependencies`,
+        {
+          data: { depends_on_id: task1.data.id },
+        }
+      )
+
+      expect(addResponse.status()).toBe(201)
+
+      // Verify dependency exists
+      const getResponse = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${task2.data.id}/dependencies`
+      )
+      const deps = await getResponse.json()
+      expect(deps.data.depends_on).toContain(task1.data.id)
+
+      // Remove dependency
+      const removeResponse = await request.delete(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes/${task2.data.id}/dependencies/${task1.data.id}`
+      )
+      expect(removeResponse.status()).toBe(204)
+    })
+
+    test('blocked-tasks returns tasks blocked by dependencies', async ({
+      request,
+    }) => {
+      // Create blocking task (incomplete)
+      const blockerResponse = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: { type: 'task', title: 'Blocker', status: 'pending' },
+        }
+      )
+      const blocker = await blockerResponse.json()
+
+      // Create blocked task
+      const blockedResponse = await request.post(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/nodes`,
+        {
+          data: {
+            type: 'task',
+            title: 'Blocked',
+            status: 'pending',
+            depends_on: [blocker.data.id],
+          },
+        }
+      )
+      await blockedResponse.json()
+
+      // Get blocked tasks
+      const response = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/blocked-tasks`
+      )
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(
+        body.data.some((t: { title: string }) => t.title === 'Blocked')
+      ).toBe(true)
+    })
+
+    test('critical-path returns the longest dependency chain', async ({
+      request,
+    }) => {
+      const response = await request.get(
+        `${SERVER_URL}/api/projects/${PROJECT_ID}/critical-path`
+      )
+
+      expect(response.ok()).toBe(true)
+      const body = await response.json()
+      expect(Array.isArray(body.data)).toBe(true)
+    })
+  })
 })
 
 /**
