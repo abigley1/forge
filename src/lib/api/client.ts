@@ -19,10 +19,42 @@ import type {
 } from './types.js'
 
 /**
- * Default API base URL (can be overridden via environment variable)
+ * Get the API base URL
+ * - Uses VITE_API_URL env var if set
+ * - In production (served by Express), uses relative /api path
+ * - In development on localhost, uses localhost:3000
+ * - Otherwise derives from current location (for Tailscale, LAN, etc.)
  */
-const DEFAULT_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+function getDefaultBaseUrl(): string {
+  // Environment variable takes precedence
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+
+  // In browser
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location
+
+    // Development mode with Vite (typically port 5173)
+    // API runs on separate port 3000
+    if (import.meta.env.DEV && hostname === 'localhost') {
+      return 'http://localhost:3000/api'
+    }
+
+    // Production or non-localhost access:
+    // Frontend and API served from same origin, use relative URL
+    // This works for Docker (port 8099), Home Assistant, Tailscale, etc.
+    if (port && port !== '80' && port !== '443') {
+      return `${protocol}//${hostname}:${port}/api`
+    }
+    return `${protocol}//${hostname}/api`
+  }
+
+  // Fallback for SSR/tests
+  return 'http://localhost:3000/api'
+}
+
+const DEFAULT_BASE_URL = getDefaultBaseUrl()
 
 /**
  * API Client Configuration
