@@ -3,12 +3,19 @@
  *
  * Provides debounced auto-save functionality for dirty nodes.
  * Monitors dirty state and automatically saves after a configurable delay.
+ *
+ * In server persistence mode, saves happen automatically via subscription
+ * in useServerPersistence, so this hook mainly tracks save state.
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 
 import { useNodesStore } from '@/store/useNodesStore'
 import { useProjectStore } from '@/store/useProjectStore'
+
+// Check if server persistence is enabled
+const USE_SERVER_PERSISTENCE =
+  import.meta.env.VITE_USE_SERVER_PERSISTENCE === 'true'
 
 // ============================================================================
 // Constants
@@ -87,6 +94,19 @@ export function useAutoSave(
       timeoutRef.current = null
     }
 
+    // In server persistence mode, saves happen automatically via subscription.
+    // The manual save just signals success since nodes are already synced.
+    if (USE_SERVER_PERSISTENCE) {
+      if (!hasProject) {
+        onSaveError?.('Cannot save: No project is currently open')
+        return false
+      }
+      // Nodes are automatically saved to server, just report success
+      onSaveSuccess?.()
+      return true
+    }
+
+    // File system adapter mode - use traditional save
     if (!hasAdapter || !hasProject) {
       onSaveError?.('Cannot save: No project is currently open')
       return false
@@ -121,8 +141,14 @@ export function useAutoSave(
     onSaveError,
   ])
 
-  // Set up debounced auto-save
+  // Set up debounced auto-save (file system mode only)
+  // In server persistence mode, saves happen automatically via subscription
   useEffect(() => {
+    // Skip auto-save setup in server persistence mode
+    if (USE_SERVER_PERSISTENCE) {
+      return
+    }
+
     // Clear any existing timeout first
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)

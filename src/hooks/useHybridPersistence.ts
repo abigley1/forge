@@ -199,9 +199,13 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
 
   /**
    * Load data from IndexedDB into stores
+   * Returns false if loading fails or if project ID changed during load (stale)
    */
   const loadFromIndexedDB = useCallback(
-    async (adapter: IndexedDBAdapter): Promise<boolean> => {
+    async (
+      adapter: IndexedDBAdapter,
+      expectedProjectId: string
+    ): Promise<boolean> => {
       try {
         // Get the stored project path
         const handleInfo = await adapter.getStoredDirectoryHandle()
@@ -212,6 +216,14 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
 
         if (!result.project) {
           // No data or invalid data - not an error, just empty
+          return false
+        }
+
+        // Check if project ID changed during async load - if so, skip store updates
+        if (currentProjectIdRef.current !== expectedProjectId) {
+          console.log(
+            `[useHybridPersistence] Skipping stale load for "${expectedProjectId}", current is "${currentProjectIdRef.current}"`
+          )
           return false
         }
 
@@ -307,10 +319,28 @@ export function useHybridPersistence(): UseHybridPersistenceReturn {
           hasData = false
         }
 
+        // Check if project ID changed during async directory check - if so, abort
+        if (currentProjectIdRef.current !== projectId) {
+          console.log(
+            `[useHybridPersistence] Aborting stale init for "${projectId}" after listDirectory, current is "${currentProjectIdRef.current}"`
+          )
+          adapter.close()
+          return
+        }
+
         // Load data from IndexedDB
         let loadedSuccessfully = false
         if (hasData) {
-          loadedSuccessfully = await loadFromIndexedDB(adapter)
+          loadedSuccessfully = await loadFromIndexedDB(adapter, projectId)
+        }
+
+        // Check if project ID changed during async load - if so, abort setup
+        if (currentProjectIdRef.current !== projectId) {
+          console.log(
+            `[useHybridPersistence] Aborting stale init for "${projectId}", current is "${currentProjectIdRef.current}"`
+          )
+          adapter.close()
+          return
         }
 
         // If no data loaded, create an empty project from workspace metadata
