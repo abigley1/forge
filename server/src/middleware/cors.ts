@@ -4,11 +4,12 @@ import cors from 'cors'
  * Check if an origin is a private/local network address
  */
 function isPrivateNetwork(origin: string): boolean {
-  // Match private IP ranges and local hostnames
+  // Match private IP ranges, Tailscale CGNAT, and local hostnames
   const privatePatterns = [
     /^https?:\/\/192\.168\.\d+\.\d+/, // 192.168.x.x
     /^https?:\/\/10\.\d+\.\d+\.\d+/, // 10.x.x.x
     /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/, // 172.16-31.x.x
+    /^https?:\/\/100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+/, // 100.64-127.x.x (Tailscale CGNAT)
     /^https?:\/\/homeassistant\.local/, // mDNS name
     /^https?:\/\/[^/]+\.local(:\d+)?/, // Any .local mDNS
   ]
