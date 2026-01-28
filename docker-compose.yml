@@ -1,0 +1,35 @@
+# Forge - Local Development Docker Compose
+# Use this for testing the Docker build before deploying to Home Assistant
+
+version: '3.8'
+
+services:
+  forge:
+    build:
+      context: .
+      dockerfile: homeassistant/Dockerfile
+    container_name: forge
+    ports:
+      - "8099:8099"
+    volumes:
+      # Persistent data storage
+      - forge_data:/data
+    environment:
+      - PORT=8099
+      - FORGE_DATA_DIR=/data
+      - FORGE_STATIC_DIR=/app/dist
+      - FORGE_DB_PATH=/data/forge.sqlite
+      - NODE_ENV=production
+      # Uncomment and set for Tailscale CORS support
+      # - TAILSCALE_HOSTNAME=your-hostname.tail12345.ts.net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8099/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  forge_data:
+    name: forge_data
