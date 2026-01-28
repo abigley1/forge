@@ -109,7 +109,19 @@
       "mcp__forge__get_critical_path",
       "mcp__forge__search_nodes",
       "mcp__forge__find_components",
-      "mcp__forge__bulk_update"
+      "mcp__forge__bulk_update",
+      "Bash(npx tsx:*)",
+      "WebFetch(domain:eclipse.dev)",
+      "mcp__forge__get_node",
+      "mcp__forge__update_node",
+      "Bash(node:*)",
+      "Bash(docker build:*)",
+      "Bash(npx yaml-lint:*)",
+      "Bash(gh auth:*)",
+      "Bash(brew install:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh pr create:*)"
     ]
   },
   "enabledMcpjsonServers": ["forge"]
