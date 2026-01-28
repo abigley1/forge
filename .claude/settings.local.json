@@ -121,7 +121,14 @@
       "Bash(brew install:*)",
       "Bash(git push:*)",
       "Bash(gh repo create:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git fetch:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose up:*)",
+      "Bash(ssh:*)"
     ]
   },
   "enabledMcpjsonServers": ["forge"]

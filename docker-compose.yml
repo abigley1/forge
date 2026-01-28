@@ -1,13 +1,11 @@
 # Forge - Local Development Docker Compose
 # Use this for testing the Docker build before deploying to Home Assistant
 
-version: '3.8'
-
 services:
   forge:
     build:
       context: .
-      dockerfile: homeassistant/Dockerfile
+      dockerfile: forge/Dockerfile
     container_name: forge
     ports:
       - "8099:8099"

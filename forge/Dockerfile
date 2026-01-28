@@ -69,7 +69,7 @@ COPY --from=server-builder /build/server/package.json ./server/package.json
 RUN mkdir -p /data && chown -R node:node /data /app
 
 # Copy startup script
-COPY homeassistant/run.sh /run.sh
+COPY forge/run.sh /run.sh
 RUN chmod +x /run.sh
 
 # Environment defaults
