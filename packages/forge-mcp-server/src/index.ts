@@ -6,7 +6,7 @@
  * to AI agents like Claude Code.
  *
  * Usage:
- *   FORGE_API_URL=http://localhost:3000/api FORGE_PROJECT_ID=my-project forge-mcp-server
+ *   FORGE_API_URL=http://localhost:3000/api forge-mcp-server
  *
  * Or configure in Claude Code settings:
  *   {
@@ -15,12 +15,13 @@
  *         "command": "npx",
  *         "args": ["forge-mcp-server"],
  *         "env": {
- *           "FORGE_API_URL": "http://localhost:3000/api",
- *           "FORGE_PROJECT_ID": "my-project"
+ *           "FORGE_API_URL": "http://localhost:3000/api"
  *         }
  *       }
  *     }
  *   }
+ *
+ * Optional: Set FORGE_PROJECT_ID to auto-select a project on startup.
  *
  * Legacy mode (filesystem-based) still supported:
  *   FORGE_PROJECT_PATH=/path/to/project forge-mcp-server
@@ -79,15 +80,22 @@ interface ServerConfig {
 
 let apiClient: ApiClient | null = null
 
+// Track current project ID (can be changed via switch_project tool)
+let currentProjectId: string | null = null
+
 function loadConfig(): ServerConfig {
   const apiUrl = process.env.FORGE_API_URL
   const projectId = process.env.FORGE_PROJECT_ID
   const projectPath = process.env.FORGE_PROJECT_PATH
   const workspacePath = process.env.FORGE_WORKSPACE_PATH
 
-  // Prefer API mode if both URL and project ID are set
-  if (apiUrl && projectId) {
+  // Prefer API mode if URL is set (project ID is optional)
+  if (apiUrl) {
     apiClient = createApiClient({ baseUrl: apiUrl })
+    // Set initial project if provided
+    if (projectId) {
+      currentProjectId = projectId
+    }
     return {
       mode: 'api',
       apiUrl,
@@ -105,9 +113,21 @@ function loadConfig(): ServerConfig {
   }
 
   console.error('Error: Missing required configuration')
-  console.error('API mode: Set FORGE_API_URL and FORGE_PROJECT_ID')
+  console.error('API mode: Set FORGE_API_URL (FORGE_PROJECT_ID is optional)')
   console.error('Filesystem mode: Set FORGE_PROJECT_PATH')
   process.exit(1)
+}
+
+/**
+ * Get the current project ID, throwing an error if none is selected
+ */
+function requireProjectId(): string {
+  if (!currentProjectId) {
+    throw new Error(
+      'No project selected. Use list_projects to see available projects, then switch_project to select one.'
+    )
+  }
+  return currentProjectId
 }
 
 // ============================================================================
@@ -202,12 +222,12 @@ async function ensureProjectLoaded(): Promise<Project> {
     // Return a minimal project for compatibility
     if (!currentProject) {
       currentProject = {
-        id: config.projectId!,
-        name: config.projectId!,
+        id: requireProjectId(),
+        name: requireProjectId(),
         path: '',
         nodes: new Map(),
         metadata: {
-          name: config.projectId!,
+          name: requireProjectId(),
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
         },
@@ -237,7 +257,7 @@ async function handleCreateNode(
 
   if (isApiMode()) {
     // API mode - create via HTTP
-    const result = await apiClient!.createNode(config.projectId!, {
+    const result = await apiClient!.createNode(requireProjectId(), {
       type: input.type,
       title: input.title,
       content: input.content,
@@ -314,7 +334,7 @@ async function handleUpdateNode(
 
   if (isApiMode()) {
     // API mode - update via HTTP
-    const result = await apiClient!.updateNode(config.projectId!, input.id, {
+    const result = await apiClient!.updateNode(requireProjectId(), input.id, {
       title: input.title,
       content: input.content,
       status: input.status,
@@ -405,7 +425,7 @@ async function handleDeleteNode(
 
   if (isApiMode()) {
     // API mode - first get the node to get its info, then delete
-    const getResult = await apiClient!.getNode(config.projectId!, input.id)
+    const getResult = await apiClient!.getNode(requireProjectId(), input.id)
     if (!getResult.success) {
       return {
         content: [
@@ -421,7 +441,7 @@ async function handleDeleteNode(
     }
 
     const nodeInfo = getResult.data
-    const result = await apiClient!.deleteNode(config.projectId!, input.id)
+    const result = await apiClient!.deleteNode(requireProjectId(), input.id)
 
     if (!result.success) {
       return {
@@ -492,7 +512,7 @@ async function handleSearchNodes(
 
   if (isApiMode()) {
     // API mode - use listNodes with filters
-    const result = await apiClient!.listNodes(config.projectId!, {
+    const result = await apiClient!.listNodes(requireProjectId(), {
       type: input.type as ApiNode['type'],
       status: input.status,
       tags: input.tags,
@@ -580,7 +600,7 @@ async function handleGetNode(
 
   if (isApiMode()) {
     // API mode - get via HTTP
-    const result = await apiClient!.getNode(config.projectId!, id)
+    const result = await apiClient!.getNode(requireProjectId(), id)
 
     if (!result.success) {
       return {
@@ -689,10 +709,12 @@ async function handleListProjects(): Promise<{
                 name: p.name,
                 description: p.description,
               })),
-              currentProject: config.projectId
+              currentProject: currentProjectId
                 ? {
-                    id: config.projectId,
-                    name: config.projectId,
+                    id: currentProjectId,
+                    name:
+                      result.data.find((p) => p.id === currentProjectId)
+                        ?.name || currentProjectId,
                   }
                 : null,
             },
@@ -733,6 +755,83 @@ async function handleListProjects(): Promise<{
   }
 }
 
+async function handleSwitchProject(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  const { projectId } = args as { projectId: string }
+
+  if (!projectId) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: 'projectId is required',
+          }),
+        },
+      ],
+    }
+  }
+
+  if (isApiMode()) {
+    // Verify the project exists
+    const result = await apiClient!.getProject(projectId)
+
+    if (!result.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: `Project not found: ${projectId}`,
+            }),
+          },
+        ],
+      }
+    }
+
+    // Switch to the project
+    currentProjectId = projectId
+    currentProject = null // Clear cached project
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              message: `Switched to project: ${result.data.name}`,
+              project: {
+                id: result.data.id,
+                name: result.data.name,
+                description: result.data.description,
+              },
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    }
+  }
+
+  // Filesystem mode - not supported for switching
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({
+          success: false,
+          error: 'Project switching is only supported in API mode',
+        }),
+      },
+    ],
+  }
+}
+
 // ============================================================================
 // Advanced Tool Handlers (Task 15.7)
 // ============================================================================
@@ -762,7 +861,7 @@ async function handleAddDependency(
   if (isApiMode()) {
     // API mode - add dependency via HTTP
     const result = await apiClient!.addDependency(
-      config.projectId!,
+      requireProjectId(),
       taskId,
       dependsOnId
     )
@@ -782,8 +881,8 @@ async function handleAddDependency(
     }
 
     // Get the updated task to return
-    const taskResult = await apiClient!.getNode(config.projectId!, taskId)
-    const depResult = await apiClient!.getNode(config.projectId!, dependsOnId)
+    const taskResult = await apiClient!.getNode(requireProjectId(), taskId)
+    const depResult = await apiClient!.getNode(requireProjectId(), dependsOnId)
 
     return {
       content: [
@@ -929,7 +1028,7 @@ async function handleRemoveDependency(
   if (isApiMode()) {
     // API mode - remove dependency via HTTP
     const result = await apiClient!.removeDependency(
-      config.projectId!,
+      requireProjectId(),
       taskId,
       dependsOnId
     )
@@ -949,7 +1048,7 @@ async function handleRemoveDependency(
     }
 
     // Get the updated task to return
-    const taskResult = await apiClient!.getNode(config.projectId!, taskId)
+    const taskResult = await apiClient!.getNode(requireProjectId(), taskId)
 
     return {
       content: [
@@ -1026,7 +1125,7 @@ async function handleGetBlockedTasks(): Promise<{
 }> {
   if (isApiMode()) {
     // API mode - get blocked tasks via HTTP
-    const result = await apiClient!.getBlockedTasks(config.projectId!)
+    const result = await apiClient!.getBlockedTasks(requireProjectId())
 
     if (!result.success) {
       return {
@@ -1043,7 +1142,7 @@ async function handleGetBlockedTasks(): Promise<{
     }
 
     // Get all nodes to resolve dependency info
-    const allNodesResult = await apiClient!.listNodes(config.projectId!)
+    const allNodesResult = await apiClient!.listNodes(requireProjectId())
     const nodesMap = new Map<string, ApiNode>()
     if (allNodesResult.success) {
       for (const node of allNodesResult.data) {
@@ -1112,7 +1211,7 @@ async function handleGetCriticalPath(): Promise<{
 }> {
   if (isApiMode()) {
     // API mode - get critical path via HTTP
-    const result = await apiClient!.getCriticalPath(config.projectId!)
+    const result = await apiClient!.getCriticalPath(requireProjectId())
 
     if (!result.success) {
       return {
@@ -1220,7 +1319,7 @@ async function handleBulkUpdate(
       }
 
       try {
-        const result = await apiClient!.updateNode(config.projectId!, id, {
+        const result = await apiClient!.updateNode(requireProjectId(), id, {
           status: fields.status,
           priority: fields.priority,
           tags: fields.tags,
@@ -1326,7 +1425,7 @@ async function handleFindComponents(
 
   if (isApiMode()) {
     // API mode - find components via HTTP
-    const result = await apiClient!.findComponents(config.projectId!, {
+    const result = await apiClient!.findComponents(requireProjectId(), {
       status,
       supplier,
       minCost,
@@ -1480,6 +1579,30 @@ async function main() {
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [
+        {
+          name: 'list_projects',
+          description:
+            'List all available Forge projects. Use this to see what projects exist before selecting one with switch_project.',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+        },
+        {
+          name: 'switch_project',
+          description:
+            'Switch to a different Forge project. All subsequent operations will use this project until switched again.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              projectId: {
+                type: 'string',
+                description: 'ID of the project to switch to',
+              },
+            },
+            required: ['projectId'],
+          },
+        },
         {
           name: 'create_node',
           description:
@@ -1841,6 +1964,8 @@ async function main() {
           return await handleGetNode(args ?? {})
         case 'list_projects':
           return await handleListProjects()
+        case 'switch_project':
+          return await handleSwitchProject(args ?? {})
         case 'add_dependency':
           return await handleAddDependency(args ?? {})
         case 'remove_dependency':
