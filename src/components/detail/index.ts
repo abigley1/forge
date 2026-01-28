@@ -34,6 +34,9 @@ export type { ContainerFieldsProps } from './ContainerFields'
 export { ChildNodesSection } from './ChildNodesSection'
 export type { ChildNodesSectionProps } from './ChildNodesSection'
 
+export { RelatedNodesSection } from './RelatedNodesSection'
+export type { RelatedNodesSectionProps } from './RelatedNodesSection'
+
 export { ParentSelector } from './ParentSelector'
 export type { ParentSelectorProps } from './ParentSelector'
 
