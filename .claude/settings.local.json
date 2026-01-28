@@ -135,7 +135,8 @@
       "Bash(docker buildx create:*)",
       "Bash(docker buildx use:*)",
       "Bash(docker buildx build:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(docker compose:*)"
     ]
   },
   "enabledMcpjsonServers": ["forge"]
