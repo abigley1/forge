@@ -8,12 +8,7 @@ import {
   useAppStore,
   useWorkspaceStore,
 } from '@/store'
-import {
-  useUndoRedo,
-  useFilters,
-  useHybridPersistence,
-  useServerPersistence,
-} from '@/hooks'
+import { useUndoRedo, useFilters, useServerPersistence } from '@/hooks'
 import {
   QuickProjectSwitcher,
   CreateProjectDialog,
@@ -34,12 +29,8 @@ import { getAllTagsForClustering } from '@/lib/graph'
 import { cn } from '@/lib/utils'
 import type { TaskStatus, ForgeNode, Attachment } from '@/types/nodes'
 import { isDecisionNode, type DecisionNode } from '@/types/nodes'
-import { HybridPersistenceContext, ServerPersistenceContext } from '@/contexts'
+import { ServerPersistenceContext } from '@/contexts'
 import type { PersistenceContextValue } from '@/contexts'
-
-// Check if server persistence is enabled via environment variable
-const USE_SERVER_PERSISTENCE =
-  import.meta.env.VITE_USE_SERVER_PERSISTENCE === 'true'
 
 /**
  * Loading screen shown while initializing from IndexedDB
@@ -420,68 +411,9 @@ function ProjectWorkspace() {
 }
 
 /**
- * App component using hybrid persistence (IndexedDB)
+ * Main App component using server persistence (SQLite via Express API)
  */
-function AppWithHybridPersistence() {
-  const project = useProjectStore((state) => state.project)
-  const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
-
-  // Initialize IndexedDB persistence
-  const persistence = useHybridPersistence()
-
-  // Enable global undo/redo keyboard shortcuts (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z)
-  useUndoRedo({ enableHotkeys: true })
-
-  // Keyboard shortcut for quick project switcher (Cmd+Shift+P / Ctrl+Shift+P)
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-      const modifier = isMac ? event.metaKey : event.ctrlKey
-
-      if (modifier && event.shiftKey && event.key.toLowerCase() === 'p') {
-        event.preventDefault()
-        setQuickSwitcherOpen(true)
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  // Determine what to render based on state
-  const renderContent = () => {
-    // Still loading from IndexedDB
-    if (!persistence.isInitialized || persistence.isLoading) {
-      return <LoadingScreen />
-    }
-
-    // Have project loaded (from IndexedDB)
-    if (project) {
-      return <ProjectWorkspace />
-    }
-
-    // No data - show welcome screen
-    return <WelcomeScreen />
-  }
-
-  return (
-    <HybridPersistenceContext.Provider value={persistence}>
-      <AppShell>
-        {renderContent()}
-        <CommandPalette />
-        <QuickProjectSwitcher
-          open={quickSwitcherOpen}
-          onOpenChange={setQuickSwitcherOpen}
-        />
-      </AppShell>
-    </HybridPersistenceContext.Provider>
-  )
-}
-
-/**
- * App component using server persistence (SQLite via Express API)
- */
-function AppWithServerPersistence() {
+function App() {
   const project = useProjectStore((state) => state.project)
   const activeProjectId = useWorkspaceStore((state) => state.activeProjectId)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
@@ -604,16 +536,6 @@ function AppWithServerPersistence() {
       </AppShell>
     </ServerPersistenceContext.Provider>
   )
-}
-
-/**
- * Main App component that selects persistence mode based on environment variable
- */
-function App() {
-  if (USE_SERVER_PERSISTENCE) {
-    return <AppWithServerPersistence />
-  }
-  return <AppWithHybridPersistence />
 }
 
 export default App

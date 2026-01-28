@@ -173,7 +173,7 @@ export function ProjectSwitcher({
   }, [getSortedProjects, searchQuery, projects])
 
   // Actually perform the project switch
-  // The useHybridPersistence hook handles loading data when activeProjectId changes
+  // The useServerPersistence hook handles loading data when activeProjectId changes
   const performProjectSwitch = useCallback(
     (projectId: string) => {
       const targetProject = projects.find((p) => p.id === projectId)
@@ -202,7 +202,7 @@ export function ProjectSwitcher({
         }
       }
 
-      // Update workspace state - useHybridPersistence will handle loading project data
+      // Update workspace state - useServerPersistence will handle loading project data
       setActiveProject(projectId)
     },
     [projects, setActiveProject]

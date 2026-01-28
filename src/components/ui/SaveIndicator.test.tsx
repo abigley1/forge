@@ -160,13 +160,9 @@ describe('SaveIndicator', () => {
 })
 
 describe('useSaveIndicator', () => {
-  let mockSaveAllDirtyNodes: ReturnType<typeof vi.fn>
-
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
-
-    mockSaveAllDirtyNodes = vi.fn().mockResolvedValue(true)
 
     mockUseNodesStore.mockImplementation(
       (selector: (state: unknown) => unknown) => {
@@ -180,9 +176,7 @@ describe('useSaveIndicator', () => {
     mockUseProjectStore.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         const state = {
-          hasAdapter: () => true,
           hasProject: () => true,
-          saveAllDirtyNodes: mockSaveAllDirtyNodes,
           error: null,
         }
         return selector(state)
@@ -238,45 +232,11 @@ describe('useSaveIndicator', () => {
     expect(screen.getByTestId('has-unsaved')).toHaveTextContent('true')
   })
 
-  it('returns saving status during save', async () => {
-    let resolveSave: (value: boolean) => void
-    mockSaveAllDirtyNodes.mockImplementation(() => {
-      return new Promise<boolean>((resolve) => {
-        resolveSave = resolve
-      })
-    })
-
-    mockUseNodesStore.mockImplementation(
-      (selector: (state: unknown) => unknown) => {
-        const state = {
-          hasDirtyNodes: () => true,
-        }
-        return selector(state)
-      }
-    )
-
-    render(<TestComponent />)
-
-    // Trigger save
-    const saveButton = screen.getByRole('button', { name: /save/i })
-    act(() => {
-      saveButton.click()
-    })
-
-    expect(screen.getByTestId('status')).toHaveTextContent('saving')
-    expect(screen.getByTestId('is-saving')).toHaveTextContent('true')
-
-    // Complete save
-    await act(async () => {
-      resolveSave!(true)
-    })
-  })
-
   it('returns saved status after successful save', async () => {
     mockUseNodesStore.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         const state = {
-          hasDirtyNodes: () => false, // Becomes clean after save
+          hasDirtyNodes: () => false, // Clean after save
         }
         return selector(state)
       }
@@ -301,8 +261,16 @@ describe('useSaveIndicator', () => {
     expect(screen.getByTestId('status')).toHaveTextContent('idle')
   })
 
-  it('returns error status when save fails', async () => {
-    mockSaveAllDirtyNodes.mockResolvedValue(false)
+  it('returns error status when no project is open', async () => {
+    mockUseProjectStore.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        const state = {
+          hasProject: () => false,
+          error: null,
+        }
+        return selector(state)
+      }
+    )
 
     mockUseNodesStore.mockImplementation(
       (selector: (state: unknown) => unknown) => {
@@ -327,9 +295,7 @@ describe('useSaveIndicator', () => {
     mockUseProjectStore.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         const state = {
-          hasAdapter: () => true,
           hasProject: () => true,
-          saveAllDirtyNodes: mockSaveAllDirtyNodes,
           error: 'Some error',
         }
         return selector(state)

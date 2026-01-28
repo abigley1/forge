@@ -171,7 +171,6 @@ export function useSaveIndicator(
   const hasDirtyNodes = useNodesStore((state) => state.hasDirtyNodes())
   const storeError = useProjectStore((state) => state.error)
   const hasProject = useProjectStore((state) => state.hasProject())
-  const hasAdapter = useProjectStore((state) => state.hasAdapter())
 
   const { isSaving, hasUnsavedChanges, saveNow } = useAutoSave({
     onSaveSuccess: () => {
@@ -217,8 +216,8 @@ export function useSaveIndicator(
     status = 'unsaved'
   }
 
-  // Can only save if we have both a project and an adapter
-  const canSave = hasProject && hasAdapter
+  // Can save if we have a project (server handles persistence)
+  const canSave = hasProject
 
   return {
     status,

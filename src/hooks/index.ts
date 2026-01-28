@@ -150,17 +150,6 @@ export type {
   UseCommandsReturn,
 } from './useCommands'
 
-// IndexedDB persistence hooks
-export {
-  useHybridPersistence,
-  isHybridPersistenceSupported,
-} from './useHybridPersistence'
-export type {
-  IndexedDBPersistenceState,
-  IndexedDBPersistenceActions,
-  UseHybridPersistenceReturn,
-} from './useHybridPersistence'
-
 // Server persistence hooks
 export { useServerPersistence, isServerAvailable } from './useServerPersistence'
 export type {

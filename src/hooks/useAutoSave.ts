@@ -1,21 +1,15 @@
 /**
  * useAutoSave Hook
  *
- * Provides debounced auto-save functionality for dirty nodes.
- * Monitors dirty state and automatically saves after a configurable delay.
- *
- * In server persistence mode, saves happen automatically via subscription
+ * Provides save functionality for dirty nodes.
+ * With server persistence, saves happen automatically via subscription
  * in useServerPersistence, so this hook mainly tracks save state.
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 
 import { useNodesStore } from '@/store/useNodesStore'
 import { useProjectStore } from '@/store/useProjectStore'
-
-// Check if server persistence is enabled
-const USE_SERVER_PERSISTENCE =
-  import.meta.env.VITE_USE_SERVER_PERSISTENCE === 'true'
 
 // ============================================================================
 // Constants
@@ -68,112 +62,28 @@ export interface UseAutoSaveReturn {
 export function useAutoSave(
   options: UseAutoSaveOptions = {}
 ): UseAutoSaveReturn {
-  const {
-    enabled = true,
-    delay = DEFAULT_AUTO_SAVE_DELAY,
-    onSaveStart,
-    onSaveSuccess,
-    onSaveError,
-  } = options
+  const { onSaveSuccess, onSaveError } = options
+  // Note: enabled, delay, and onSaveStart are kept in the interface for backwards
+  // compatibility but are not used since server persistence auto-saves
 
-  const [isSaving, setIsSaving] = useState(false)
-
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [isSaving] = useState(false)
 
   // Get state from stores
   const hasDirtyNodes = useNodesStore((state) => state.hasDirtyNodes())
-  const hasAdapter = useProjectStore((state) => state.hasAdapter())
   const hasProject = useProjectStore((state) => state.hasProject())
-  const saveAllDirtyNodes = useProjectStore((state) => state.saveAllDirtyNodes)
 
   // Manual save function
+  // With server persistence, saves happen automatically via subscription.
+  // This function just signals success since nodes are already synced.
   const saveNow = useCallback(async (): Promise<boolean> => {
-    // Clear any pending auto-save
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-
-    // In server persistence mode, saves happen automatically via subscription.
-    // The manual save just signals success since nodes are already synced.
-    if (USE_SERVER_PERSISTENCE) {
-      if (!hasProject) {
-        onSaveError?.('Cannot save: No project is currently open')
-        return false
-      }
-      // Nodes are automatically saved to server, just report success
-      onSaveSuccess?.()
-      return true
-    }
-
-    // File system adapter mode - use traditional save
-    if (!hasAdapter || !hasProject) {
+    if (!hasProject) {
       onSaveError?.('Cannot save: No project is currently open')
       return false
     }
-
-    setIsSaving(true)
-    onSaveStart?.()
-
-    try {
-      const success = await saveAllDirtyNodes()
-      setIsSaving(false)
-
-      if (success) {
-        onSaveSuccess?.()
-      } else {
-        onSaveError?.('Failed to save some nodes')
-      }
-
-      return success
-    } catch (err) {
-      setIsSaving(false)
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      onSaveError?.(message)
-      return false
-    }
-  }, [
-    hasAdapter,
-    hasProject,
-    saveAllDirtyNodes,
-    onSaveStart,
-    onSaveSuccess,
-    onSaveError,
-  ])
-
-  // Set up debounced auto-save (file system mode only)
-  // In server persistence mode, saves happen automatically via subscription
-  useEffect(() => {
-    // Skip auto-save setup in server persistence mode
-    if (USE_SERVER_PERSISTENCE) {
-      return
-    }
-
-    // Clear any existing timeout first
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-
-    // Don't set up auto-save if conditions not met
-    if (!enabled || !hasDirtyNodes || !hasAdapter || !hasProject || isSaving) {
-      return
-    }
-
-    // Set up new timeout
-    timeoutRef.current = setTimeout(() => {
-      timeoutRef.current = null
-      saveNow()
-    }, delay)
-
-    // Cleanup on unmount or dependency change
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = null
-      }
-    }
-  }, [enabled, hasDirtyNodes, hasAdapter, hasProject, delay, isSaving, saveNow])
+    // Nodes are automatically saved to server, just report success
+    onSaveSuccess?.()
+    return true
+  }, [hasProject, onSaveSuccess, onSaveError])
 
   return {
     isSaving,
