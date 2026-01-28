@@ -107,6 +107,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'scripts/**/*.{test,spec}.ts'],
+    // Disable server persistence in tests to use hybrid/IndexedDB mode
+    env: {
+      VITE_USE_SERVER_PERSISTENCE: 'false',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
