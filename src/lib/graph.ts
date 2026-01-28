@@ -928,8 +928,7 @@ function buildElkNodeWithChildren(
             childNode,
             parentChildIndex,
             allNodesMap,
-            visitedIds,
-            true // This node has a parent
+            visitedIds
           )
         )
       }
@@ -998,8 +997,7 @@ function toCompoundElkGraph(
           rootNode,
           parentChildIndex,
           allNodesMap,
-          visitedIds,
-          false // Root nodes have no parent
+          visitedIds
         )
       )
     }

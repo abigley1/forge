@@ -15,7 +15,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy source files for frontend build
-COPY tsconfig.json tsconfig.node.json vite.config.ts index.html ./
+COPY tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.html ./
 COPY public/ ./public/
 COPY src/ ./src/
 
@@ -55,10 +55,6 @@ FROM node:22-alpine AS production
 # Install runtime dependencies for better-sqlite3
 RUN apk add --no-cache libstdc++
 
-# Create non-root user for security
-RUN addgroup -g 1000 forge && \
-    adduser -u 1000 -G forge -s /bin/sh -D forge
-
 WORKDIR /app
 
 # Copy built frontend from stage 1
@@ -69,8 +65,8 @@ COPY --from=server-builder /build/server/dist ./server/dist
 COPY --from=server-builder /build/server/node_modules ./server/node_modules
 COPY --from=server-builder /build/server/package.json ./server/package.json
 
-# Create data directory
-RUN mkdir -p /data && chown -R forge:forge /data /app
+# Create data directory and set ownership to node user (UID 1000, already exists in alpine)
+RUN mkdir -p /data && chown -R node:node /data /app
 
 # Copy startup script
 COPY homeassistant/run.sh /run.sh
@@ -90,8 +86,8 @@ EXPOSE 8099
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8099/api/health || exit 1
 
-# Run as non-root user
-USER forge
+# Run as non-root user (node user already exists in node:alpine)
+USER node
 
 # Start server
 CMD ["/run.sh"]

@@ -40,14 +40,14 @@ export function createProjectsRouter(db: DatabaseInstance): Router {
    * Create a new project
    */
   router.post('/', (req: Request, res: Response) => {
+    const { id, name, description } = req.body
+
+    if (!name || typeof name !== 'string') {
+      res.status(400).json({ error: 'Name is required' })
+      return
+    }
+
     try {
-      const { id, name, description } = req.body
-
-      if (!name || typeof name !== 'string') {
-        res.status(400).json({ error: 'Name is required' })
-        return
-      }
-
       const project = repo.create({ id, name, description })
       res.status(201).json({ data: project })
     } catch (error) {
