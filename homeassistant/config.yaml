@@ -1,0 +1,49 @@
+# Home Assistant Add-on Configuration
+# https://developers.home-assistant.io/docs/add-ons/configuration
+
+name: Forge
+version: "0.0.1"
+slug: forge
+description: Personal project brainstorming and tracking for hardware/engineering projects
+url: https://github.com/yourusername/forge
+
+# Supported architectures
+arch:
+  - aarch64
+  - amd64
+
+# Container configuration
+init: false
+startup: application
+boot: auto
+
+# Ingress configuration (HA sidebar access)
+ingress: true
+ingress_port: 8099
+ingress_stream: true
+panel_icon: mdi:hammer-wrench
+panel_title: Forge
+
+# Port mapping for direct Tailscale access
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: Forge web interface (Tailscale access)
+
+# Persistent storage
+map:
+  - data:rw
+
+# Add-on options schema
+schema:
+  tailscale_hostname: str?
+
+options:
+  tailscale_hostname: ""
+
+# Resource limits (optional, adjust as needed)
+# memory: 512
+
+# Labels
+labels:
+  io.hass.type: application

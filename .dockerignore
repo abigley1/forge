@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs (we rebuild in Docker)
+dist/
+**/dist/
+server/dist/
+
+# Development files
+.env.local
+.env.*.local
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+e2e/
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed in container)
+*.md
+!homeassistant/README.md
+docs/
+
+# Claude/AI artifacts
+.claude/
+.ralph/
+**/.serena/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
