@@ -160,3 +160,11 @@ export type {
   IndexedDBPersistenceActions,
   UseHybridPersistenceReturn,
 } from './useHybridPersistence'
+
+// Server persistence hooks
+export { useServerPersistence, isServerAvailable } from './useServerPersistence'
+export type {
+  ServerPersistenceState,
+  ServerPersistenceActions,
+  UseServerPersistenceReturn,
+} from './useServerPersistence'
