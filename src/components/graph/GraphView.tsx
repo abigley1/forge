@@ -22,7 +22,7 @@ import ReactFlow, {
   type OnSelectionChangeFunc,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { LayoutGrid, Loader2, Map, EyeOff } from 'lucide-react'
+import { LayoutGrid, Loader2, Map, EyeOff, Group } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useNodesStore, useProjectStore } from '@/store'
@@ -38,7 +38,7 @@ import {
   nodesToGraphDataWithClusters,
   extractNodePositions,
   filterGraphData,
-  calculateLayout,
+  calculateHierarchicalLayout,
   type ForgeGraphNode,
   type NodePositions,
   type ClusterExpandedState,
@@ -48,6 +48,7 @@ import { forgeEdgeTypes } from './edgeTypes'
 import { NodeContextMenu } from './NodeContextMenu'
 import { GraphAnnouncer } from './GraphAnnouncer'
 import { useGraphAnnouncer } from './useGraphAnnouncer'
+import { GroupBackgrounds } from './GroupBackgrounds'
 
 export interface GraphViewProps {
   /** Called when a node is selected */
@@ -76,6 +77,8 @@ export interface GraphViewProps {
   enableKeyboardNavigation?: boolean
   /** Show critical path highlighting (default: true) */
   showCriticalPath?: boolean
+  /** Show group backgrounds for container relationships (uses preferences by default) */
+  showGroupBackgrounds?: boolean
 }
 
 interface ContextMenuState {
@@ -128,6 +131,7 @@ function GraphViewInner({
   onClusterToggle,
   enableKeyboardNavigation = true,
   showCriticalPath = true,
+  showGroupBackgrounds: showGroupBackgroundsProp,
 }: GraphViewProps) {
   // Get nodes and link index from store
   const nodes = useNodesStore((state) => state.nodes)
@@ -144,11 +148,14 @@ function GraphViewInner({
   const { filterNodes, hasActiveFilters, setContainer } = useFilters()
 
   // Graph preferences (minimap, background visibility with persistence)
-  const { preferences, toggleMinimap } = useGraphPreferences()
+  const { preferences, toggleMinimap, toggleGroupBackgrounds } =
+    useGraphPreferences()
 
   // Determine actual visibility (props override preferences)
   const showMinimap = showMinimapProp ?? preferences.showMinimap
   const showBackground = showBackgroundProp ?? preferences.showBackground
+  const showGroupBackgrounds =
+    showGroupBackgroundsProp ?? preferences.showGroupBackgrounds
 
   // Reduced motion preference
   const reducedMotion = useReducedMotion()
@@ -351,8 +358,11 @@ function GraphViewInner({
             forgeNodes.some((n) => n.id === e.target)
         )
 
-        // Calculate new layout
-        const newPositions = await calculateLayout(forgeNodes, relevantEdges)
+        // Calculate hierarchical layout (children cluster near parents)
+        const newPositions = await calculateHierarchicalLayout(
+          forgeNodes,
+          relevantEdges
+        )
 
         // Apply new positions, preserving manually positioned nodes
         setRfNodes((currentNodes) =>
@@ -710,8 +720,11 @@ function GraphViewInner({
           forgeNodes.some((n) => n.id === e.target)
       )
 
-      // Calculate new layout
-      const newPositions = await calculateLayout(forgeNodes, relevantEdges)
+      // Calculate hierarchical layout (children cluster near parents)
+      const newPositions = await calculateHierarchicalLayout(
+        forgeNodes,
+        relevantEdges
+      )
 
       // Apply new positions to React Flow nodes
       setRfNodes((currentNodes) =>
@@ -868,6 +881,9 @@ function GraphViewInner({
         panOnDrag
         selectionOnDrag={false}
       >
+        {/* Group backgrounds for container relationships */}
+        {showGroupBackgrounds && <GroupBackgrounds nodes={processedNodes} />}
+
         {/* Controls for zoom/pan */}
         <Controls
           className="!border-gray-200 !bg-white !shadow-md dark:!border-gray-700 dark:!bg-gray-800"
@@ -890,6 +906,27 @@ function GraphViewInner({
             ) : (
               <EyeOff className="h-4 w-4" aria-hidden="true" />
             )}
+          </ControlButton>
+
+          {/* Toggle Group Backgrounds button */}
+          <ControlButton
+            onClick={toggleGroupBackgrounds}
+            title={
+              showGroupBackgrounds
+                ? 'Hide Group Backgrounds'
+                : 'Show Group Backgrounds'
+            }
+            aria-label={
+              showGroupBackgrounds
+                ? 'Hide group backgrounds'
+                : 'Show group backgrounds'
+            }
+            aria-pressed={showGroupBackgrounds}
+          >
+            <Group
+              className={cn('h-4 w-4', !showGroupBackgrounds && 'opacity-50')}
+              aria-hidden="true"
+            />
           </ControlButton>
 
           {/* Reset Layout button */}

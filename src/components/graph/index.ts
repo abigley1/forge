@@ -16,3 +16,4 @@ export {
   useGraphAnnouncer,
   type UseGraphAnnouncerReturn,
 } from './useGraphAnnouncer'
+export { GroupBackgrounds } from './GroupBackgrounds'

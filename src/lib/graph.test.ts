@@ -922,8 +922,91 @@ describe('Reference Edges', () => {
 import {
   calculateLayout,
   calculateCenteredLayout,
+  calculateHierarchicalLayout,
+  calculateCenteredHierarchicalLayout,
   type AutoLayoutOptions,
 } from './graph'
+import {
+  NodeType as NT,
+  type SubsystemNode,
+  type AssemblyNode,
+  type ComponentNode,
+} from '@/types/nodes'
+
+// Helper to create subsystem node (top-level container, no parent)
+function createSubsystemNode(id: string, title: string): SubsystemNode {
+  return {
+    id,
+    type: NT.Subsystem,
+    title,
+    content: '',
+    tags: [],
+    dates: { created: new Date(), modified: new Date() },
+    status: 'planning',
+  }
+}
+
+// Helper to create assembly node with parent
+function createAssemblyNode(
+  id: string,
+  title: string,
+  parent: string | null = null
+): AssemblyNode {
+  return {
+    id,
+    type: NT.Assembly,
+    title,
+    content: '',
+    tags: [],
+    dates: { created: new Date(), modified: new Date() },
+    status: 'planning',
+    parent,
+  }
+}
+
+// Helper to create component node with parent
+function createComponentNode(
+  id: string,
+  title: string,
+  parent: string | null = null
+): ComponentNode {
+  return {
+    id,
+    type: NT.Component,
+    title,
+    content: '',
+    tags: [],
+    dates: { created: new Date(), modified: new Date() },
+    status: 'considering',
+    partNumber: null,
+    supplier: null,
+    cost: null,
+    customFields: {},
+    parent,
+  }
+}
+
+// Helper to create task node with parent
+function createTaskNodeWithParent(
+  id: string,
+  title: string,
+  parent: string | null = null
+): TaskNode {
+  return {
+    id,
+    type: NodeType.Task,
+    title,
+    content: '',
+    tags: [],
+    dates: { created: new Date(), modified: new Date() },
+    status: 'pending',
+    priority: 'medium',
+    dependsOn: [],
+    blocks: [],
+    checklist: [],
+    parent,
+  }
+}
 
 describe('calculateLayout', () => {
   it('returns empty positions for empty node array', async () => {
@@ -1345,5 +1428,281 @@ describe('ELK Layout Error Handling', () => {
       expect(Number.isNaN(pos.x)).toBe(false)
       expect(Number.isNaN(pos.y)).toBe(false)
     })
+  })
+})
+
+// ============================================================================
+// Hierarchical Layout Tests (Parent-Child Proximity)
+// ============================================================================
+
+describe('calculateHierarchicalLayout', () => {
+  it('returns empty positions for empty node array', async () => {
+    const positions = await calculateHierarchicalLayout([], [])
+    expect(positions).toEqual({})
+  })
+
+  it('calculates positions for a single node', async () => {
+    const task1 = createTaskNode('task-1', 'Task 1')
+    const nodes = new Map<string, ForgeNode>([['task-1', task1]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    expect(positions).toHaveProperty('task-1')
+    expect(typeof positions['task-1'].x).toBe('number')
+    expect(typeof positions['task-1'].y).toBe('number')
+  })
+
+  it('positions children near their parent container', async () => {
+    // Create a subsystem with child components
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const component1 = createComponentNode(
+      'component-1',
+      'Battery',
+      'subsystem-1'
+    )
+    const component2 = createComponentNode(
+      'component-2',
+      'Charger',
+      'subsystem-1'
+    )
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['component-1', component1],
+      ['component-2', component2],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // All nodes should have positions
+    expect(positions).toHaveProperty('subsystem-1')
+    expect(positions).toHaveProperty('component-1')
+    expect(positions).toHaveProperty('component-2')
+
+    // Children should be positioned within the parent's vicinity
+    // (nested inside the compound node in ELK, then flattened to absolute)
+    const parentPos = positions['subsystem-1']
+    const child1Pos = positions['component-1']
+    const child2Pos = positions['component-2']
+
+    // Children should be to the right or below the parent's origin
+    // due to compound graph padding
+    expect(child1Pos.x).toBeGreaterThanOrEqual(parentPos.x)
+    expect(child2Pos.x).toBeGreaterThanOrEqual(parentPos.x)
+  })
+
+  it('handles nested hierarchy (subsystem -> assembly -> component)', async () => {
+    // Create nested hierarchy
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const assembly = createAssemblyNode(
+      'assembly-1',
+      'Battery Pack',
+      'subsystem-1'
+    )
+    const component = createComponentNode('component-1', 'Cell', 'assembly-1')
+
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['assembly-1', assembly],
+      ['component-1', component],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // All nodes should have positions
+    expect(Object.keys(positions)).toHaveLength(3)
+    expect(positions).toHaveProperty('subsystem-1')
+    expect(positions).toHaveProperty('assembly-1')
+    expect(positions).toHaveProperty('component-1')
+  })
+
+  it('handles orphan nodes (no parent)', async () => {
+    // Mix of nodes with and without parents
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const component1 = createComponentNode(
+      'component-1',
+      'Battery',
+      'subsystem-1'
+    )
+    const orphanTask = createTaskNode('task-1', 'Orphan Task') // No parent
+
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['component-1', component1],
+      ['task-1', orphanTask],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // All nodes including orphan should have positions
+    expect(Object.keys(positions)).toHaveLength(3)
+    expect(positions).toHaveProperty('task-1')
+  })
+
+  it('handles missing parent (node references non-existent parent)', async () => {
+    // Component with parent that doesn't exist in the graph
+    const component = createComponentNode(
+      'component-1',
+      'Battery',
+      'non-existent-parent'
+    )
+
+    const nodes = new Map<string, ForgeNode>([['component-1', component]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // Node should still get a position (treated as root)
+    expect(positions).toHaveProperty('component-1')
+    expect(Number.isFinite(positions['component-1'].x)).toBe(true)
+  })
+
+  it('respects dependency edges within hierarchy', async () => {
+    // Subsystem with two tasks, one depends on the other
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const task1 = createTaskNodeWithParent('task-1', 'Design', 'subsystem-1')
+    const task2 = {
+      ...createTaskNodeWithParent('task-2', 'Build', 'subsystem-1'),
+      dependsOn: ['task-1'],
+    } as TaskNode
+
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['task-1', task1],
+      ['task-2', task2],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // Both tasks should have positions
+    expect(positions).toHaveProperty('task-1')
+    expect(positions).toHaveProperty('task-2')
+
+    // Dependency direction should be respected (task-1 above task-2 with DOWN layout)
+    expect(positions['task-1'].y).toBeLessThanOrEqual(positions['task-2'].y)
+  })
+
+  it('produces valid numeric positions for all nodes', async () => {
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const component1 = createComponentNode(
+      'component-1',
+      'Battery',
+      'subsystem-1'
+    )
+    const component2 = createComponentNode(
+      'component-2',
+      'Charger',
+      'subsystem-1'
+    )
+
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['component-1', component1],
+      ['component-2', component2],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges
+    )
+
+    // All positions should be valid finite numbers
+    Object.values(positions).forEach((pos) => {
+      expect(Number.isFinite(pos.x)).toBe(true)
+      expect(Number.isFinite(pos.y)).toBe(true)
+      expect(Number.isNaN(pos.x)).toBe(false)
+      expect(Number.isNaN(pos.y)).toBe(false)
+    })
+  })
+})
+
+describe('calculateCenteredHierarchicalLayout', () => {
+  it('returns empty positions for empty node array', async () => {
+    const positions = await calculateCenteredHierarchicalLayout(
+      [],
+      [],
+      800,
+      600
+    )
+    expect(positions).toEqual({})
+  })
+
+  it('calculates centered positions for hierarchical nodes', async () => {
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const component = createComponentNode(
+      'component-1',
+      'Battery',
+      'subsystem-1'
+    )
+
+    const nodes = new Map<string, ForgeNode>([
+      ['subsystem-1', subsystem],
+      ['component-1', component],
+    ])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const positions = await calculateCenteredHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges,
+      800,
+      600
+    )
+
+    expect(positions).toHaveProperty('subsystem-1')
+    expect(positions).toHaveProperty('component-1')
+    // Positions should be offset to center in viewport
+    expect(positions['subsystem-1'].x).toBeGreaterThan(0)
+    expect(positions['subsystem-1'].y).toBeGreaterThan(0)
+  })
+
+  it('accepts layout options', async () => {
+    const subsystem = createSubsystemNode('subsystem-1', 'Power System')
+    const nodes = new Map<string, ForgeNode>([['subsystem-1', subsystem]])
+    const linkIndex = createEmptyLinkIndex()
+    const graphData = nodesToGraphData(nodes, linkIndex)
+
+    const options: AutoLayoutOptions = { direction: 'RIGHT', nodeSpacing: 100 }
+    const positions = await calculateCenteredHierarchicalLayout(
+      graphData.nodes,
+      graphData.edges,
+      800,
+      600,
+      options
+    )
+
+    expect(positions).toHaveProperty('subsystem-1')
+    expect(positions['subsystem-1'].x).toBeGreaterThan(0)
+    expect(positions['subsystem-1'].y).toBeGreaterThan(0)
   })
 })
