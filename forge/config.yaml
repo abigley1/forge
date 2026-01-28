@@ -5,7 +5,10 @@ name: Forge
 version: "0.0.1"
 slug: forge
 description: Personal project brainstorming and tracking for hardware/engineering projects
-url: https://github.com/yourusername/forge
+url: https://github.com/abigley1/forge
+
+# Pre-built container image (multi-arch manifest: amd64, arm64)
+image: ghcr.io/abigley1/forge
 
 # Supported architectures
 arch:

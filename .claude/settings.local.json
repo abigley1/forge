@@ -128,7 +128,13 @@
       "Bash(git fetch:*)",
       "Bash(docker-compose up:*)",
       "Bash(docker compose up:*)",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(echo:*)",
+      "Bash(docker login:*)",
+      "Bash(docker buildx create:*)",
+      "Bash(docker buildx use:*)",
+      "Bash(docker buildx build:*)"
     ]
   },
   "enabledMcpjsonServers": ["forge"]
