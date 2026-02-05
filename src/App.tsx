@@ -33,7 +33,7 @@ import { ServerPersistenceContext } from '@/contexts'
 import type { PersistenceContextValue } from '@/contexts'
 
 /**
- * Loading screen shown while initializing from IndexedDB
+ * Loading screen shown while initializing
  */
 function LoadingScreen() {
   return (

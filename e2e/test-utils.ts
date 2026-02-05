@@ -244,30 +244,8 @@ export async function setupTestDataViaActions(page: Page): Promise<void> {
     timeout: 5000,
   })
 
-  // Wait for IndexedDB writes to complete
-  // The hybrid persistence hook writes nodes to IndexedDB async after store changes
-  // We need to wait long enough for all async writes to complete
-  await page.waitForTimeout(1000)
-
-  // Verify IndexedDB has data before returning
-  const hasData = await page.evaluate(async () => {
-    return new Promise<boolean>((resolve) => {
-      const request = indexedDB.open('forge-db')
-      request.onerror = () => resolve(false)
-      request.onsuccess = async () => {
-        const db = request.result
-        const transaction = db.transaction('directories', 'readonly')
-        const store = transaction.objectStore('directories')
-        const countRequest = store.count()
-        countRequest.onsuccess = () => resolve(countRequest.result > 0)
-        countRequest.onerror = () => resolve(false)
-      }
-    })
-  })
-
-  if (!hasData) {
-    console.warn('[E2E] Warning: IndexedDB appears to have no data after setup')
-  }
+  // Wait for server persistence to complete
+  await page.waitForTimeout(500)
 }
 
 /**
@@ -307,19 +285,11 @@ export async function waitForAppReady(page: Page): Promise<void> {
     }
   )
 
-  // Wait for persistence to be ready (either server or hybrid)
+  // Wait for server persistence to be ready
   await page.waitForFunction(
-    () => {
-      const w = window as unknown as {
-        __e2eHybridPersistenceReady?: boolean
-        __e2eServerPersistenceReady?: boolean
-      }
-      // At least one persistence layer should be ready
-      return (
-        w.__e2eHybridPersistenceReady === true ||
-        w.__e2eServerPersistenceReady === true
-      )
-    },
+    () =>
+      (window as unknown as { __e2eServerPersistenceReady?: boolean })
+        .__e2eServerPersistenceReady === true,
     {
       timeout: 5000,
     }

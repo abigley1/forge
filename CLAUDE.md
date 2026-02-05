@@ -40,6 +40,13 @@ cd server && npm run build  # Build TypeScript
 cd server && npm test       # Run server tests
 ```
 
+MCP server commands (in `packages/forge-mcp-server/` directory):
+```bash
+cd packages/forge-mcp-server && npm run dev    # Start MCP server with tsx watch
+cd packages/forge-mcp-server && npm run build  # Build TypeScript
+cd packages/forge-mcp-server && npm test       # Run MCP server tests
+```
+
 ## Architecture
 
 ### Layered Structure
@@ -60,12 +67,7 @@ src/
 │   └── filesystem/        # Adapter pattern for file I/O
 │       ├── types.ts                    # FileSystemAdapter interface
 │       ├── MemoryFileSystemAdapter.ts  # For tests
-│       ├── BrowserFileSystemAdapter.ts # File System Access API
-│       ├── IndexedDBAdapter.ts         # IndexedDB storage
-│       ├── FallbackFileSystemAdapter.ts # Fallback when no FS access
-│       ├── HybridPersistenceService.ts # Combines IndexedDB + File System
-│       ├── SyncService.ts              # Sync between adapters
-│       └── ConflictService.ts          # Handle sync conflicts
+│       └── index.ts                    # Exports
 ├── store/           # Zustand stores with devtools
 │   ├── useNodesStore.ts      # Node CRUD, dirty tracking, link index
 │   ├── useProjectStore.ts    # Project metadata and file system adapter
@@ -75,7 +77,7 @@ src/
 │   ├── useTemplatesStore.ts  # Node templates management
 │   └── useCommandRegistry.ts # Command palette commands
 ├── hooks/           # React hooks for business logic
-│   ├── useHybridPersistence.ts # Manage hybrid storage
+│   ├── useServerPersistence.ts # Server-backed storage
 │   ├── useBlockedStatus.ts     # Compute blocked status for nodes
 │   ├── useCriticalPath.ts      # Compute critical path through tasks
 │   ├── useFilters.ts           # URL-synced filtering (uses nuqs)
@@ -91,23 +93,25 @@ server/              # Express server for production deployment
 │   ├── routes/               # API endpoints (health, files)
 │   ├── adapters/             # ServerFileSystemAdapter
 │   └── middleware/           # CORS, etc.
+
+packages/forge-mcp-server/   # MCP server for AI agent integration
+├── src/
+│   ├── index.ts              # MCP server entry point
+│   ├── api-client.ts         # HTTP client for Forge server API
+│   ├── project-loader.ts     # Load projects via API
+│   ├── dependency-utils.ts   # Task dependency graph utilities
+│   └── types.ts              # Shared types
 ```
 
 ### Key Patterns
 
 **Node Type System:** Uses discriminated unions with type guards. Seven node types:
-- **Leaf nodes:** Decision, Component, Task, Note (all have `parent` field)
-- **Container nodes:** Subsystem, Assembly, Module (organize other nodes hierarchically)
+- **Leaf nodes:** Decision, Component, Task, Note (all have `parent` field for hierarchy)
+- **Container nodes:** Subsystem (top-level), Assembly, Module (Assembly/Module have `parent` field)
 
 Always narrow with `isTaskNode(node)`, `isContainerNode(node)`, etc. before accessing type-specific fields.
 
-**File System Abstraction:** All file I/O goes through `FileSystemAdapter` interface. Implementations:
-- `MemoryFileSystemAdapter` - For tests
-- `BrowserFileSystemAdapter` - File System Access API (full read/write)
-- `IndexedDBAdapter` - Browser IndexedDB storage
-- `FallbackFileSystemAdapter` - When File System Access unavailable
-
-The `HybridPersistenceService` combines IndexedDB (fast, always available) with File System Access (optional sync to disk).
+**Persistence:** The app uses server-backed persistence via the Express server. The `useServerPersistence` hook handles loading/saving nodes through the API. `MemoryFileSystemAdapter` is used for unit tests.
 
 **Validation:** `validateNode()` in `src/lib/validation.ts` returns `ValidationResult<ForgeNode>` - a Result type that's either `{ success: true, data: ForgeNode }` or `{ success: false, error: ValidationError }`. Never throw on validation failure.
 
@@ -166,7 +170,7 @@ E2E tests are in `e2e/` and use helper utilities from `e2e/test-utils.ts`. Key h
 
 E2E tests communicate with Zustand stores via custom events (`e2e-setup-nodes`, `e2e-clear-nodes`).
 
-The app exposes `window.__e2eReady` and `window.__e2eHybridPersistenceReady` flags that tests wait for before interacting.
+The app exposes `window.__e2eReady` flag that tests wait for before interacting.
 
 ## Ralph Loop (Automated Development)
 

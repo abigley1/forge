@@ -9,10 +9,10 @@ import { createContext, useContext } from 'react'
 import type { UseServerPersistenceReturn } from '@/hooks/useServerPersistence'
 
 /**
- * Extended interface that provides compatibility with HybridPersistence
+ * Persistence context value interface
  */
 export interface PersistenceContextValue extends UseServerPersistenceReturn {
-  /** Alias for isConnected - for compatibility with hybrid persistence */
+  /** Alias for isConnected */
   isInitialized: boolean
 }
 

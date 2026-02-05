@@ -79,8 +79,7 @@ export type Unwatch = () => void
  * File System Adapter Interface
  *
  * Abstract interface for file system operations.
- * Implementations include MemoryFileSystemAdapter (for tests)
- * and BrowserFileSystemAdapter (using File System Access API).
+ * MemoryFileSystemAdapter is used for tests.
  */
 export interface FileSystemAdapter {
   /**
