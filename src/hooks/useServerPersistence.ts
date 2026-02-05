@@ -57,6 +57,16 @@ export type UseServerPersistenceReturn = ServerPersistenceState &
   ServerPersistenceActions
 
 /**
+ * Result type for loadFromServer
+ * Distinguishes between: successful load with data, successful load with no data,
+ * error during load, and stale load (project changed during async operation)
+ */
+export type LoadResult =
+  | { status: 'success'; hasData: boolean }
+  | { status: 'error'; error: string }
+  | { status: 'stale' }
+
+/**
  * Hook for managing server persistence
  */
 export function useServerPersistence(): UseServerPersistenceReturn {
@@ -73,9 +83,6 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
   // Track current project ID to detect switches
   const currentProjectIdRef = useRef<string | null>(null)
-
-  // Track pending operations to prevent race conditions
-  const pendingOperationsRef = useRef<Map<string, Promise<void>>>(new Map())
 
   // Store actions
   const setNodes = useNodesStore((s) => s.setNodes)
@@ -94,10 +101,14 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
   /**
    * Load data from server into stores
-   * Returns false if loading fails or if project ID changed during load (stale)
+   * Returns a LoadResult that distinguishes between:
+   * - success with data
+   * - success with no data (empty project)
+   * - error
+   * - stale (project changed during async operation)
    */
   const loadFromServer = useCallback(
-    async (projectId: string): Promise<boolean> => {
+    async (projectId: string): Promise<LoadResult> => {
       try {
         // Fetch all nodes for the project
         const result = await api.listNodes(projectId)
@@ -107,13 +118,7 @@ export function useServerPersistence(): UseServerPersistenceReturn {
             '[useServerPersistence] Failed to load from server:',
             result.error
           )
-          return false
-        }
-
-        const apiNodes = result.data as ApiNode[]
-
-        if (apiNodes.length === 0) {
-          return false
+          return { status: 'error', error: result.error }
         }
 
         // Check if project ID changed during async load - if so, skip store updates
@@ -121,7 +126,13 @@ export function useServerPersistence(): UseServerPersistenceReturn {
           console.log(
             `[useServerPersistence] Skipping stale load for "${projectId}", current is "${currentProjectIdRef.current}"`
           )
-          return false
+          return { status: 'stale' }
+        }
+
+        const apiNodes = result.data as ApiNode[]
+
+        if (apiNodes.length === 0) {
+          return { status: 'success', hasData: false }
         }
 
         // Convert API nodes to ForgeNodes
@@ -130,13 +141,16 @@ export function useServerPersistence(): UseServerPersistenceReturn {
         // Set nodes in store
         setNodes(forgeNodes)
 
-        return true
+        return { status: 'success', hasData: true }
       } catch (error) {
         console.warn(
           '[useServerPersistence] Failed to load from server:',
           error
         )
-        return false
+        return {
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
       }
     },
     [setNodes]
@@ -150,16 +164,23 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
     setState((prev) => ({ ...prev, isLoading: true }))
 
-    try {
-      await loadFromServer(activeProjectId)
-      setState((prev) => ({ ...prev, isLoading: false }))
-    } catch (error) {
+    const result = await loadFromServer(activeProjectId)
+
+    if (result.status === 'stale') {
+      // Project changed during refresh - don't update state
+      return
+    }
+
+    if (result.status === 'error') {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to refresh',
+        error: result.error,
       }))
+      return
     }
+
+    setState((prev) => ({ ...prev, isLoading: false }))
   }, [activeProjectId, loadFromServer])
 
   /**
@@ -192,9 +213,6 @@ export function useServerPersistence(): UseServerPersistenceReturn {
         error: null,
         persistenceErrors: [],
       }))
-
-      // Clear pending operations
-      pendingOperationsRef.current.clear()
     }
     currentProjectIdRef.current = activeProjectId
 
@@ -207,6 +225,22 @@ export function useServerPersistence(): UseServerPersistenceReturn {
         const projectInfo = workspaceProjects.find(
           (p) => p.id === activeProjectId
         )
+
+        // Handle missing project info - this indicates a workspace/state inconsistency
+        if (!projectInfo) {
+          console.error(
+            `[useServerPersistence] Project info not found in workspace: ${activeProjectId}`
+          )
+          if (mounted) {
+            setState((prev) => ({
+              ...prev,
+              isConnected: false,
+              isLoading: false,
+              error: `Project not found in workspace: ${activeProjectId}`,
+            }))
+          }
+          return
+        }
 
         // First check if the project exists on the server
         const projectResult = await api.getProject(activeProjectId)
@@ -245,15 +279,19 @@ export function useServerPersistence(): UseServerPersistenceReturn {
         }
 
         // Load nodes from server
-        const hasData = await loadFromServer(activeProjectId)
+        const loadResult = await loadFromServer(activeProjectId)
 
-        // Check if project ID changed during async load - if so, abort setup
-        if (currentProjectIdRef.current !== activeProjectId) {
-          console.log(
-            `[useServerPersistence] Aborting stale init for "${activeProjectId}", current is "${currentProjectIdRef.current}"`
-          )
+        // Handle stale load - project changed during async operation
+        if (loadResult.status === 'stale') {
           return
         }
+
+        // Handle error
+        if (loadResult.status === 'error') {
+          throw new Error(`Failed to load nodes: ${loadResult.error}`)
+        }
+
+        const hasData = loadResult.hasData
 
         // Always set up the project in the project store
         // (Previously this only happened when !hasData, causing projects with nodes to not load)
@@ -334,10 +372,24 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
     /**
      * Create a node on the server
+     * Skips if project changed during operation
      */
     const createNodeOnServer = async (node: ForgeNode): Promise<void> => {
+      // Check for stale operation before making API call
+      if (currentProjectIdRef.current !== projectId) {
+        console.log(
+          `[useServerPersistence] Skipping stale create for ${node.id}`
+        )
+        return
+      }
+
       const input = forgeNodeToCreateInput(node)
       const result = await api.createNode(projectId, input)
+
+      // Check again after API call - project may have changed
+      if (currentProjectIdRef.current !== projectId) {
+        return
+      }
 
       if (result.success) {
         // Mark node as clean since it's now saved to server
@@ -351,13 +403,27 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
     /**
      * Update a node on the server
+     * Skips if project changed during operation
      */
     const updateNodeOnServer = async (
       node: ForgeNode,
       previousNode: ForgeNode
     ): Promise<void> => {
+      // Check for stale operation before making API call
+      if (currentProjectIdRef.current !== projectId) {
+        console.log(
+          `[useServerPersistence] Skipping stale update for ${node.id}`
+        )
+        return
+      }
+
       const updates = forgeNodeToUpdateInput(previousNode, node)
       const result = await api.updateNode(projectId, node.id, updates)
+
+      // Check again after API call - project may have changed
+      if (currentProjectIdRef.current !== projectId) {
+        return
+      }
 
       if (result.success) {
         // Mark node as clean since it's now saved to server
@@ -371,9 +437,23 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
     /**
      * Delete a node from the server
+     * Skips if project changed during operation
      */
     const deleteNodeFromServer = async (nodeId: string): Promise<void> => {
+      // Check for stale operation before making API call
+      if (currentProjectIdRef.current !== projectId) {
+        console.log(
+          `[useServerPersistence] Skipping stale delete for ${nodeId}`
+        )
+        return
+      }
+
       const result = await api.deleteNode(projectId, nodeId)
+
+      // Check again after API call - project may have changed
+      if (currentProjectIdRef.current !== projectId) {
+        return
+      }
 
       if (!result.success) {
         handlePersistenceError(`Failed to delete node: ${result.error}`)
@@ -382,12 +462,16 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
     /**
      * Process store changes and sync to server
+     * Operations are sequenced: creates → updates → deletes
+     * This prevents race conditions where a node depends on another being created
      */
     const processChanges = async (
       currentNodes: Map<string, ForgeNode>,
       previousNodesSnapshot: Map<string, ForgeNode>
     ) => {
-      const operations: Promise<void>[] = []
+      const creates: Promise<void>[] = []
+      const updates: Promise<void>[] = []
+      const deletes: Promise<void>[] = []
 
       // Find added or updated nodes
       for (const [id, node] of currentNodes) {
@@ -395,10 +479,10 @@ export function useServerPersistence(): UseServerPersistenceReturn {
 
         if (!previousNode) {
           // Node was added - create on server
-          operations.push(createNodeOnServer(node))
+          creates.push(createNodeOnServer(node))
         } else if (previousNode !== node) {
           // Node was updated - update on server
-          operations.push(updateNodeOnServer(node, previousNode))
+          updates.push(updateNodeOnServer(node, previousNode))
         }
       }
 
@@ -406,12 +490,15 @@ export function useServerPersistence(): UseServerPersistenceReturn {
       for (const [id] of previousNodesSnapshot) {
         if (!currentNodes.has(id)) {
           // Node was deleted - delete from server
-          operations.push(deleteNodeFromServer(id))
+          deletes.push(deleteNodeFromServer(id))
         }
       }
 
-      // Wait for all operations
-      await Promise.all(operations)
+      // Sequence operations: creates first, then updates, then deletes
+      // This ensures dependencies exist before nodes that reference them
+      await Promise.all(creates)
+      await Promise.all(updates)
+      await Promise.all(deletes)
     }
 
     // Subscribe to nodes store changes

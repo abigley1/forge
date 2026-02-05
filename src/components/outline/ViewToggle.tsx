@@ -67,7 +67,7 @@ const VIEW_CONFIG: Record<
 // ============================================================================
 
 /**
- * Toggle between Outline and Graph views.
+ * Toggle between Outline, Graph, and Kanban views.
  *
  * @example
  * <ViewToggle

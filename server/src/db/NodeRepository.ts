@@ -461,6 +461,8 @@ export class NodeRepository {
 
   /**
    * Add a dependency to a node
+   * @returns true if dependency was added, false if it already exists or references invalid nodes
+   * @throws Error for unexpected database errors
    */
   addDependency(nodeId: string, dependsOnId: string): boolean {
     try {
@@ -470,8 +472,17 @@ export class NodeRepository {
       stmt.run(nodeId, dependsOnId)
       this.touchNode(nodeId)
       return true
-    } catch {
-      return false
+    } catch (error) {
+      // Only catch expected SQLite constraint violations
+      const sqliteError = error as { code?: string }
+      if (
+        sqliteError.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' ||
+        sqliteError.code === 'SQLITE_CONSTRAINT_UNIQUE'
+      ) {
+        return false
+      }
+      // Rethrow unexpected errors
+      throw error
     }
   }
 
@@ -642,6 +653,23 @@ export class NodeRepository {
   }
 
   /**
+   * Safely parse JSON, returning null on error
+   * Logs a warning if parsing fails to aid debugging corrupted data
+   */
+  private safeJsonParse<T>(json: string | null, fieldName: string): T | null {
+    if (!json) return null
+    try {
+      return JSON.parse(json) as T
+    } catch (error) {
+      console.warn(
+        `[NodeRepository] Failed to parse ${fieldName} JSON:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      )
+      return null
+    }
+  }
+
+  /**
    * Enrich a node row with tags, dependencies, and type-specific extras
    */
   private enrichNode(node: NodeRow): NodeWithRelations {
@@ -674,9 +702,9 @@ export class NodeRepository {
         enriched.part_number = component.part_number
         enriched.cost = component.cost
         enriched.datasheet_url = component.datasheet_url
-        enriched.custom_fields = component.custom_fields
-          ? JSON.parse(component.custom_fields)
-          : null
+        enriched.custom_fields = this.safeJsonParse<
+          Record<string, string | number>
+        >(component.custom_fields, 'custom_fields')
       }
     }
 
@@ -690,9 +718,10 @@ export class NodeRepository {
         enriched.selected_option = decision.selected_option
         enriched.selection_rationale = decision.selection_rationale
         enriched.selected_date = decision.selected_date
-        enriched.comparison_data = decision.comparison_data
-          ? JSON.parse(decision.comparison_data)
-          : null
+        enriched.comparison_data = this.safeJsonParse<unknown>(
+          decision.comparison_data,
+          'comparison_data'
+        )
       }
     }
 
@@ -703,7 +732,10 @@ export class NodeRepository {
       )
       const task = taskStmt.get(node.id) as TaskExtraRow | undefined
       if (task) {
-        enriched.checklist = task.checklist ? JSON.parse(task.checklist) : null
+        enriched.checklist = this.safeJsonParse<unknown[]>(
+          task.checklist,
+          'checklist'
+        )
       }
     }
 

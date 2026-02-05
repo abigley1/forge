@@ -585,4 +585,88 @@ describe('NodeRepository', () => {
       expect(criticalPath).toHaveLength(0)
     })
   })
+
+  describe('addDependency error handling', () => {
+    it('should return false for duplicate dependency', () => {
+      const dep = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Dep',
+      })
+      const node = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Node',
+        depends_on: [dep.id],
+      })
+
+      // Try to add same dependency again
+      const result = repo.addDependency(node.id, dep.id)
+
+      // Should return true (INSERT OR IGNORE) but not fail
+      expect(result).toBe(true)
+      // Dependency should still only exist once
+      expect(repo.getDependencies(node.id)).toEqual([dep.id])
+    })
+  })
+
+  describe('enrichNode JSON parse error handling', () => {
+    it('should handle corrupted custom_fields JSON gracefully', () => {
+      const node = repo.create({
+        project_id: projectId,
+        type: 'component',
+        title: 'Component with corrupted JSON',
+        custom_fields: { valid: 'data' },
+      })
+
+      // Corrupt the JSON directly in the database
+      db.prepare(
+        'UPDATE components_extra SET custom_fields = ? WHERE node_id = ?'
+      ).run('invalid json {{{', node.id)
+
+      // Should not throw, should return null for corrupted field
+      const found = repo.findById(node.id)
+      expect(found).not.toBeNull()
+      expect(found?.custom_fields).toBeNull()
+    })
+
+    it('should handle corrupted comparison_data JSON gracefully', () => {
+      const node = repo.create({
+        project_id: projectId,
+        type: 'decision',
+        title: 'Decision with corrupted JSON',
+        comparison_data: { options: ['A', 'B'] },
+      })
+
+      // Corrupt the JSON directly in the database
+      db.prepare(
+        'UPDATE decisions_extra SET comparison_data = ? WHERE node_id = ?'
+      ).run('not valid json!', node.id)
+
+      // Should not throw, should return null for corrupted field
+      const found = repo.findById(node.id)
+      expect(found).not.toBeNull()
+      expect(found?.comparison_data).toBeNull()
+    })
+
+    it('should handle corrupted checklist JSON gracefully', () => {
+      const node = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Task with corrupted JSON',
+        checklist: [{ id: '1', text: 'Item', completed: false }],
+      })
+
+      // Corrupt the JSON directly in the database
+      db.prepare('UPDATE tasks_extra SET checklist = ? WHERE node_id = ?').run(
+        '[invalid',
+        node.id
+      )
+
+      // Should not throw, should return null for corrupted field
+      const found = repo.findById(node.id)
+      expect(found).not.toBeNull()
+      expect(found?.checklist).toBeNull()
+    })
+  })
 })
