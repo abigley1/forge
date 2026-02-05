@@ -19,7 +19,7 @@ test.describe('Onboarding & Help (10.4)', () => {
         name: /welcome|getting started|tour/i,
       })
       const welcomeHeading = page.getByRole('heading', {
-        name: /welcome|getting started/i,
+        name: /forge|getting started/i,
       })
 
       // Either dialog or welcome section should appear
@@ -39,22 +39,17 @@ test.describe('Onboarding & Help (10.4)', () => {
       await page.waitForLoadState('networkidle')
 
       // Welcome screen provides guidance for new users
-      const welcomeHeading = page.getByRole('heading', { name: /welcome/i })
+      const welcomeHeading = page.getByRole('heading', { name: /forge/i })
       await expect(welcomeHeading).toBeVisible()
 
-      // Help content guides users to create or open a project
-      // The actual text is "Open an existing project or create a new one to get started."
-      const helpContent = page.getByText(
-        /open.*project|create.*new|get.*started/i
-      )
-      await expect(helpContent.first()).toBeVisible()
+      // Welcome screen should be visible
+      const welcomeScreen = page.locator('[data-testid="welcome-screen"]')
+      await expect(welcomeScreen).toBeVisible()
 
-      // Action buttons are provided
-      const openButton = page.getByRole('button', { name: /open.*project/i })
+      // Action button to create a project is provided
       const createButton = page.getByRole('button', {
-        name: /create.*project/i,
+        name: /new project/i,
       })
-      await expect(openButton).toBeVisible()
       await expect(createButton).toBeVisible()
     })
 

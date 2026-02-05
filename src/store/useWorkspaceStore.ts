@@ -274,9 +274,9 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       {
         name: 'forge-workspace-store',
         partialize: (state) => ({
-          // Only persist these fields
+          // Only persist these fields (activeProjectId intentionally excluded —
+          // every page load starts at the landing page)
           projects: state.projects,
-          activeProjectId: state.activeProjectId,
           recentProjectIds: state.recentProjectIds,
           config: state.config,
         }),

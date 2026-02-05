@@ -65,19 +65,14 @@ test.describe('Workspace Management (11.1)', () => {
   test.describe('Workspace Config', () => {
     test('shows welcome screen when no project is loaded', async ({ page }) => {
       // App should show welcome screen by default
-      const welcomeHeading = page.getByRole('heading', { name: /welcome/i })
+      const welcomeHeading = page.getByRole('heading', { name: /forge/i })
       await expect(welcomeHeading).toBeVisible()
 
-      // Should have options to create or open project
+      // Should have option to create a new project
       const createButton = page.getByRole('button', {
-        name: /create.*project/i,
+        name: /new project/i,
       })
-      const openButton = page.getByRole('button', { name: /open.*project/i })
-
-      const hasCreate = await createButton.isVisible().catch(() => false)
-      const hasOpen = await openButton.isVisible().catch(() => false)
-
-      expect(hasCreate || hasOpen).toBeTruthy()
+      await expect(createButton).toBeVisible()
     })
 
     test('handles missing workspace config gracefully', async ({ page }) => {

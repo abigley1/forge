@@ -58,7 +58,7 @@ test.describe('Loading States (10.3)', () => {
       expect(skeletonCount).toBe(0)
 
       // Real content should be visible
-      const heading = page.getByRole('heading', { name: /Welcome to Forge/i })
+      const heading = page.getByRole('heading', { name: /forge/i })
       await expect(heading).toBeVisible()
     })
   })

@@ -32,7 +32,7 @@ test.describe('Accessibility Audit - axe-core', () => {
     }) => {
       await page.goto('/')
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
       await page.waitForSelector('[role="dialog"]', { state: 'visible' })
@@ -276,7 +276,7 @@ test.describe('Focus Management', () => {
 
     // Open create project dialog
     const createButton = page.getByRole('button', {
-      name: 'Create New Project',
+      name: /new project/i,
     })
     await createButton.focus()
     await createButton.click()
@@ -298,7 +298,7 @@ test.describe('Focus Management', () => {
     await page.waitForSelector('main#main-content', { state: 'visible' })
 
     const createButton = page.getByRole('button', {
-      name: 'Create New Project',
+      name: /new project/i,
     })
     await createButton.click()
 
@@ -567,7 +567,7 @@ test.describe('Error States', () => {
 
     // Open create project dialog
     const createButton = page.getByRole('button', {
-      name: 'Create New Project',
+      name: /new project/i,
     })
     await createButton.click()
     await page.waitForSelector('[role="dialog"]', { state: 'visible' })

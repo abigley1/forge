@@ -16,29 +16,24 @@ test.describe('Error Boundaries (0.9)', () => {
     })
 
     test('sidebar error does not crash main content', async ({ page }) => {
-      // Verify both sidebar and main content are independently rendered
-      const sidebar = page.locator('aside[aria-label="Sidebar navigation"]')
+      // Verify main content renders independently
       const main = page.locator('main#main-content')
-
-      await expect(sidebar).toBeAttached()
       await expect(main).toBeVisible()
 
-      // Both should be visible, indicating separate error boundary zones
-      await expect(
-        page.getByRole('heading', { name: 'Welcome to Forge' })
-      ).toBeVisible()
+      // Welcome screen heading should be visible
+      await expect(page.getByRole('heading', { name: /forge/i })).toBeVisible()
     })
 
-    test('editor error does not crash sidebar', async ({ page }) => {
-      // Navigate to ensure both components are rendered
-      const sidebar = page.locator('aside[aria-label="Sidebar navigation"]')
-      await expect(sidebar).toBeAttached()
+    test('editor error does not crash main content', async ({ page }) => {
+      // Main content should be rendered and functional
+      const main = page.locator('main#main-content')
+      await expect(main).toBeVisible()
 
-      // Sidebar navigation should remain functional
-      const quickCreateButton = page.getByRole('button', {
-        name: 'Quick Create',
+      // Welcome screen action button should remain functional
+      const createButton = page.getByRole('button', {
+        name: /new project/i,
       })
-      await expect(quickCreateButton).toBeVisible()
+      await expect(createButton).toBeVisible()
     })
   })
 
@@ -57,7 +52,7 @@ test.describe('Error Boundaries (0.9)', () => {
 
       // Try to navigate the app - if error boundaries fail, this would crash
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await expect(createButton).toBeVisible()
     })
@@ -92,7 +87,7 @@ test.describe('Error Boundaries (0.9)', () => {
 
       // Try to interact with multiple parts of the app
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -105,9 +100,7 @@ test.describe('Error Boundaries (0.9)', () => {
       await cancelButton.click()
 
       // App should still be functional
-      await expect(
-        page.getByRole('heading', { name: 'Welcome to Forge' })
-      ).toBeVisible()
+      await expect(page.getByRole('heading', { name: /forge/i })).toBeVisible()
     })
   })
 })

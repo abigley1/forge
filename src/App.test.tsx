@@ -25,7 +25,6 @@ describe('App', () => {
     renderWithProviders(<App />)
     // Wait for initial load to complete
     await waitFor(() => {
-      // Forge heading appears in sidebar and mobile header
       const forgeHeadings = screen.getAllByRole('heading', {
         level: 1,
         name: /forge/i,
@@ -34,20 +33,17 @@ describe('App', () => {
     })
   })
 
-  it('renders the AppShell layout with sidebar and main content', async () => {
+  it('renders the AppShell layout with main content', async () => {
     renderWithProviders(<App />)
     await waitFor(() => {
-      expect(
-        screen.getByRole('complementary', { name: /sidebar/i })
-      ).toBeInTheDocument()
       expect(screen.getByRole('main')).toBeInTheDocument()
     })
   })
 
-  it('displays welcome message', async () => {
+  it('displays welcome screen', async () => {
     renderWithProviders(<App />)
     await waitFor(() => {
-      expect(screen.getByText(/welcome to forge/i)).toBeInTheDocument()
+      expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
     })
   })
 })

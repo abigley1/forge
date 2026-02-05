@@ -8,6 +8,10 @@ Forge is a personal project brainstorming, planning, and tracking tool for compl
 
 **Target user:** Solo maker/engineer working on complex hardware projects (3D design, PCB design, component selection, system architecture).
 
+## Deployment
+
+Runs on Home Assistant via Tailscale (not Vercel). Dev server at `localhost:5173`, Express server at `localhost:3001`. Access over local network via Tailscale.
+
 ## Development Commands
 
 ```bash
@@ -104,6 +108,10 @@ packages/forge-mcp-server/   # MCP server for AI agent integration
 ```
 
 ### Key Patterns
+
+**Design System:** Warm industrial palette defined in `src/index.css` via Tailwind v4 `@theme` block. Colors use `forge-` prefix (e.g., `forge-paper`, `forge-accent`, `forge-text`). Dark variants suffixed `-dark`. Fonts: JetBrains Mono (mono), Inter (sans). Accent color: amber `#D97706`.
+
+**AppShell sidebar hiding:** `AppShell` accepts `hideSidebar` prop. Sidebar is hidden on welcome/loading screens — E2E tests should not assert sidebar visibility when no project is loaded.
 
 **Node Type System:** Uses discriminated unions with type guards. Seven node types:
 - **Leaf nodes:** Decision, Component, Task, Note (all have `parent` field for hierarchy)
@@ -204,6 +212,8 @@ Progress is tracked in `.ralph/progress.md`. The loop completes when `[RALPH_COM
 - No purple/multicolor gradients or glow effects
 - Use Tailwind default shadow scale
 - Limit accent color to one per view
+- Use Forge palette (`forge-*` colors) for new UI — not raw gray/blue Tailwind defaults
+- Typography: monospace uppercase for labels/headings, Inter for body text
 
 ### Layout
 - Use `h-dvh` not `h-screen` for full-height
@@ -221,3 +231,8 @@ Progress is tracked in `.ralph/progress.md`. The loop completes when `[RALPH_COM
 - Virtualize lists >50 items
 - No layout reads in render (`getBoundingClientRect`, `offsetHeight`)
 - Prefer uncontrolled inputs
+
+## Known Issues
+
+- `src/components/inventory/` has pre-existing TS type errors and lint violations (in-progress feature work). Don't fix unless specifically asked.
+- `server/dist/` has lint errors from generated `.d.ts` files. Ignore.

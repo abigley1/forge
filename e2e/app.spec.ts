@@ -12,27 +12,18 @@ test.describe('Forge App - Core Functionality', () => {
     })
 
     test('welcome screen is displayed', async ({ page }) => {
-      // Welcome heading should be visible
-      const heading = page.getByRole('heading', { name: 'Welcome to Forge' })
+      // Forge heading should be visible
+      const heading = page.getByRole('heading', { name: /forge/i })
       await expect(heading).toBeVisible()
 
-      // Welcome message should be visible
-      const welcomeText = page.getByText(
-        'Open an existing project or create a new one to get started.'
-      )
-      await expect(welcomeText).toBeVisible()
+      // Welcome screen should be visible
+      const welcomeScreen = page.locator('[data-testid="welcome-screen"]')
+      await expect(welcomeScreen).toBeVisible()
     })
 
-    test('open project button is visible', async ({ page }) => {
-      const openButton = page.getByRole('button', {
-        name: 'Open Project',
-      })
-      await expect(openButton).toBeVisible()
-    })
-
-    test('create project button is visible', async ({ page }) => {
+    test('new project button is visible', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await expect(createButton).toBeVisible()
     })
@@ -43,10 +34,6 @@ test.describe('Forge App - Core Functionality', () => {
       // Main content area exists
       const main = page.locator('main#main-content')
       await expect(main).toBeVisible()
-
-      // Sidebar exists (may be hidden on mobile)
-      const sidebar = page.locator('aside[aria-label="Sidebar navigation"]')
-      await expect(sidebar).toBeAttached()
     })
 
     test('app uses proper heading hierarchy', async ({ page }) => {
@@ -64,7 +51,7 @@ test.describe('Forge App - Core Functionality', () => {
   test.describe('Create Project Dialog', () => {
     test('dialog opens when create button is clicked', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -74,14 +61,14 @@ test.describe('Forge App - Core Functionality', () => {
 
       // Dialog title should be visible
       const dialogTitle = page.getByRole('heading', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await expect(dialogTitle).toBeVisible()
     })
 
     test('dialog has project name input', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -93,7 +80,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('dialog has cancel and create buttons', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -106,7 +93,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('create button is disabled when input is empty', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -116,7 +103,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('create button is enabled when input has value', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -129,7 +116,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('dialog closes when cancel is clicked', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -144,7 +131,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('dialog closes when Escape is pressed', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -173,7 +160,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('focus is trapped in dialog when open', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.click()
 
@@ -188,12 +175,12 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('buttons have accessible names', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await expect(createButton).toBeVisible()
 
       // Check button is accessible by name
-      await expect(createButton).toHaveAccessibleName('Create New Project')
+      await expect(createButton).toHaveAccessibleName(/new project/i)
     })
   })
 
@@ -212,23 +199,19 @@ test.describe('Forge App - Core Functionality', () => {
       await page.waitForTimeout(100)
 
       // After using skip link, focus should be in main content area
-      // Tab to reach the Open Project button
-      const openButton = page.getByRole('button', { name: 'Open Project' })
+      // Tab to reach the New Project button
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
 
-      // Tab through elements - should reach one of the main action buttons
+      // Tab through elements - should reach the main action button
       // Increase iterations to account for variable number of focusable elements
       let foundButton = false
       for (let i = 0; i < 25; i++) {
-        const isOpenFocused = await openButton.evaluate(
-          (el) => document.activeElement === el
-        )
         const isCreateFocused = await createButton.evaluate(
           (el) => document.activeElement === el
         )
-        if (isOpenFocused || isCreateFocused) {
+        if (isCreateFocused) {
           foundButton = true
           break
         }
@@ -242,7 +225,7 @@ test.describe('Forge App - Core Functionality', () => {
 
     test('Enter activates focused button', async ({ page }) => {
       const createButton = page.getByRole('button', {
-        name: 'Create New Project',
+        name: /new project/i,
       })
       await createButton.focus()
       await page.keyboard.press('Enter')

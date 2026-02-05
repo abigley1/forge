@@ -145,14 +145,11 @@ test.describe('Dark Mode (10.2)', () => {
       })
 
       // Verify key components are visible
-      const sidebar = page.locator('aside[aria-label="Sidebar navigation"]')
-      await expect(sidebar).toBeVisible()
-
       const main = page.locator('main#main-content')
       await expect(main).toBeVisible()
 
       const heading = page.getByRole('heading', {
-        name: /Welcome to Forge|nodes/i,
+        name: /forge|nodes/i,
       })
       await expect(heading).toBeVisible()
     })
@@ -166,7 +163,7 @@ test.describe('Dark Mode (10.2)', () => {
 
       // Check that text is visible
       const heading = page.getByRole('heading', {
-        name: /Welcome to Forge|nodes/i,
+        name: /forge|nodes/i,
       })
       await expect(heading).toBeVisible()
 

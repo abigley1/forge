@@ -1,14 +1,19 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Trash2, Loader2, FolderOpen, Save } from 'lucide-react'
+import { Trash2, Save } from 'lucide-react'
 import { AppShell } from '@/components/layout'
-import { Button, SaveIndicator, useSaveIndicator } from '@/components/ui'
+import { SaveIndicator, useSaveIndicator } from '@/components/ui'
 import {
   useProjectStore,
   useNodesStore,
   useAppStore,
   useWorkspaceStore,
 } from '@/store'
-import { useUndoRedo, useFilters, useServerPersistence } from '@/hooks'
+import {
+  useUndoRedo,
+  useFilters,
+  useServerPersistence,
+  useReducedMotion,
+} from '@/hooks'
 import {
   QuickProjectSwitcher,
   CreateProjectDialog,
@@ -25,6 +30,7 @@ import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
 import { CommandPalette } from '@/components/command'
 import { DeleteNodeDialog, useDeleteNodeDialog } from '@/components/nodes'
 import { ComparisonTable } from '@/components/decision'
+import { InventoryView } from '@/components/inventory'
 import { getAllTagsForClustering } from '@/lib/graph'
 import { cn } from '@/lib/utils'
 import type { TaskStatus, ForgeNode, Attachment } from '@/types/nodes'
@@ -33,24 +39,30 @@ import { ServerPersistenceContext } from '@/contexts'
 import type { PersistenceContextValue } from '@/contexts'
 
 /**
- * Loading screen shown while initializing
+ * Loading screen — pulsing status LED with monospace label
  */
 function LoadingScreen() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
-      <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-hidden />
-      <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+    <div
+      className="bg-forge-paper dark:bg-forge-paper-dark flex flex-1 flex-col items-center justify-center gap-4 p-8"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <div className="forge-pulse bg-forge-accent dark:bg-forge-accent-dark h-2 w-2 rounded-full" />
+      <p className="text-forge-muted dark:text-forge-muted-dark font-mono text-xs font-medium tracking-[0.15em] uppercase">
+        Initializing
+      </p>
     </div>
   )
 }
 
 /**
- * Welcome screen shown when no project is loaded
+ * Welcome screen — full-page project selector with warm industrial aesthetic
  */
-function WelcomeScreen() {
+function WelcomeScreen({ onOpenInventory }: { onOpenInventory: () => void }) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const reducedMotion = useReducedMotion()
 
-  // Get existing projects from workspace
   const projects = useWorkspaceStore((state) => state.projects)
   const setActiveProject = useWorkspaceStore((state) => state.setActiveProject)
 
@@ -58,68 +70,196 @@ function WelcomeScreen() {
     setActiveProject(projectId)
   }
 
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-        Welcome to Forge
-      </h2>
-      <p className="max-w-md text-center text-gray-600 dark:text-gray-400">
-        {projects.length > 0
-          ? 'Select a project to continue, or create a new one.'
-          : 'Create a new project to get started.'}
-      </p>
+  const hasProjects = projects.length > 0
 
-      {/* Existing Projects */}
-      {projects.length > 0 && (
-        <div className="w-full max-w-md space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Your Projects
-          </p>
-          <div className="space-y-2">
-            {projects.map((project) => (
+  return (
+    <div
+      className="bg-forge-paper dark:bg-forge-paper-dark flex flex-1 flex-col"
+      data-testid="welcome-screen"
+    >
+      {/* Header bar */}
+      <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-6 py-3">
+        <h1 className="text-forge-text dark:text-forge-text-dark font-mono text-lg font-semibold tracking-[0.15em] uppercase">
+          Forge
+        </h1>
+        <span className="text-forge-muted dark:text-forge-muted-dark font-mono text-xs tabular-nums">
+          v0.0.1
+        </span>
+      </div>
+
+      {/* Main content — two-column layout */}
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="flex w-full max-w-3xl gap-12 max-md:max-w-lg max-md:flex-col max-md:gap-10">
+          {/* Projects zone */}
+          <div className="min-w-0 flex-1">
+            <h2 className="text-forge-muted dark:text-forge-muted-dark mb-6 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+              {hasProjects ? 'Projects' : 'Get Started'}
+            </h2>
+
+            {/* Project cards */}
+            {hasProjects ? (
+              <div className="space-y-3">
+                {projects.map((project, index) => (
+                  <button
+                    key={project.id}
+                    onClick={() => handleSelectProject(project.id)}
+                    className={cn(
+                      'border-forge-border bg-forge-surface flex w-full items-start gap-4 rounded-md border p-4',
+                      'border-l-forge-accent border-l-[3px]',
+                      'text-left transition-transform duration-150',
+                      'hover:translate-x-0.5',
+                      'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:border-l-forge-accent-dark',
+                      'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                      'dark:focus-visible:ring-forge-accent-dark',
+                      !reducedMotion && 'forge-card-enter'
+                    )}
+                    style={
+                      !reducedMotion && index < 5
+                        ? { animationDelay: `${index * 60}ms` }
+                        : undefined
+                    }
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-forge-text dark:text-forge-text-dark truncate font-mono text-sm font-medium">
+                        {project.name}
+                      </p>
+                      {project.description && (
+                        <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mt-1 truncate text-sm">
+                          {project.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="text-forge-text dark:text-forge-text-dark font-mono text-sm tabular-nums">
+                        {project.nodeCount}
+                      </span>
+                      <span className="text-forge-muted dark:text-forge-muted-dark block font-mono text-[10px] font-medium tracking-[0.08em] uppercase">
+                        Nodes
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-6 text-sm">
+                Create your first project to begin planning.
+              </p>
+            )}
+
+            {/* Divider */}
+            {hasProjects && (
+              <div className="border-forge-border-subtle dark:border-forge-border-subtle-dark my-6 border-t" />
+            )}
+
+            {/* New Project button */}
+            <div className={cn(hasProjects ? 'flex justify-center' : '')}>
               <button
-                key={project.id}
-                onClick={() => handleSelectProject(project.id)}
+                type="button"
+                onClick={() => setCreateDialogOpen(true)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3',
-                  'text-left transition-colors',
-                  'hover:border-blue-300 hover:bg-blue-50',
-                  'dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/30',
-                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                  'border-forge-border inline-flex items-center gap-2 rounded-md border bg-transparent px-4 py-2',
+                  'text-forge-text font-mono text-xs font-medium tracking-[0.08em] uppercase',
+                  'transition-colors duration-150',
+                  'hover:border-forge-accent hover:text-forge-accent',
+                  'dark:border-forge-border-dark dark:text-forge-text-dark',
+                  'dark:hover:border-forge-accent-dark dark:hover:text-forge-accent-dark',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                  'dark:focus-visible:ring-forge-accent-dark'
                 )}
               >
-                <FolderOpen
-                  className="h-5 w-5 text-gray-400"
-                  aria-hidden="true"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900 dark:text-gray-100">
-                    {project.name}
-                  </p>
-                  {project.description && (
-                    <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-                      {project.description}
-                    </p>
-                  )}
-                </div>
-                <span className="text-xs text-gray-400">
-                  {project.nodeCount} nodes
-                </span>
+                <span aria-hidden="true">+</span>
+                New Project
               </button>
-            ))}
+            </div>
+          </div>
+
+          {/* Divider — vertical on desktop, horizontal on mobile */}
+          <div className="max-md:border-forge-border-subtle max-md:dark:border-forge-border-subtle-dark md:border-forge-border-subtle md:dark:border-forge-border-subtle-dark shrink-0 max-md:border-t md:border-l" />
+
+          {/* Tools zone */}
+          <div className="w-44 shrink-0 max-md:w-full">
+            <h2 className="text-forge-muted dark:text-forge-muted-dark mb-4 font-mono text-xs font-medium tracking-[0.1em] uppercase">
+              Tools
+            </h2>
+            <button
+              type="button"
+              onClick={onOpenInventory}
+              className={cn(
+                'group flex w-full items-center gap-3 py-2',
+                'text-left transition-colors duration-150',
+                'focus-visible:ring-forge-accent focus-visible:rounded-sm focus-visible:ring-2 focus-visible:outline-none',
+                'dark:focus-visible:ring-forge-accent-dark'
+              )}
+            >
+              <span
+                className={cn(
+                  'text-forge-muted font-mono text-xs tracking-[0.08em] uppercase',
+                  'transition-colors duration-150',
+                  'group-hover:text-forge-accent',
+                  'dark:text-forge-muted-dark dark:group-hover:text-forge-accent-dark'
+                )}
+              >
+                →
+              </span>
+              <span
+                className={cn(
+                  'text-forge-text-secondary font-mono text-sm font-medium',
+                  'transition-colors duration-150',
+                  'group-hover:text-forge-text',
+                  'dark:text-forge-text-secondary-dark dark:group-hover:text-forge-text-dark'
+                )}
+              >
+                Inventory
+              </span>
+            </button>
           </div>
         </div>
-      )}
-
-      {/* Create New Project Button */}
-      <Button onClick={() => setCreateDialogOpen(true)}>
-        Create New Project
-      </Button>
+      </div>
 
       <CreateProjectDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
+    </div>
+  )
+}
+
+/**
+ * Standalone inventory view — full-page, no project context
+ */
+function StandaloneInventory({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="bg-forge-paper dark:bg-forge-paper-dark flex flex-1 flex-col">
+      {/* Header bar with back navigation */}
+      <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-6 py-3">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className={cn(
+              'text-forge-muted font-mono text-xs tracking-[0.08em] uppercase',
+              'transition-colors duration-150',
+              'hover:text-forge-accent',
+              'dark:text-forge-muted-dark dark:hover:text-forge-accent-dark',
+              'focus-visible:ring-forge-accent focus-visible:rounded-sm focus-visible:ring-2 focus-visible:outline-none',
+              'dark:focus-visible:ring-forge-accent-dark'
+            )}
+          >
+            ← Forge
+          </button>
+          <span className="text-forge-border dark:text-forge-border-dark">
+            /
+          </span>
+          <span className="text-forge-text dark:text-forge-text-dark font-mono text-sm font-medium tracking-[0.1em] uppercase">
+            Inventory
+          </span>
+        </div>
+      </div>
+
+      {/* Inventory content */}
+      <div className="min-h-0 flex-1 overflow-auto">
+        <InventoryView />
+      </div>
     </div>
   )
 }
@@ -321,6 +461,7 @@ function ProjectWorkspace() {
               activeNodeId={activeNodeId}
             />
           )}
+          {activeView === 'inventory' && <InventoryView />}
         </div>
 
         {/* Detail panel (when node selected) */}
@@ -418,6 +559,7 @@ function App() {
   const activeProjectId = useWorkspaceStore((state) => state.activeProjectId)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
   const [projectsSynced, setProjectsSynced] = useState(false)
+  const [standaloneTool, setStandaloneTool] = useState<'inventory' | null>(null)
 
   // Initialize server persistence
   const serverPersistence = useServerPersistence()
@@ -484,6 +626,13 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Hide sidebar on welcome/loading screens and standalone tools
+  const hideSidebar =
+    !activeProjectId ||
+    !projectsSynced ||
+    serverPersistence.isLoading ||
+    !!standaloneTool
+
   // Determine what to render based on state
   const renderContent = () => {
     // Still syncing project list from server
@@ -491,9 +640,16 @@ function App() {
       return <LoadingScreen />
     }
 
+    // Standalone tool (e.g. inventory) — no project needed
+    if (standaloneTool === 'inventory' && !activeProjectId) {
+      return <StandaloneInventory onBack={() => setStandaloneTool(null)} />
+    }
+
     // No project selected - show welcome screen to pick one
     if (!activeProjectId) {
-      return <WelcomeScreen />
+      return (
+        <WelcomeScreen onOpenInventory={() => setStandaloneTool('inventory')} />
+      )
     }
 
     // Project selected but still loading data from server
@@ -521,12 +677,14 @@ function App() {
     }
 
     // Fallback - show welcome screen
-    return <WelcomeScreen />
+    return (
+      <WelcomeScreen onOpenInventory={() => setStandaloneTool('inventory')} />
+    )
   }
 
   return (
     <ServerPersistenceContext.Provider value={persistenceContextValue}>
-      <AppShell>
+      <AppShell hideSidebar={hideSidebar}>
         {renderContent()}
         <CommandPalette />
         <QuickProjectSwitcher
