@@ -25,6 +25,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { useNodesStore } from '@/store'
+import { useReducedMotion } from '@/hooks'
 import { isTaskNode, type TaskNode, type TaskStatus } from '@/types/nodes'
 
 // ============================================================================
@@ -46,7 +47,9 @@ interface KanbanColumn {
   id: TaskStatus
   label: string
   icon: typeof Clock
-  color: string
+  bg: string
+  headerBorder: string
+  iconColor: string
 }
 
 interface DragState {
@@ -64,32 +67,43 @@ const COLUMNS: KanbanColumn[] = [
     id: 'pending',
     label: 'Pending',
     icon: Clock,
-    color: 'bg-gray-100 dark:bg-gray-800',
+    bg: 'bg-forge-surface dark:bg-forge-surface-dark',
+    headerBorder: 'border-l-forge-muted dark:border-l-forge-muted-dark',
+    iconColor: 'text-forge-muted dark:text-forge-muted-dark',
   },
   {
     id: 'in_progress',
     label: 'In Progress',
     icon: Loader2,
-    color: 'bg-blue-50 dark:bg-blue-950',
+    bg: 'bg-forge-surface dark:bg-forge-surface-dark',
+    headerBorder: 'border-l-forge-accent dark:border-l-forge-accent-dark',
+    iconColor: 'text-forge-accent dark:text-forge-accent-dark',
   },
   {
     id: 'blocked',
     label: 'Blocked',
     icon: AlertTriangle,
-    color: 'bg-amber-50 dark:bg-amber-950',
+    bg: 'bg-forge-surface dark:bg-forge-surface-dark',
+    headerBorder: 'border-l-red-500 dark:border-l-red-500',
+    iconColor: 'text-red-500 dark:text-red-500',
   },
   {
     id: 'complete',
     label: 'Complete',
     icon: Check,
-    color: 'bg-green-50 dark:bg-green-950',
+    bg: 'bg-forge-surface dark:bg-forge-surface-dark',
+    headerBorder:
+      'border-l-forge-node-assembly-text dark:border-l-forge-node-assembly-text-dark',
+    iconColor:
+      'text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark',
   },
 ]
 
 const PRIORITY_COLORS: Record<string, string> = {
-  high: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  low: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  high: 'bg-forge-accent-subtle text-forge-accent-hover font-mono text-[10px] tracking-[0.1em] uppercase dark:bg-forge-accent-subtle-dark dark:text-forge-accent-hover-dark',
+  medium:
+    'bg-forge-border text-forge-text-secondary font-mono text-[10px] tracking-[0.1em] uppercase dark:bg-forge-border-dark dark:text-forge-text-secondary-dark',
+  low: 'bg-forge-border-subtle text-forge-muted font-mono text-[10px] tracking-[0.1em] uppercase dark:bg-forge-border-subtle-dark dark:text-forge-muted-dark',
 }
 
 // ============================================================================
@@ -104,6 +118,8 @@ interface KanbanCardProps {
   onStatusChange: (status: TaskStatus) => void
   onDragStart: (e: React.DragEvent) => void
   onDragEnd: (e: React.DragEvent) => void
+  animationDelay?: number
+  skipAnimation?: boolean
 }
 
 function KanbanCard({
@@ -114,6 +130,8 @@ function KanbanCard({
   onStatusChange,
   onDragStart,
   onDragEnd,
+  animationDelay = 0,
+  skipAnimation = false,
 }: KanbanCardProps) {
   const [showQuickActions, setShowQuickActions] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -163,15 +181,23 @@ function KanbanCard({
       onMouseLeave={() => setShowQuickActions(false)}
       data-blocked={isBlocked}
       className={cn(
-        'group relative rounded-lg border bg-white p-3 shadow-sm',
-        'cursor-pointer transition-all duration-150',
-        'dark:border-gray-700 dark:bg-gray-900',
-        'hover:border-gray-300 hover:shadow-md dark:hover:border-gray-600',
-        'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+        'group border-forge-border bg-forge-paper relative rounded-md border p-3 shadow-sm',
+        'cursor-pointer transition-colors duration-150',
+        'dark:border-forge-border-dark dark:bg-forge-paper-dark',
+        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+        'dark:focus-visible:ring-forge-accent-dark',
         'motion-reduce:transition-none',
         isDragging && 'rotate-2 opacity-50',
-        isSelected && 'border-blue-500 ring-2 ring-blue-500'
+        isSelected &&
+          'ring-forge-accent bg-forge-surface dark:ring-forge-accent-dark dark:bg-forge-surface-dark ring-2 ring-inset',
+        !skipAnimation && 'forge-card-enter'
       )}
+      style={
+        !skipAnimation && animationDelay > 0
+          ? { animationDelay: `${animationDelay}ms` }
+          : undefined
+      }
     >
       {/* Drag handle */}
       <div
@@ -179,11 +205,14 @@ function KanbanCard({
         aria-label="Drag to move card"
         className="absolute top-1/2 left-1 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
       >
-        <GripVertical className="h-4 w-4 text-gray-400" aria-hidden="true" />
+        <GripVertical
+          className="text-forge-muted dark:text-forge-muted-dark h-4 w-4"
+          aria-hidden="true"
+        />
       </div>
 
       {/* Title */}
-      <h4 className="pr-2 pl-4 font-medium text-gray-900 dark:text-gray-100">
+      <h4 className="text-forge-text dark:text-forge-text-dark min-w-0 truncate pr-2 pl-4 font-medium">
         {task.title}
       </h4>
 
@@ -192,7 +221,7 @@ function KanbanCard({
         {/* Priority badge */}
         <span
           className={cn(
-            'rounded px-1.5 py-0.5 text-xs font-medium',
+            'rounded px-1.5 py-0.5',
             PRIORITY_COLORS[task.priority]
           )}
         >
@@ -201,7 +230,7 @@ function KanbanCard({
 
         {/* Blocked indicator */}
         {isBlocked && (
-          <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] text-red-500 uppercase dark:text-red-400">
             <AlertTriangle className="h-3 w-3" aria-hidden="true" />
             Blocked
           </span>
@@ -214,13 +243,13 @@ function KanbanCard({
           {task.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+              className="bg-forge-border-subtle text-forge-text-secondary dark:bg-forge-border-subtle-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono text-[10px] tracking-[0.05em]"
             >
               {tag}
             </span>
           ))}
           {task.tags.length > 3 && (
-            <span className="text-xs text-gray-400">
+            <span className="text-forge-muted dark:text-forge-muted-dark font-mono text-[10px]">
               +{task.tags.length - 3}
             </span>
           )}
@@ -239,8 +268,8 @@ function KanbanCard({
             aria-label="Mark complete"
             className={cn(
               'rounded-md p-1',
-              'bg-gray-100 hover:bg-green-100 dark:bg-gray-800 dark:hover:bg-green-900',
-              'text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400',
+              'bg-forge-border-subtle hover:bg-forge-border dark:bg-forge-border-subtle-dark dark:hover:bg-forge-border-dark',
+              'text-forge-muted hover:text-forge-node-assembly-text dark:text-forge-muted-dark dark:hover:text-forge-node-assembly-text-dark',
               'transition-colors'
             )}
           >
@@ -262,6 +291,7 @@ interface KanbanColumnProps {
   activeNodeId: string | null
   dragState: DragState
   isCollapsed: boolean
+  reducedMotion: boolean
   onToggleCollapse: () => void
   onNodeSelect: (nodeId: string) => void
   onStatusChange: (taskId: string, status: TaskStatus) => void
@@ -277,6 +307,7 @@ function KanbanColumnComponent({
   activeNodeId,
   dragState,
   isCollapsed,
+  reducedMotion,
   onToggleCollapse,
   onNodeSelect,
   onStatusChange,
@@ -296,15 +327,24 @@ function KanbanColumnComponent({
       onDragOver={onDragOver}
       onDrop={onDrop}
       className={cn(
-        'flex flex-col rounded-lg',
-        column.color,
+        'border-forge-border flex flex-col rounded-md border',
+        column.bg,
+        'dark:border-forge-border-dark',
         isCollapsed ? 'w-12' : 'max-w-[360px] min-w-[280px] flex-1',
-        isDropTarget && 'ring-2 ring-blue-400 ring-inset',
-        'transition-all duration-200 motion-reduce:transition-none'
+        isDropTarget &&
+          'ring-forge-accent dark:ring-forge-accent-dark ring-2 ring-inset',
+        'transition-colors duration-200 motion-reduce:transition-none'
       )}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between border-b border-gray-200 p-3 dark:border-gray-700">
+      <div
+        className={cn(
+          'border-forge-border flex items-center justify-between border-b p-3',
+          'border-l-2',
+          column.headerBorder,
+          'dark:border-b-forge-border-dark'
+        )}
+      >
         {isCollapsed ? (
           <button
             type="button"
@@ -312,14 +352,20 @@ function KanbanColumnComponent({
             aria-label={`Expand ${column.label} column`}
             className="flex w-full items-center justify-center"
           >
-            <Icon className="h-4 w-4 text-gray-500" aria-hidden="true" />
+            <Icon
+              className={cn('h-4 w-4', column.iconColor)}
+              aria-hidden="true"
+            />
           </button>
         ) : (
           <>
-            <h3 className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
-              <Icon className="h-4 w-4" aria-hidden="true" />
+            <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark flex items-center gap-2 font-mono text-xs tracking-[0.1em] uppercase">
+              <Icon
+                className={cn('h-4 w-4', column.iconColor)}
+                aria-hidden="true"
+              />
               <span>{column.label}</span>
-              <span className="text-sm text-gray-400 dark:text-gray-500">
+              <span className="text-forge-muted dark:text-forge-muted-dark font-mono text-xs tabular-nums">
                 {tasks.length}
               </span>
             </h3>
@@ -327,7 +373,7 @@ function KanbanColumnComponent({
               type="button"
               onClick={onToggleCollapse}
               aria-label={`Collapse ${column.label} column`}
-              className="rounded p-1 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="text-forge-muted hover:bg-forge-border dark:text-forge-muted-dark dark:hover:bg-forge-border-dark rounded p-1"
             >
               <ChevronUp className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -339,13 +385,17 @@ function KanbanColumnComponent({
       {!isCollapsed && (
         <div className="flex-1 space-y-2 overflow-auto p-2">
           {tasks.length === 0 ? (
-            <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-              <p className="text-sm text-gray-400 dark:text-gray-500">
+            <div className="border-forge-border dark:border-forge-border-dark flex h-24 flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed">
+              <span
+                className="bg-forge-muted dark:bg-forge-muted-dark h-1 w-1 rounded-full"
+                aria-hidden="true"
+              />
+              <p className="text-forge-muted dark:text-forge-muted-dark font-mono text-[10px] tracking-[0.1em] uppercase">
                 Drop tasks here
               </p>
             </div>
           ) : (
-            tasks.map((task) => (
+            tasks.map((task, index) => (
               <KanbanCard
                 key={task.id}
                 task={task}
@@ -359,6 +409,8 @@ function KanbanColumnComponent({
                   onDragStart(task.id)
                 }}
                 onDragEnd={onDragEnd}
+                animationDelay={index * 30}
+                skipAnimation={reducedMotion || index >= 10}
               />
             ))
           )}
@@ -380,6 +432,7 @@ export function KanbanView({
 }: KanbanViewProps) {
   const storeNodes = useNodesStore((state) => state.nodes)
   const updateNode = useNodesStore((state) => state.updateNode)
+  const reducedMotion = useReducedMotion()
 
   // Use prop nodes if provided (for filtering), otherwise use store nodes
   const nodes = propNodes ?? storeNodes
@@ -490,7 +543,12 @@ export function KanbanView({
   )
 
   return (
-    <div className={cn('flex h-full gap-4 overflow-x-auto p-4', className)}>
+    <div
+      className={cn(
+        'bg-forge-paper dark:bg-forge-paper-dark flex h-full gap-4 overflow-x-auto p-4',
+        className
+      )}
+    >
       {COLUMNS.map((column) => (
         <KanbanColumnComponent
           key={column.id}
@@ -499,6 +557,7 @@ export function KanbanView({
           activeNodeId={activeNodeId}
           dragState={dragState}
           isCollapsed={collapsedColumns.has(column.id)}
+          reducedMotion={reducedMotion}
           onToggleCollapse={() => handleToggleCollapse(column.id)}
           onNodeSelect={handleNodeSelect}
           onStatusChange={handleStatusChange}
