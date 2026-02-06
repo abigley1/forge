@@ -172,9 +172,12 @@ export function QuickCaptureModal({
         <Dialog.Backdrop />
         <Dialog.Popup aria-label="Quick capture note" className="max-w-lg">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+          <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              <FileText
+                className="text-forge-muted dark:text-forge-muted-dark h-5 w-5"
+                aria-hidden="true"
+              />
               <Dialog.Title className="!mb-0 !text-sm !font-medium">
                 Quick Capture
               </Dialog.Title>
@@ -185,9 +188,9 @@ export function QuickCaptureModal({
               aria-label="Close"
               className={cn(
                 'rounded-md p-1',
-                'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-                'hover:bg-gray-100 dark:hover:bg-gray-800',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+                'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
               )}
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -206,13 +209,14 @@ export function QuickCaptureModal({
               autoComplete="off"
               rows={4}
               className={cn(
-                'w-full resize-none rounded-md border border-gray-200 p-3',
-                'text-sm text-gray-900 placeholder:text-gray-400',
-                'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+                'border-forge-border w-full resize-none rounded-md border p-3',
+                'text-forge-text placeholder:text-forge-muted text-sm',
+                'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark',
+                'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none',
+                'dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark'
               )}
             />
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mt-2 text-xs">
               Press <kbd className="font-mono">Enter</kbd> to save,{' '}
               <kbd className="font-mono">Shift+Enter</kbd> for new line,{' '}
               <kbd className="font-mono">Escape</kbd> to cancel
@@ -228,10 +232,10 @@ export function QuickCaptureModal({
               disabled={!content.trim()}
               className={cn(
                 'rounded-md px-3 py-1.5 text-sm font-medium',
-                'bg-blue-600 text-white',
-                'hover:bg-blue-700',
+                'bg-forge-accent text-white',
+                'hover:bg-forge-accent-hover',
                 'disabled:cursor-not-allowed disabled:opacity-50',
-                'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none'
               )}
             >
               Save Note

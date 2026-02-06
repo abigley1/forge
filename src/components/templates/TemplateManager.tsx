@@ -59,15 +59,15 @@ function TemplateListItem({
     <div
       className={cn(
         'flex items-start gap-3 rounded-lg border p-3',
-        'border-gray-200 dark:border-gray-700',
-        'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+        'border-forge-border dark:border-forge-border-dark',
+        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
         'transition-colors motion-reduce:transition-none'
       )}
     >
       <div
         className={cn(
           'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-          'bg-gray-100 dark:bg-gray-800'
+          'bg-forge-surface dark:bg-forge-surface-dark'
         )}
       >
         <Icon className={cn('h-5 w-5', config.color)} aria-hidden="true" />
@@ -75,15 +75,15 @@ function TemplateListItem({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h3 className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="text-forge-text dark:text-forge-text-dark truncate text-sm font-medium">
             {template.name}
           </h3>
           {template.isBuiltIn && (
             <span
               className={cn(
                 'inline-flex items-center gap-1 rounded px-1.5 py-0.5',
-                'bg-gray-100 text-xs text-gray-600',
-                'dark:bg-gray-800 dark:text-gray-400'
+                'bg-forge-surface text-forge-text-secondary text-xs',
+                'dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark'
               )}
             >
               <Lock className="h-3 w-3" aria-hidden="true" />
@@ -91,7 +91,7 @@ function TemplateListItem({
             </span>
           )}
         </div>
-        <p className="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark mt-0.5 truncate text-sm">
           {template.description}
         </p>
       </div>
@@ -101,11 +101,11 @@ function TemplateListItem({
           type="button"
           onClick={onDuplicate}
           className={cn(
-            'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-            'hover:bg-gray-100 hover:text-gray-600',
-            'dark:hover:bg-gray-800 dark:hover:text-gray-300',
-            'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-            'dark:focus-visible:ring-gray-300'
+            'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
+            'hover:bg-forge-surface hover:text-forge-text',
+            'dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+            'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+            'dark:focus-visible:ring-forge-accent-dark'
           )}
           aria-label={`Duplicate ${template.name}`}
         >
@@ -131,11 +131,11 @@ function TemplateListItem({
               type="button"
               onClick={onDelete}
               className={cn(
-                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
+                'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
                 'hover:bg-red-50 hover:text-red-600',
                 'dark:hover:bg-red-950/20 dark:hover:text-red-400',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                'dark:focus-visible:ring-gray-300'
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                'dark:focus-visible:ring-forge-accent-dark'
               )}
               aria-label={`Delete ${template.name}`}
             >
@@ -228,7 +228,7 @@ function TemplateFormDialog({
             <div>
               <label
                 htmlFor="template-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
               >
                 Name
               </label>
@@ -241,10 +241,10 @@ function TemplateFormDialog({
                 }
                 className={cn(
                   'mt-1 block w-full rounded-md border px-3 py-2',
-                  'text-gray-900 placeholder-gray-500',
-                  'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                  'text-forge-text placeholder-forge-muted',
+                  'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                   'focus-visible:outline-none',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400'
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder-forge-muted-dark'
                 )}
                 placeholder="My Template"
                 required
@@ -256,7 +256,7 @@ function TemplateFormDialog({
             <div>
               <label
                 htmlFor="template-description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
               >
                 Description
               </label>
@@ -272,10 +272,10 @@ function TemplateFormDialog({
                 }
                 className={cn(
                   'mt-1 block w-full rounded-md border px-3 py-2',
-                  'text-gray-900 placeholder-gray-500',
-                  'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                  'text-forge-text placeholder-forge-muted',
+                  'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                   'focus-visible:outline-none',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400'
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder-forge-muted-dark'
                 )}
                 placeholder="Brief description of this template"
                 autoComplete="off"
@@ -287,7 +287,7 @@ function TemplateFormDialog({
               <div>
                 <label
                   htmlFor="template-type"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
                 >
                   Node Type
                 </label>
@@ -302,10 +302,10 @@ function TemplateFormDialog({
                   }
                   className={cn(
                     'mt-1 block w-full rounded-md border px-3 py-2',
-                    'bg-white text-gray-900',
-                    'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                    'bg-forge-paper text-forge-text',
+                    'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                     'focus-visible:outline-none',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100'
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark'
                   )}
                 >
                   {nodeTypes.map((type) => {
@@ -324,7 +324,7 @@ function TemplateFormDialog({
             <div>
               <label
                 htmlFor="template-content"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
               >
                 Initial Content (Markdown)
               </label>
@@ -338,10 +338,10 @@ function TemplateFormDialog({
                 className={cn(
                   'mt-1 block w-full rounded-md border px-3 py-2',
                   'font-mono text-sm',
-                  'text-gray-900 placeholder-gray-500',
-                  'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                  'text-forge-text placeholder-forge-muted',
+                  'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                   'focus-visible:outline-none',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400'
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder-forge-muted-dark'
                 )}
                 placeholder="## Section&#10;&#10;Your template content here..."
               />
@@ -529,10 +529,10 @@ export function TemplateManager({
                   }
                   className={cn(
                     'rounded-md border px-3 py-1.5 text-sm',
-                    'bg-white text-gray-900',
-                    'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                    'bg-forge-paper text-forge-text',
+                    'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                     'focus-visible:outline-none',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100'
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark'
                   )}
                   aria-label="Filter by type"
                 >
@@ -558,8 +558,8 @@ export function TemplateManager({
             <div className="mt-4 max-h-96 space-y-2 overflow-y-auto">
               {templates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600" />
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  <FileText className="text-forge-muted dark:text-forge-muted-dark h-10 w-10" />
+                  <p className="text-forge-muted dark:text-forge-muted-dark mt-2 text-sm">
                     No templates found
                   </p>
                 </div>
@@ -578,7 +578,7 @@ export function TemplateManager({
 
             {/* Footer */}
             <Dialog.Footer>
-              <p className="mr-auto text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-forge-muted dark:text-forge-muted-dark mr-auto text-sm">
                 {templates.length} template{templates.length !== 1 ? 's' : ''} (
                 {customTemplateCount} custom)
               </p>

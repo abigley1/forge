@@ -132,9 +132,10 @@ export function NodeDetailPanel({
         data-testid="detail-panel"
         className={cn(
           // Base styles
-          'fixed top-0 right-0 h-dvh w-full bg-white',
+          'bg-forge-paper fixed top-0 right-0 h-dvh w-full',
           'flex flex-col overflow-hidden shadow-xl',
-          'dark:bg-gray-900 dark:text-gray-100',
+          'border-forge-border border-l',
+          'dark:bg-forge-paper-dark dark:text-forge-text-dark dark:border-forge-border-dark',
           // Responsive width
           'sm:w-[480px] lg:w-[560px]',
           // Prevent scroll bleed
@@ -150,18 +151,18 @@ export function NodeDetailPanel({
         style={{ zIndex: Z_PANEL }}
       >
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <header className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-4 py-3">
+          <h2 className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs tracking-wider uppercase">
             Edit Node
           </h2>
           <button
             type="button"
             onClick={onClose}
             className={cn(
-              'rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-              'dark:hover:bg-gray-800 dark:hover:text-gray-300',
-              'dark:focus-visible:ring-gray-300'
+              'text-forge-muted hover:bg-forge-surface hover:text-forge-text rounded-md p-2',
+              'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+              'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+              'dark:focus-visible:ring-forge-accent-dark'
             )}
             aria-label="Close panel"
           >

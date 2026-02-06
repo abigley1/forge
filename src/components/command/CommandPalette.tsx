@@ -106,7 +106,7 @@ function HighlightedText({
         segment.highlighted ? (
           <mark
             key={i}
-            className="bg-yellow-200 text-inherit dark:bg-yellow-900/50"
+            className="bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark text-inherit"
           >
             {segment.text}
           </mark>
@@ -335,9 +335,9 @@ export function CommandPalette({
           aria-modal="true"
         >
           {/* Search input */}
-          <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+          <div className="border-forge-border dark:border-forge-border-dark flex items-center gap-3 border-b px-4 py-3">
             <Search
-              className="h-5 w-5 shrink-0 text-gray-400"
+              className="text-forge-muted dark:text-forge-muted-dark h-5 w-5 shrink-0"
               aria-hidden="true"
             />
             <input
@@ -350,7 +350,7 @@ export function CommandPalette({
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search nodes..."
-              className="flex-1 bg-transparent text-base text-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-100"
+              className="text-forge-text placeholder:text-forge-muted dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark flex-1 bg-transparent text-base outline-none"
               aria-label="Search nodes"
               aria-autocomplete="list"
               aria-controls="command-palette-results"
@@ -364,7 +364,7 @@ export function CommandPalette({
               <button
                 type="button"
                 onClick={clearInput}
-                className="-m-1.5 rounded p-2.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                className="text-forge-muted hover:bg-forge-surface hover:text-forge-text dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark -m-1.5 rounded p-2.5"
                 aria-label="Clear search"
               >
                 <X className="h-4 w-4" />
@@ -382,14 +382,14 @@ export function CommandPalette({
           >
             {/* Show hint when empty query */}
             {!query.trim() && results.length > 0 && (
-              <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <div className="border-forge-border-subtle text-forge-text-secondary dark:border-forge-border-subtle-dark dark:text-forge-text-secondary-dark flex items-center gap-2 border-b px-4 py-2 text-xs">
                 <Clock className="h-3 w-3" aria-hidden="true" />
                 {recentIds.length > 0 ? 'Recent' : 'Recently modified'}
               </div>
             )}
 
             {results.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="text-forge-text-secondary dark:text-forge-text-secondary-dark px-4 py-8 text-center">
                 No results found for "{query}"
               </div>
             ) : (
@@ -405,8 +405,8 @@ export function CommandPalette({
                   className={cn(
                     'flex w-full items-center gap-3 px-4 py-3 text-left',
                     index === boundedSelectedIndex
-                      ? 'bg-gray-100 dark:bg-gray-800'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                      ? 'bg-forge-surface dark:bg-forge-surface-dark'
+                      : 'hover:bg-forge-surface/50 dark:hover:bg-forge-surface-dark/50'
                   )}
                 >
                   {/* Icon */}
@@ -417,7 +417,7 @@ export function CommandPalette({
                       const Icon = getActionIcon(result.id)
                       return (
                         <Icon
-                          className="h-5 w-5 shrink-0 text-gray-400"
+                          className="text-forge-muted dark:text-forge-muted-dark h-5 w-5 shrink-0"
                           aria-hidden="true"
                         />
                       )
@@ -426,14 +426,14 @@ export function CommandPalette({
 
                   {/* Title and subtitle */}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-forge-text dark:text-forge-text-dark truncate text-sm font-medium">
                       <HighlightedText
                         text={result.title}
                         matchedIndices={result.matchedIndices}
                       />
                     </div>
                     {result.subtitle && (
-                      <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-forge-text-secondary dark:text-forge-text-secondary-dark truncate text-xs">
                         {result.subtitle}
                       </div>
                     )}
@@ -446,7 +446,7 @@ export function CommandPalette({
 
                   {/* Enter hint on selected */}
                   {index === boundedSelectedIndex && (
-                    <kbd className="hidden shrink-0 items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-500 sm:flex dark:bg-gray-700 dark:text-gray-400">
+                    <kbd className="bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark hidden shrink-0 items-center gap-1 rounded px-1.5 py-0.5 font-mono text-xs sm:flex">
                       <CornerDownLeft className="h-3 w-3" aria-hidden="true" />
                     </kbd>
                   )}
@@ -456,22 +456,22 @@ export function CommandPalette({
           </div>
 
           {/* Footer with keyboard hints */}
-          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300">
+          <div className="border-forge-border bg-forge-surface text-forge-text-secondary dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark flex items-center justify-between border-t px-4 py-2 text-xs">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                <kbd className="bg-forge-border-subtle text-forge-text-secondary dark:bg-forge-border-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   ↑↓
                 </kbd>
                 <span>navigate</span>
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                <kbd className="bg-forge-border-subtle text-forge-text-secondary dark:bg-forge-border-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   ↵
                 </kbd>
                 <span>open</span>
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded bg-gray-200 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                <kbd className="bg-forge-border-subtle text-forge-text-secondary dark:bg-forge-border-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   esc
                 </kbd>
                 <span>close</span>

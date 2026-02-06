@@ -64,7 +64,7 @@ export function LinkRenamingDialog({
             <div
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-full',
-                'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300'
+                'bg-forge-accent-subtle text-forge-accent dark:bg-forge-accent-subtle dark:text-forge-accent'
               )}
             >
               <FileEdit className="h-5 w-5" aria-hidden="true" />
@@ -80,19 +80,19 @@ export function LinkRenamingDialog({
           {/* Title change preview */}
           <div
             className={cn(
-              'mt-4 rounded-md border border-gray-200 bg-gray-50 p-3',
-              'dark:border-gray-700 dark:bg-gray-800'
+              'border-forge-border bg-forge-surface mt-4 rounded-md border p-3',
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
           >
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-mono text-gray-500 dark:text-gray-400">
+              <span className="text-forge-muted dark:text-forge-muted-dark font-mono">
                 [[{oldTitle}]]
               </span>
               <ArrowRight
-                className="h-4 w-4 text-gray-400"
+                className="text-forge-muted h-4 w-4"
                 aria-hidden="true"
               />
-              <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-forge-text dark:text-forge-text-dark font-mono font-medium">
                 [[{newTitle}]]
               </span>
             </div>
@@ -101,7 +101,7 @@ export function LinkRenamingDialog({
           {/* Affected nodes list */}
           {referencingNodes.length > 0 && (
             <div className="mt-4">
-              <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              <h4 className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-2 flex items-center gap-1.5 font-mono text-xs font-semibold tracking-wider uppercase">
                 <Link2 className="h-3 w-3" aria-hidden="true" />
                 {totalReferences} reference{totalReferences === 1 ? '' : 's'} in{' '}
                 {referencingNodes.length} node
@@ -110,8 +110,8 @@ export function LinkRenamingDialog({
               <ul
                 className={cn(
                   'max-h-[150px] space-y-1 overflow-y-auto',
-                  'rounded-md border border-gray-200 bg-white p-2',
-                  'dark:border-gray-700 dark:bg-gray-900'
+                  'border-forge-border bg-forge-paper rounded-md border p-2',
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark'
                 )}
               >
                 {referencingNodes.slice(0, 10).map((node) => (
@@ -122,14 +122,14 @@ export function LinkRenamingDialog({
                     <NodeTypeIcon type={node.type} size="sm" />
                     <span className="flex-1 truncate">{node.title}</span>
                     {node.referenceCount > 1 && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-forge-muted dark:text-forge-muted-dark text-xs">
                         ({node.referenceCount})
                       </span>
                     )}
                   </li>
                 ))}
                 {referencingNodes.length > 10 && (
-                  <li className="px-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+                  <li className="text-forge-muted dark:text-forge-muted-dark px-2 py-1 text-xs">
                     and {referencingNodes.length - 10} more...
                   </li>
                 )}
@@ -144,12 +144,12 @@ export function LinkRenamingDialog({
               disabled={isUpdating}
               className={cn(
                 'inline-flex items-center justify-center rounded-md px-4 py-2',
-                'border border-gray-300 bg-white text-gray-700',
-                'hover:bg-gray-50',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
+                'border-forge-border bg-forge-surface text-forge-text border',
+                'hover:bg-forge-surface',
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                 'disabled:pointer-events-none disabled:opacity-50',
-                'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                'dark:hover:bg-gray-700'
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+                'dark:hover:bg-forge-surface-dark'
               )}
             >
               Skip
@@ -160,9 +160,9 @@ export function LinkRenamingDialog({
               disabled={isUpdating || referencingNodes.length === 0}
               className={cn(
                 'inline-flex items-center justify-center rounded-md px-4 py-2',
-                'bg-blue-600 text-white',
-                'hover:bg-blue-700',
-                'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none',
+                'bg-forge-accent text-white',
+                'hover:bg-forge-accent-hover',
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                 'disabled:pointer-events-none disabled:opacity-50'
               )}
             >

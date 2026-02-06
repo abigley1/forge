@@ -86,11 +86,12 @@ function AlertDialogPopup({
     <BaseAlertDialog.Popup
       className={cn(
         'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-        'w-full max-w-md rounded-lg bg-white p-6 shadow-lg',
+        'bg-forge-paper w-full max-w-md rounded-lg p-6 shadow-lg',
+        'border-forge-border border',
         'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
         'data-[ending-style]:scale-95 data-[ending-style]:opacity-0',
         'transition-[transform,opacity] duration-150',
-        'dark:bg-gray-900 dark:text-gray-100',
+        'dark:bg-forge-paper-dark dark:text-forge-text-dark dark:border-forge-border-dark',
         'focus:outline-none',
         className
       )}
@@ -116,7 +117,7 @@ function AlertDialogTitle({
   return (
     <BaseAlertDialog.Title
       className={cn(
-        'text-lg font-semibold text-gray-900 dark:text-gray-100',
+        'text-forge-text dark:text-forge-text-dark text-lg font-semibold',
         className
       )}
       {...props}
@@ -139,7 +140,10 @@ function AlertDialogDescription({
 }: AlertDialogDescriptionProps) {
   return (
     <BaseAlertDialog.Description
-      className={cn('mt-2 text-sm text-gray-600 dark:text-gray-400', className)}
+      className={cn(
+        'text-forge-text-secondary dark:text-forge-text-secondary-dark mt-2 text-sm',
+        className
+      )}
       {...props}
     >
       {children}
@@ -167,11 +171,11 @@ function AlertDialogClose({
         'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
         'disabled:pointer-events-none disabled:opacity-50',
         variant === 'cancel' && [
-          'border border-gray-300 bg-white text-gray-700',
-          'hover:bg-gray-50',
-          'focus-visible:ring-gray-950',
-          'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300',
-          'dark:hover:bg-gray-700 dark:focus-visible:ring-gray-300',
+          'border-forge-border bg-forge-surface text-forge-text border',
+          'hover:bg-forge-border-subtle',
+          'focus-visible:ring-forge-accent',
+          'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+          'dark:hover:bg-forge-border-dark dark:focus-visible:ring-forge-accent-dark',
         ],
         variant === 'destructive' && [
           'bg-red-600 text-white',

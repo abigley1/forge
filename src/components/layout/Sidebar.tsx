@@ -103,51 +103,63 @@ const NODE_TYPE_CONFIG: Record<
   [NodeType.Decision]: {
     label: 'Decision',
     icon: Lightbulb,
-    bgColor: 'bg-blue-50 dark:bg-blue-950/50',
-    hoverBgColor: 'hover:bg-blue-100 dark:hover:bg-blue-900/50',
-    iconColor: 'text-blue-500',
+    bgColor: 'bg-forge-node-decision dark:bg-forge-node-decision-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-decision-border/10 dark:hover:bg-forge-node-decision-border-dark/10',
+    iconColor:
+      'text-forge-node-decision-text dark:text-forge-node-decision-text-dark',
   },
   [NodeType.Component]: {
     label: 'Component',
     icon: Package,
-    bgColor: 'bg-green-50 dark:bg-green-950/50',
-    hoverBgColor: 'hover:bg-green-100 dark:hover:bg-green-900/50',
-    iconColor: 'text-green-500',
+    bgColor: 'bg-forge-node-component dark:bg-forge-node-component-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-component-border/10 dark:hover:bg-forge-node-component-border-dark/10',
+    iconColor:
+      'text-forge-node-component-text dark:text-forge-node-component-text-dark',
   },
   [NodeType.Task]: {
     label: 'Task',
     icon: CheckSquare,
-    bgColor: 'bg-orange-50 dark:bg-orange-950/50',
-    hoverBgColor: 'hover:bg-orange-100 dark:hover:bg-orange-900/50',
-    iconColor: 'text-orange-500',
+    bgColor: 'bg-forge-node-task dark:bg-forge-node-task-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-task-border/10 dark:hover:bg-forge-node-task-border-dark/10',
+    iconColor: 'text-forge-node-task-text dark:text-forge-node-task-text-dark',
   },
   [NodeType.Note]: {
     label: 'Note',
     icon: FileText,
-    bgColor: 'bg-gray-50 dark:bg-gray-900/50',
-    hoverBgColor: 'hover:bg-gray-100 dark:hover:bg-gray-800/50',
-    iconColor: 'text-gray-500',
+    bgColor: 'bg-forge-node-note dark:bg-forge-node-note-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-note-border/10 dark:hover:bg-forge-node-note-border-dark/10',
+    iconColor: 'text-forge-node-note-text dark:text-forge-node-note-text-dark',
   },
   [NodeType.Subsystem]: {
     label: 'Subsystem',
     icon: Layers,
-    bgColor: 'bg-purple-50 dark:bg-purple-950/50',
-    hoverBgColor: 'hover:bg-purple-100 dark:hover:bg-purple-900/50',
-    iconColor: 'text-purple-500',
+    bgColor: 'bg-forge-node-subsystem dark:bg-forge-node-subsystem-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-subsystem-border/10 dark:hover:bg-forge-node-subsystem-border-dark/10',
+    iconColor:
+      'text-forge-node-subsystem-text dark:text-forge-node-subsystem-text-dark',
   },
   [NodeType.Assembly]: {
     label: 'Assembly',
     icon: Boxes,
-    bgColor: 'bg-cyan-50 dark:bg-cyan-950/50',
-    hoverBgColor: 'hover:bg-cyan-100 dark:hover:bg-cyan-900/50',
-    iconColor: 'text-cyan-500',
+    bgColor: 'bg-forge-node-assembly dark:bg-forge-node-assembly-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-assembly-border/10 dark:hover:bg-forge-node-assembly-border-dark/10',
+    iconColor:
+      'text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark',
   },
   [NodeType.Module]: {
     label: 'Module',
     icon: LayoutGrid,
-    bgColor: 'bg-rose-50 dark:bg-rose-950/50',
-    hoverBgColor: 'hover:bg-rose-100 dark:hover:bg-rose-900/50',
-    iconColor: 'text-rose-500',
+    bgColor: 'bg-forge-node-module dark:bg-forge-node-module-dark',
+    hoverBgColor:
+      'hover:bg-forge-node-module-border/10 dark:hover:bg-forge-node-module-border-dark/10',
+    iconColor:
+      'text-forge-node-module-text dark:text-forge-node-module-text-dark',
   },
 }
 
@@ -170,32 +182,39 @@ function SidebarSection({
 
   return (
     <div
-      className={cn('border-b border-gray-200 dark:border-gray-800', className)}
+      className={cn(
+        'border-forge-border dark:border-forge-border-dark border-b',
+        className
+      )}
     >
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'flex w-full items-center gap-2 px-4 py-2',
-          'text-sm font-medium text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-100 dark:hover:bg-gray-800/50',
-          'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:ring-gray-300'
+          'text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs tracking-wider uppercase',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset'
         )}
         aria-expanded={expanded}
         aria-controls={contentId}
       >
         {expanded ? (
           <ChevronDown
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         )}
-        {icon && <span className="shrink-0 text-gray-500">{icon}</span>}
+        {icon && (
+          <span className="text-forge-muted dark:text-forge-muted-dark shrink-0">
+            {icon}
+          </span>
+        )}
         <span className="truncate">{title}</span>
       </button>
       {expanded && (
@@ -224,15 +243,18 @@ function QuickCreateButton({ nodeType, onClick }: QuickCreateButtonProps) {
       onClick={onClick}
       className={cn(
         'flex w-full items-center gap-2 rounded-md px-3 py-2',
-        'text-sm font-medium text-gray-700 dark:text-gray-300',
+        'text-forge-text dark:text-forge-text-dark text-sm font-medium',
         config.bgColor,
         config.hoverBgColor,
         'transition-colors duration-150',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+        'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
       )}
       aria-label={`Create new ${config.label}`}
     >
-      <Plus className="h-4 w-4 shrink-0 text-gray-500" aria-hidden="true" />
+      <Plus
+        className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
+        aria-hidden="true"
+      />
       <Icon
         className={cn('h-4 w-4 shrink-0', config.iconColor)}
         aria-hidden="true"
@@ -269,7 +291,7 @@ function FilterSectionContent({ filters, sorting }: FilterSectionContentProps) {
 
       {/* Sort Dropdown */}
       <div>
-        <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+        <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase">
           Sort
         </span>
         <SortDropdown
@@ -345,7 +367,7 @@ function TagCloud({ onTagClick, selectedTags = [] }: TagCloudProps) {
 
   if (tagCounts.length === 0) {
     return (
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
         No tags yet. Add tags to nodes to see them here.
       </p>
     )
@@ -365,15 +387,15 @@ function TagCloud({ onTagClick, selectedTags = [] }: TagCloudProps) {
               'min-h-[44px]', // WCAG 2.1 touch target minimum
               'text-xs font-medium',
               'transition-colors duration-150',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+              'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
               isSelected
                 ? [
-                    'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
-                    'hover:bg-blue-200 dark:hover:bg-blue-800/50',
+                    'bg-forge-accent-subtle text-forge-accent dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark',
+                    'hover:bg-forge-accent-subtle/80 dark:hover:bg-forge-accent-subtle-dark/80',
                   ]
                 : [
-                    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                    'hover:bg-gray-200 dark:hover:bg-gray-700',
+                    'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
+                    'hover:bg-forge-border-subtle dark:hover:bg-forge-border-dark',
                   ]
             )}
             aria-label={`${isSelected ? 'Remove' : 'Add'} tag filter: ${tag}`}
@@ -383,8 +405,8 @@ function TagCloud({ onTagClick, selectedTags = [] }: TagCloudProps) {
             <span
               className={cn(
                 isSelected
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400'
+                  ? 'text-forge-accent dark:text-forge-accent-dark'
+                  : 'text-forge-muted dark:text-forge-muted-dark'
               )}
             >
               {count}
@@ -650,17 +672,17 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Import/Export Buttons */}
-      <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-800">
+      <div className="border-forge-border dark:border-forge-border-dark border-t px-4 py-3">
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setImportDialogOpen(true)}
             className={cn(
               'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2',
-              'text-sm font-medium text-gray-700 dark:text-gray-300',
-              'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
+              'text-forge-text dark:text-forge-text-dark text-sm font-medium',
+              'bg-forge-surface hover:bg-forge-border-subtle dark:bg-forge-surface-dark dark:hover:bg-forge-border-dark',
               'transition-colors duration-150',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+              'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
             )}
             aria-label="Import project data"
           >
@@ -672,10 +694,10 @@ export function Sidebar({ className }: SidebarProps) {
             onClick={() => setExportDialogOpen(true)}
             className={cn(
               'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2',
-              'text-sm font-medium text-gray-700 dark:text-gray-300',
-              'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
+              'text-forge-text dark:text-forge-text-dark text-sm font-medium',
+              'bg-forge-surface hover:bg-forge-border-subtle dark:bg-forge-surface-dark dark:hover:bg-forge-border-dark',
               'transition-colors duration-150',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+              'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
             )}
             aria-label="Export project data"
           >
@@ -686,9 +708,9 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
+      <div className="border-forge-border dark:border-forge-border-dark border-t px-4 py-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
             Forge v0.0.1
           </p>
           {persistence?.error && (

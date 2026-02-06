@@ -282,7 +282,7 @@ export function ImageViewer({ attachment, isOpen, onClose }: ImageViewerProps) {
           onClick={toggleAnnotationToolbar}
           className={cn(
             'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none',
-            showAnnotationToolbar ? 'bg-blue-600' : 'hover:bg-white/10'
+            showAnnotationToolbar ? 'bg-forge-accent' : 'hover:bg-white/10'
           )}
           aria-label="Annotate image"
           aria-pressed={showAnnotationToolbar}
@@ -324,7 +324,7 @@ export function ImageViewer({ attachment, isOpen, onClose }: ImageViewerProps) {
             }
             className={cn(
               'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none',
-              activeTool === 'arrow' ? 'bg-blue-600' : 'hover:bg-white/10'
+              activeTool === 'arrow' ? 'bg-forge-accent' : 'hover:bg-white/10'
             )}
             aria-label="Arrow tool"
             aria-pressed={activeTool === 'arrow'}
@@ -339,7 +339,7 @@ export function ImageViewer({ attachment, isOpen, onClose }: ImageViewerProps) {
             }
             className={cn(
               'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none',
-              activeTool === 'circle' ? 'bg-blue-600' : 'hover:bg-white/10'
+              activeTool === 'circle' ? 'bg-forge-accent' : 'hover:bg-white/10'
             )}
             aria-label="Circle tool"
             aria-pressed={activeTool === 'circle'}
@@ -352,7 +352,7 @@ export function ImageViewer({ attachment, isOpen, onClose }: ImageViewerProps) {
             onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
             className={cn(
               'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none',
-              activeTool === 'text' ? 'bg-blue-600' : 'hover:bg-white/10'
+              activeTool === 'text' ? 'bg-forge-accent' : 'hover:bg-white/10'
             )}
             aria-label="Text tool"
             aria-pressed={activeTool === 'text'}
@@ -382,7 +382,7 @@ export function ImageViewer({ attachment, isOpen, onClose }: ImageViewerProps) {
             <button
               type="button"
               onClick={onClose}
-              className="mt-2 rounded-lg bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              className="bg-forge-surface-dark hover:bg-forge-border-dark mt-2 rounded-lg px-4 py-2 text-sm text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
               Close
             </button>

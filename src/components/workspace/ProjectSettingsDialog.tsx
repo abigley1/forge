@@ -169,8 +169,9 @@ export function ProjectSettingsDialog({
             data-testid="project-settings"
             className={cn(
               'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-              'w-full max-w-md rounded-xl bg-white shadow-2xl',
-              'dark:border dark:border-gray-800 dark:bg-gray-900',
+              'bg-forge-paper w-full max-w-md rounded-xl shadow-2xl',
+              'border-forge-border border',
+              'dark:border-forge-border-dark dark:bg-forge-paper-dark',
               'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
               'data-[ending-style]:scale-95 data-[ending-style]:opacity-0',
               'transition-[transform,opacity] duration-200'
@@ -178,16 +179,16 @@ export function ProjectSettingsDialog({
             style={{ zIndex: Z_MODAL + 1 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-              <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-6 py-4">
+              <Dialog.Title className="text-forge-text dark:text-forge-text-dark text-lg font-semibold">
                 Project Settings
               </Dialog.Title>
               <Dialog.Close
                 className={cn(
                   'rounded-md p-2',
-                  'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -201,7 +202,7 @@ export function ProjectSettingsDialog({
               <div>
                 <label
                   htmlFor="settings-project-name"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase"
                 >
                   Project Name
                 </label>
@@ -211,10 +212,11 @@ export function ProjectSettingsDialog({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className={cn(
-                    'w-full rounded-md border border-gray-300 px-3 py-2',
-                    'text-sm text-gray-900 placeholder:text-gray-400',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                    'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+                    'border-forge-border w-full rounded-md border px-3 py-2',
+                    'text-forge-text placeholder:text-forge-muted text-sm',
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark',
+                    'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none',
+                    'dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark'
                   )}
                 />
               </div>
@@ -223,7 +225,7 @@ export function ProjectSettingsDialog({
               <div>
                 <label
                   htmlFor="settings-project-description"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase"
                 >
                   Description
                 </label>
@@ -234,27 +236,28 @@ export function ProjectSettingsDialog({
                   placeholder="A brief description of your project..."
                   rows={3}
                   className={cn(
-                    'w-full resize-none rounded-md border border-gray-300 px-3 py-2',
-                    'text-sm text-gray-900 placeholder:text-gray-400',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                    'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+                    'border-forge-border w-full resize-none rounded-md border px-3 py-2',
+                    'text-forge-text placeholder:text-forge-muted text-sm',
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark',
+                    'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none',
+                    'dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark'
                   )}
                 />
               </div>
 
               {/* Project Info */}
-              <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="bg-forge-surface dark:bg-forge-surface-dark rounded-md px-3 py-2">
+                <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm">
                   <strong>Nodes:</strong> {nodeCount}
                 </p>
               </div>
 
               {/* Export to Folder */}
-              <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                <h3 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+              <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-md border p-4">
+                <h3 className="text-forge-text dark:text-forge-text-dark mb-2 text-sm font-medium">
                   Save to Folder
                 </h3>
-                <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-3 text-sm">
                   Export your project as markdown files to a folder on your
                   computer. This creates a git-friendly directory structure.
                 </p>
@@ -265,10 +268,10 @@ export function ProjectSettingsDialog({
                   className={cn(
                     'flex items-center gap-2 rounded-md px-3 py-2',
                     'text-sm font-medium',
-                    'bg-blue-600 text-white',
-                    'hover:bg-blue-700',
+                    'bg-forge-accent text-white',
+                    'hover:bg-forge-accent-hover',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none'
+                    'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                   )}
                   title={
                     !canExportToFolder
@@ -320,13 +323,13 @@ export function ProjectSettingsDialog({
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+            <div className="border-forge-border dark:border-forge-border-dark flex justify-end gap-3 border-t px-6 py-4">
               <Dialog.Close
                 className={cn(
                   'rounded-md px-4 py-2',
-                  'text-sm font-medium text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-text dark:text-forge-text-dark text-sm font-medium',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 Cancel
@@ -336,10 +339,10 @@ export function ProjectSettingsDialog({
                 onClick={handleSave}
                 disabled={isSaving || !name.trim()}
                 className={cn(
-                  'rounded-md bg-blue-600 px-4 py-2',
+                  'bg-forge-accent rounded-md px-4 py-2',
                   'text-sm font-medium text-white',
-                  'hover:bg-blue-700',
-                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'hover:bg-forge-accent-hover',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                   'disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >
@@ -363,8 +366,9 @@ export function ProjectSettingsDialog({
           <AlertDialog.Popup
             className={cn(
               'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-              'w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl',
-              'dark:border dark:border-gray-800 dark:bg-gray-900'
+              'bg-forge-paper w-full max-w-sm rounded-xl p-6 shadow-2xl',
+              'border-forge-border border',
+              'dark:border-forge-border-dark dark:bg-forge-paper-dark'
             )}
             style={{ zIndex: Z_MODAL + 11 }}
           >
@@ -372,12 +376,12 @@ export function ProjectSettingsDialog({
               <div className="rounded-full bg-red-100 p-2 dark:bg-red-950">
                 <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
-              <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <AlertDialog.Title className="text-forge-text dark:text-forge-text-dark text-lg font-semibold">
                 Delete Project?
               </AlertDialog.Title>
             </div>
 
-            <AlertDialog.Description className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+            <AlertDialog.Description className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-6 text-sm">
               Are you sure you want to delete "{currentProject.name}"? This will
               remove it from your browser storage. Make sure you've saved a
               backup using "Save to Folder" if needed.
@@ -387,9 +391,9 @@ export function ProjectSettingsDialog({
               <AlertDialog.Close
                 className={cn(
                   'rounded-md px-4 py-2',
-                  'text-sm font-medium text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-text dark:text-forge-text-dark text-sm font-medium',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 Cancel

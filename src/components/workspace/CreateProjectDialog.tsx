@@ -144,8 +144,9 @@ export function CreateProjectDialog({
         <Dialog.Popup
           className={cn(
             'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'w-full max-w-md rounded-xl bg-white shadow-2xl',
-            'dark:border dark:border-gray-800 dark:bg-gray-900',
+            'bg-forge-paper w-full max-w-md rounded-xl shadow-2xl',
+            'border-forge-border border',
+            'dark:border-forge-border-dark dark:bg-forge-paper-dark',
             'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
             'data-[ending-style]:scale-95 data-[ending-style]:opacity-0',
             'transition-[transform,opacity] duration-200'
@@ -154,16 +155,16 @@ export function CreateProjectDialog({
         >
           <form onSubmit={handleSubmit}>
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-              <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-6 py-4">
+              <Dialog.Title className="text-forge-text dark:text-forge-text-dark text-lg font-semibold">
                 Create New Project
               </Dialog.Title>
               <Dialog.Close
                 className={cn(
                   'rounded-md p-2',
-                  'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -191,7 +192,7 @@ export function CreateProjectDialog({
               <div>
                 <label
                   htmlFor="project-name"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase"
                 >
                   Project Name <span className="text-red-500">*</span>
                 </label>
@@ -204,10 +205,10 @@ export function CreateProjectDialog({
                   placeholder="My Hardware Project"
                   autoComplete="off"
                   className={cn(
-                    'w-full rounded-md border border-gray-300 px-3 py-2',
-                    'text-sm text-gray-900 placeholder:text-gray-400',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                    'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
+                    'border-forge-border w-full rounded-md border px-3 py-2',
+                    'text-forge-text placeholder:text-forge-muted text-sm',
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark',
+                    'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none',
                     error && !name.trim() && 'border-red-500'
                   )}
                   aria-invalid={error && !name.trim() ? 'true' : undefined}
@@ -221,10 +222,10 @@ export function CreateProjectDialog({
               <div>
                 <label
                   htmlFor="project-description"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase"
                 >
                   Description{' '}
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-forge-muted dark:text-forge-muted-dark">
                     (optional)
                   </span>
                 </label>
@@ -235,29 +236,29 @@ export function CreateProjectDialog({
                   placeholder="A brief description of your project..."
                   rows={2}
                   className={cn(
-                    'w-full resize-none rounded-md border border-gray-300 px-3 py-2',
-                    'text-sm text-gray-900 placeholder:text-gray-400',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                    'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+                    'border-forge-border w-full resize-none rounded-md border px-3 py-2',
+                    'text-forge-text placeholder:text-forge-muted text-sm',
+                    'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark',
+                    'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none'
                   )}
                 />
               </div>
 
               {/* Info about storage */}
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
                 Your project will be stored on the server and synced across
                 devices.
               </p>
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+            <div className="border-forge-border dark:border-forge-border-dark flex justify-end gap-3 border-t px-6 py-4">
               <Dialog.Close
                 className={cn(
                   'rounded-md px-4 py-2',
-                  'text-sm font-medium text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-text dark:text-forge-text-dark text-sm font-medium',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 Cancel
@@ -266,10 +267,10 @@ export function CreateProjectDialog({
                 type="submit"
                 disabled={isSubmitting || !name.trim()}
                 className={cn(
-                  'rounded-md bg-blue-600 px-4 py-2',
+                  'bg-forge-accent rounded-md px-4 py-2',
                   'text-sm font-medium text-white',
-                  'hover:bg-blue-700',
-                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'hover:bg-forge-accent-hover',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                   'disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >

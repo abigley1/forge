@@ -54,14 +54,14 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
       aria-label={`Navigate to ${node.title}`}
       className={cn(
         'group w-full text-left',
-        'rounded-lg border border-gray-200 dark:border-gray-700/50',
-        'bg-white dark:bg-gray-800/30',
+        'border-forge-border dark:border-forge-border-dark rounded-lg border',
+        'bg-forge-paper dark:bg-forge-paper-dark',
         'px-3 py-2.5',
         'transition-colors duration-150',
-        'hover:border-gray-300 hover:bg-gray-50',
-        'dark:hover:border-gray-600 dark:hover:bg-gray-800/60',
-        'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none',
-        'dark:focus-visible:ring-gray-500'
+        'hover:border-forge-border hover:bg-forge-surface',
+        'dark:hover:border-forge-border-dark dark:hover:bg-forge-surface-dark',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+        'dark:focus-visible:ring-forge-accent-dark'
       )}
     >
       {/* Header row: icon, title, arrow */}
@@ -70,7 +70,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
         <span
           className={cn(
             'min-w-0 flex-1 truncate text-sm font-medium',
-            'text-gray-900 dark:text-gray-100'
+            'text-forge-text dark:text-forge-text-dark'
           )}
         >
           {node.title}
@@ -78,7 +78,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
         <ArrowUpRight
           className={cn(
             'h-3.5 w-3.5 shrink-0',
-            'text-gray-500 dark:text-gray-400',
+            'text-forge-muted dark:text-forge-muted-dark',
             'opacity-0 transition-opacity duration-150',
             'group-hover:opacity-100 group-focus-visible:opacity-100'
           )}
@@ -94,7 +94,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
               key={index}
               className={cn(
                 'text-xs leading-relaxed',
-                'text-gray-500 dark:text-gray-400',
+                'text-forge-muted dark:text-forge-muted-dark',
                 'line-clamp-2'
               )}
             >
@@ -102,7 +102,7 @@ function BacklinkItemRow({ item, onNavigate }: BacklinkItemRowProps) {
             </p>
           ))}
           {contexts.length > 2 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
               +{contexts.length - 2} more mentions
             </p>
           )}
@@ -159,18 +159,18 @@ function EmptyBacklinks() {
       <div
         className={cn(
           'mb-3 flex h-10 w-10 items-center justify-center rounded-full',
-          'bg-gray-100 dark:bg-gray-800'
+          'bg-forge-surface dark:bg-forge-surface-dark'
         )}
       >
         <Link2
-          className="h-5 w-5 text-gray-500 dark:text-gray-400"
+          className="text-forge-muted dark:text-forge-muted-dark h-5 w-5"
           aria-hidden="true"
         />
       </div>
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+      <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium">
         No backlinks yet
       </p>
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+      <p className="text-forge-muted dark:text-forge-muted-dark mt-1 text-xs">
         Other nodes will appear here when they link to this one
       </p>
     </div>
@@ -219,8 +219,8 @@ export function BacklinksPanel({
   return (
     <div
       className={cn(
-        'rounded-lg border border-gray-200 dark:border-gray-700/50',
-        'bg-gray-50/50 dark:bg-gray-900/30',
+        'border-forge-border dark:border-forge-border-dark rounded-lg border',
+        'bg-forge-surface/50 dark:bg-forge-surface-dark/30',
         'overflow-hidden',
         className
       )}
@@ -233,10 +233,10 @@ export function BacklinksPanel({
         className={cn(
           'flex w-full items-center gap-2 px-4 py-3',
           'text-sm font-medium',
-          'text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-100/80 dark:hover:bg-gray-800/50',
-          'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none focus-visible:ring-inset',
-          'dark:focus-visible:ring-gray-500',
+          'text-forge-text dark:text-forge-text-dark',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+          'dark:focus-visible:ring-forge-accent-dark',
           'transition-colors duration-150'
         )}
         aria-expanded={expanded}
@@ -245,18 +245,21 @@ export function BacklinksPanel({
         {/* Chevron */}
         {expanded ? (
           <ChevronDown
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         )}
 
         {/* Icon */}
-        <Link2 className="h-4 w-4 shrink-0 text-gray-500" aria-hidden="true" />
+        <Link2
+          className="text-forge-muted h-4 w-4 shrink-0"
+          aria-hidden="true"
+        />
 
         {/* Title */}
         <span className="flex-1 text-left">Backlinks</span>
@@ -267,8 +270,8 @@ export function BacklinksPanel({
             'rounded-full px-2 py-0.5',
             'text-xs font-medium tabular-nums',
             count > 0
-              ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-              : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
+              ? 'bg-forge-border text-forge-text dark:bg-forge-border-dark dark:text-forge-text-dark'
+              : 'bg-forge-surface text-forge-muted dark:bg-forge-surface-dark dark:text-forge-muted-dark'
           )}
           aria-label={`${count} backlinks`}
         >

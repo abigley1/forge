@@ -73,7 +73,7 @@ function ProjectItem({
     return (
       <>
         {project.name.slice(0, matchIndex)}
-        <mark className="bg-yellow-200 dark:bg-yellow-900">
+        <mark className="bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark">
           {project.name.slice(matchIndex, matchIndex + searchQuery.length)}
         </mark>
         {project.name.slice(matchIndex + searchQuery.length)}
@@ -89,30 +89,32 @@ function ProjectItem({
       onClick={() => onSelect(project.id)}
       className={cn(
         'flex w-full items-center gap-3 rounded-md px-3 py-2',
-        'text-sm text-gray-700 dark:text-gray-300',
+        'text-forge-text dark:text-forge-text-dark text-sm',
         'transition-colors duration-150',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+        'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
         isActive
-          ? 'bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+          ? 'bg-forge-accent-subtle text-forge-accent dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark'
+          : 'hover:bg-forge-surface dark:hover:bg-forge-surface-dark'
       )}
     >
       <FolderOpen
         className={cn(
           'h-4 w-4 shrink-0',
-          isActive ? 'text-blue-500' : 'text-gray-400'
+          isActive
+            ? 'text-forge-accent dark:text-forge-accent-dark'
+            : 'text-forge-muted dark:text-forge-muted-dark'
         )}
         aria-hidden="true"
       />
       <div className="min-w-0 flex-1 text-left">
         <div className="truncate font-medium">{highlightedName}</div>
-        <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-forge-text-secondary dark:text-forge-text-secondary-dark truncate text-xs">
           {project.nodeCount} node{project.nodeCount === 1 ? '' : 's'}
         </div>
       </div>
       {isActive && (
         <Check
-          className="h-4 w-4 shrink-0 text-blue-500"
+          className="text-forge-accent dark:text-forge-accent-dark h-4 w-4 shrink-0"
           aria-label="Active project"
         />
       )}
@@ -307,7 +309,7 @@ export function ProjectSwitcher({
   return (
     <div
       className={cn(
-        'relative border-b border-gray-200 dark:border-gray-800',
+        'border-forge-border dark:border-forge-border-dark relative border-b',
         className
       )}
     >
@@ -321,17 +323,20 @@ export function ProjectSwitcher({
         aria-label={`Switch project, current: ${displayName}`}
         className={cn(
           'flex w-full items-center gap-2 px-4 py-3',
-          'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-          'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:ring-gray-300',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
           'transition-colors duration-150'
         )}
       >
-        <FolderOpen className="h-5 w-5 text-gray-500" aria-hidden="true" />
+        <FolderOpen
+          className="text-forge-muted dark:text-forge-muted-dark h-5 w-5"
+          aria-hidden="true"
+        />
         <div className="min-w-0 flex-1 text-left">
-          <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h1 className="text-forge-text dark:text-forge-text-dark truncate text-lg font-semibold">
             {displayName}
           </h1>
-          <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark truncate text-xs">
             {currentProject
               ? `${displayCount} node${displayCount === 1 ? '' : 's'}`
               : 'No project loaded'}
@@ -339,7 +344,7 @@ export function ProjectSwitcher({
         </div>
         <ChevronDown
           className={cn(
-            'h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200',
+            'text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0 transition-transform duration-200',
             isOpen && 'rotate-180'
           )}
           aria-hidden="true"
@@ -358,9 +363,9 @@ export function ProjectSwitcher({
           className={cn(
             'absolute top-1/2 right-12 -translate-y-1/2',
             'rounded-md p-2',
-            'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-            'hover:bg-gray-100 dark:hover:bg-gray-700',
-            'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+            'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+            'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+            'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
             'transition-colors duration-150'
           )}
         >
@@ -378,18 +383,18 @@ export function ProjectSwitcher({
           onKeyDown={handleKeyDown}
           className={cn(
             'absolute top-full right-0 left-0 mt-1',
-            'rounded-lg border border-gray-200 bg-white shadow-lg',
-            'dark:border-gray-700 dark:bg-gray-900',
+            'border-forge-border bg-forge-paper rounded-lg border shadow-lg',
+            'dark:border-forge-border-dark dark:bg-forge-paper-dark',
             'max-h-80 overflow-hidden'
           )}
           style={{ zIndex: Z_DROPDOWN }}
         >
           {/* Search Input */}
           {projects.length > 3 && (
-            <div className="border-b border-gray-200 p-2 dark:border-gray-700">
+            <div className="border-forge-border dark:border-forge-border-dark border-b p-2">
               <div className="relative">
                 <Search
-                  className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  className="text-forge-muted dark:text-forge-muted-dark absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
                   aria-hidden="true"
                 />
                 <input
@@ -399,10 +404,11 @@ export function ProjectSwitcher({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={cn(
-                    'w-full rounded-md border border-gray-200 py-2 pr-3 pl-10',
-                    'text-sm placeholder:text-gray-400',
-                    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
-                    'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+                    'border-forge-border w-full rounded-md border py-2 pr-3 pl-10',
+                    'placeholder:text-forge-muted text-sm',
+                    'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+                    'focus:border-forge-accent focus:ring-forge-accent focus:ring-1 focus:outline-none',
+                    'dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark'
                   )}
                 />
               </div>
@@ -422,11 +428,11 @@ export function ProjectSwitcher({
                 />
               ))
             ) : searchQuery ? (
-              <p className="px-3 py-4 text-center text-sm text-gray-500">
+              <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark px-3 py-4 text-center text-sm">
                 No projects matching "{searchQuery}"
               </p>
             ) : (
-              <p className="px-3 py-4 text-center text-sm text-gray-500">
+              <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark px-3 py-4 text-center text-sm">
                 No projects in workspace
               </p>
             )}
@@ -434,7 +440,7 @@ export function ProjectSwitcher({
 
           {/* Create New Project Button */}
           {onCreateClick && (
-            <div className="border-t border-gray-200 p-1 dark:border-gray-700">
+            <div className="border-forge-border dark:border-forge-border-dark border-t p-1">
               <button
                 type="button"
                 onClick={() => {
@@ -443,9 +449,9 @@ export function ProjectSwitcher({
                 }}
                 className={cn(
                   'flex w-full items-center gap-2 rounded-md px-3 py-2',
-                  'text-sm font-medium text-blue-600 dark:text-blue-400',
-                  'hover:bg-blue-50 dark:hover:bg-blue-950/50',
-                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                  'text-forge-accent dark:text-forge-accent-dark text-sm font-medium',
+                  'hover:bg-forge-accent-subtle dark:hover:bg-forge-accent-subtle-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
@@ -473,8 +479,9 @@ export function ProjectSwitcher({
             aria-describedby="unsaved-dialog-description"
             className={cn(
               'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-              'w-full max-w-md rounded-lg bg-white p-6 shadow-xl',
-              'dark:border dark:border-gray-700 dark:bg-gray-900'
+              'bg-forge-paper w-full max-w-md rounded-lg p-6 shadow-xl',
+              'border-forge-border border',
+              'dark:border-forge-border-dark dark:bg-forge-paper-dark'
             )}
             style={{ zIndex: Z_MODAL }}
           >
@@ -488,13 +495,13 @@ export function ProjectSwitcher({
               <div className="flex-1">
                 <h2
                   id="unsaved-dialog-title"
-                  className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  className="text-forge-text dark:text-forge-text-dark text-lg font-semibold"
                 >
                   Unsaved Changes
                 </h2>
                 <p
                   id="unsaved-dialog-description"
-                  className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mt-2 text-sm"
                 >
                   You have unsaved changes in the current project. Switching
                   projects will discard these changes.
@@ -508,10 +515,10 @@ export function ProjectSwitcher({
                 onClick={handleCancelSwitch}
                 className={cn(
                   'rounded-md px-4 py-2 text-sm font-medium',
-                  'text-gray-700 dark:text-gray-300',
-                  'border border-gray-300 dark:border-gray-600',
-                  'hover:bg-gray-50 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300'
+                  'text-forge-text dark:text-forge-text-dark',
+                  'border-forge-border dark:border-forge-border-dark border',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none'
                 )}
               >
                 Cancel

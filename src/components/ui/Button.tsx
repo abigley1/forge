@@ -13,25 +13,25 @@ type ButtonProps = ComponentPropsWithoutRef<typeof BaseButton> & {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: cn(
-    'bg-gray-900 text-white hover:bg-gray-800',
-    'dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-200',
-    'focus-visible:ring-gray-950 dark:focus-visible:ring-gray-300'
+    'bg-forge-accent text-white hover:bg-forge-accent-hover',
+    'dark:bg-forge-accent-dark dark:text-forge-paper-dark dark:hover:bg-forge-accent-hover-dark',
+    'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark'
   ),
   secondary: cn(
-    'border border-gray-300 bg-white text-gray-700',
-    'hover:bg-gray-50',
-    'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    'dark:hover:bg-gray-700',
-    'focus-visible:ring-gray-950 dark:focus-visible:ring-gray-300'
+    'border border-forge-border bg-forge-surface text-forge-text',
+    'hover:bg-forge-border-subtle',
+    'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+    'dark:hover:bg-forge-border-dark',
+    'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark'
   ),
   destructive: cn(
     'bg-red-600 text-white hover:bg-red-700',
     'focus-visible:ring-red-600'
   ),
   ghost: cn(
-    'text-gray-700 hover:bg-gray-100',
-    'dark:text-gray-300 dark:hover:bg-gray-800',
-    'focus-visible:ring-gray-950 dark:focus-visible:ring-gray-300'
+    'text-forge-text hover:bg-forge-surface',
+    'dark:text-forge-text-dark dark:hover:bg-forge-surface-dark',
+    'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark'
   ),
 }
 

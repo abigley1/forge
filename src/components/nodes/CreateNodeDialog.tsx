@@ -400,7 +400,7 @@ export function CreateNodeDialog({
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             {/* Node Type Selector */}
             <fieldset>
-              <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <legend className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase">
                 Type
               </legend>
               <div
@@ -423,18 +423,18 @@ export function CreateNodeDialog({
                       className={cn(
                         'flex items-center gap-2 rounded-lg border-2 px-3 py-2.5',
                         'text-sm font-medium transition-colors',
-                        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-                        'dark:focus-visible:ring-gray-300',
+                        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+                        'dark:focus-visible:ring-forge-accent-dark',
                         isSelected
-                          ? 'border-gray-900 bg-gray-50 dark:border-gray-100 dark:bg-gray-800'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800'
+                          ? 'border-forge-accent bg-forge-surface dark:border-forge-accent-dark dark:bg-forge-surface-dark'
+                          : 'border-forge-border hover:border-forge-muted hover:bg-forge-surface dark:border-forge-border-dark dark:hover:border-forge-muted-dark dark:hover:bg-forge-surface-dark'
                       )}
                     >
                       <Icon
                         className={cn('h-4 w-4', config.color)}
                         aria-hidden="true"
                       />
-                      <span className="text-gray-900 dark:text-gray-100">
+                      <span className="text-forge-text dark:text-forge-text-dark">
                         {config.label}
                       </span>
                     </button>
@@ -447,7 +447,7 @@ export function CreateNodeDialog({
             <div>
               <label
                 htmlFor="node-title"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
               >
                 Title
               </label>
@@ -459,11 +459,11 @@ export function CreateNodeDialog({
                 onChange={(e) => setTitle(e.target.value)}
                 className={cn(
                   'mt-1 block w-full rounded-md border px-3 py-2',
-                  'text-gray-900 placeholder-gray-500',
-                  'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                  'text-forge-text placeholder-forge-muted',
+                  'border-forge-border bg-forge-paper focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                   'focus-visible:outline-none',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400',
-                  'dark:focus:border-gray-500 dark:focus:ring-gray-500'
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder-forge-muted-dark',
+                  'dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark'
                 )}
                 placeholder={`My ${getNodeTypeLabel(selectedType)}`}
                 autoComplete="off"
@@ -475,7 +475,7 @@ export function CreateNodeDialog({
             <div>
               <label
                 htmlFor="node-template"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase"
               >
                 Template
               </label>
@@ -485,10 +485,10 @@ export function CreateNodeDialog({
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
                 className={cn(
                   'mt-1 block w-full rounded-md border px-3 py-2',
-                  'bg-white text-gray-900',
-                  'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                  'bg-forge-paper text-forge-text',
+                  'border-forge-border focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                   'focus-visible:outline-none',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100'
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark'
                 )}
               >
                 {availableTemplates.map((template) => (
@@ -498,7 +498,7 @@ export function CreateNodeDialog({
                 ))}
               </select>
               {selectedTemplate && !selectedTemplate.id.endsWith('-blank') && (
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mt-1 text-sm">
                   {selectedTemplate.description}
                 </p>
               )}
@@ -506,7 +506,7 @@ export function CreateNodeDialog({
 
             {/* Import from Link - Only for Component type */}
             {selectedType === NodeType.Component && (
-              <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+              <div className="border-forge-border dark:border-forge-border-dark border-t pt-4">
                 {!showImportLink ? (
                   <button
                     type="button"
@@ -516,11 +516,11 @@ export function CreateNodeDialog({
                     }}
                     className={cn(
                       'flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 py-2.5',
-                      'text-sm font-medium text-gray-600 dark:text-gray-400',
-                      'border-gray-300 hover:border-gray-400 hover:text-gray-700',
-                      'dark:border-gray-600 dark:hover:border-gray-500 dark:hover:text-gray-300',
-                      'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-                      'dark:focus-visible:ring-gray-300'
+                      'text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium',
+                      'border-forge-border hover:border-forge-accent hover:text-forge-text',
+                      'dark:border-forge-border-dark dark:hover:border-forge-accent-dark dark:hover:text-forge-text-dark',
+                      'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+                      'dark:focus-visible:ring-forge-accent-dark'
                     )}
                   >
                     <Link className="h-4 w-4" aria-hidden="true" />
@@ -529,7 +529,7 @@ export function CreateNodeDialog({
                 ) : (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs tracking-wider uppercase">
                         Import from Link
                       </span>
                       <button
@@ -540,7 +540,7 @@ export function CreateNodeDialog({
                           setImportError(null)
                           setImportPreview(null)
                         }}
-                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        className="text-forge-text-secondary hover:text-forge-text dark:text-forge-text-secondary-dark dark:hover:text-forge-text-dark text-sm"
                       >
                         Cancel
                       </button>
@@ -564,10 +564,10 @@ export function CreateNodeDialog({
                         }}
                         className={cn(
                           'flex-1 rounded-md border px-3 py-2',
-                          'text-sm text-gray-900 placeholder-gray-500',
-                          'border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500',
+                          'text-forge-text placeholder-forge-muted text-sm',
+                          'border-forge-border bg-forge-paper focus:border-forge-accent focus:ring-forge-accent focus:ring-1',
                           'focus-visible:outline-none',
-                          'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400'
+                          'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:placeholder-forge-muted-dark'
                         )}
                         placeholder="Paste supplier URL..."
                         autoComplete="off"
@@ -590,7 +590,7 @@ export function CreateNodeDialog({
                     </div>
 
                     {/* Supported suppliers hint */}
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
                       Supported:{' '}
                       {SUPPORTED_SUPPLIERS.map(
                         (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -608,45 +608,45 @@ export function CreateNodeDialog({
                     {importPreview && (
                       <div
                         data-testid="import-preview"
-                        className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"
+                        className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-lg border p-3"
                       >
                         <div className="space-y-2 text-sm">
                           {importPreview.supplier && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">
+                              <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
                                 Supplier:
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                              <span className="text-forge-text dark:text-forge-text-dark font-medium">
                                 {importPreview.supplier}
                               </span>
                             </div>
                           )}
                           {importPreview.partNumber && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">
+                              <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
                                 Part #:
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                              <span className="text-forge-text dark:text-forge-text-dark font-medium">
                                 {importPreview.partNumber}
                               </span>
                             </div>
                           )}
                           {importPreview.price !== null && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">
+                              <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
                                 Price:
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                              <span className="text-forge-text dark:text-forge-text-dark font-medium">
                                 ${importPreview.price.toFixed(2)}
                               </span>
                             </div>
                           )}
                           {importPreview.manufacturer && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500 dark:text-gray-400">
+                              <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
                                 Manufacturer:
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                              <span className="text-forge-text dark:text-forge-text-dark font-medium">
                                 {importPreview.manufacturer}
                               </span>
                             </div>
@@ -669,9 +669,9 @@ export function CreateNodeDialog({
           </form>
 
           {/* Keyboard shortcut hint */}
-          <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark mt-4 text-center text-xs">
             Keyboard shortcut:{' '}
-            <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+            <kbd className="bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
               {formatHotkey('N', { ctrl: true, shift: true })}
             </kbd>
           </p>

@@ -160,13 +160,13 @@ function ImageThumbnail({
         type="button"
         onClick={onClick}
         className={cn(
-          'flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded bg-gray-100 hover:ring-2 hover:ring-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-gray-800',
+          'bg-forge-surface hover:ring-forge-accent focus-visible:ring-forge-accent dark:bg-forge-surface-dark flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded hover:ring-2 focus-visible:ring-2 focus-visible:outline-none',
           className
         )}
         data-testid="attachment-thumbnail"
         aria-label={`View ${attachment.name}`}
       >
-        <File className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <File className="text-forge-muted h-5 w-5" aria-hidden="true" />
       </button>
     )
   }
@@ -175,7 +175,7 @@ function ImageThumbnail({
     <button
       type="button"
       onClick={onClick}
-      className="cursor-pointer rounded hover:ring-2 hover:ring-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      className="hover:ring-forge-accent focus-visible:ring-forge-accent cursor-pointer rounded hover:ring-2 focus-visible:ring-2 focus-visible:outline-none"
       aria-label={`View ${attachment.name} full size`}
     >
       <img
@@ -484,11 +484,11 @@ export function AttachmentsPanel({
     <div data-testid="attachments-panel" className={cn('space-y-3', className)}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-forge-text-secondary dark:text-forge-text-secondary-dark flex items-center gap-2 font-mono text-xs tracking-wider uppercase">
           <Paperclip className="h-4 w-4" aria-hidden="true" />
           Attachments
           {attachments.length > 0 && (
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-forge-muted dark:text-forge-muted-dark">
               ({attachments.length})
             </span>
           )}
@@ -549,13 +549,13 @@ export function AttachmentsPanel({
         className={cn(
           'rounded-lg border-2 border-dashed',
           isDragOver
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-            : 'border-gray-200 dark:border-gray-700',
+            ? 'border-forge-accent bg-forge-surface dark:bg-forge-surface-dark'
+            : 'border-forge-border dark:border-forge-border-dark',
           attachments.length === 0 && 'p-6'
         )}
       >
         {attachments.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400">
+          <div className="text-forge-muted dark:text-forge-muted-dark text-center">
             <Paperclip
               className="mx-auto mb-2 h-8 w-8 opacity-50"
               aria-hidden="true"
@@ -571,7 +571,7 @@ export function AttachmentsPanel({
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+          <ul className="divide-forge-border dark:divide-forge-border-dark divide-y">
             {attachments.map((attachment) => {
               const isImage = isImageType(attachment.type)
               const Icon = isImage ? null : getAttachmentIcon(attachment.type)
@@ -580,7 +580,7 @@ export function AttachmentsPanel({
                 <li
                   key={attachment.id}
                   data-testid={`attachment-${attachment.id}`}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="hover:bg-forge-surface dark:hover:bg-forge-surface-dark flex items-center gap-3 p-3"
                 >
                   {/* Icon or Thumbnail */}
                   {isImage ? (
@@ -590,11 +590,11 @@ export function AttachmentsPanel({
                     />
                   ) : Icon ? (
                     <div
-                      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-gray-100 dark:bg-gray-800"
+                      className="bg-forge-surface dark:bg-forge-surface-dark flex h-10 w-10 flex-shrink-0 items-center justify-center rounded"
                       data-testid="file-icon"
                     >
                       <Icon
-                        className="h-5 w-5 text-gray-400"
+                        className="text-forge-muted h-5 w-5"
                         aria-hidden="true"
                       />
                     </div>
@@ -602,10 +602,10 @@ export function AttachmentsPanel({
 
                   {/* File info */}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-forge-text dark:text-forge-text-dark truncate text-sm font-medium">
                       {attachment.name}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
                       {formatFileSize(attachment.size)}
                     </p>
                   </div>
@@ -618,9 +618,9 @@ export function AttachmentsPanel({
                       onClick={() => handleView(attachment)}
                       className={cn(
                         'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2',
-                        'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700',
-                        'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                        'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+                        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none'
                       )}
                       aria-label={`View ${attachment.name}`}
                     >
@@ -633,9 +633,9 @@ export function AttachmentsPanel({
                       onClick={() => handleDownload(attachment)}
                       className={cn(
                         'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2',
-                        'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700',
-                        'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                        'text-forge-muted hover:text-forge-text dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
+                        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none'
                       )}
                       aria-label={`Download ${attachment.name}`}
                     >
@@ -648,8 +648,8 @@ export function AttachmentsPanel({
                       onClick={() => handleDeleteClick(attachment)}
                       className={cn(
                         'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2',
-                        'text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700',
+                        'text-forge-muted dark:text-forge-muted-dark hover:text-red-600 dark:hover:text-red-400',
+                        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
                         'focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none'
                       )}
                       aria-label={`Delete ${attachment.name}`}
@@ -666,8 +666,8 @@ export function AttachmentsPanel({
 
       {/* Upload progress indicator */}
       {isUploading && (
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <div className="h-4 w-4 rounded-full border-2 border-gray-300 border-t-blue-500 motion-safe:animate-spin" />
+        <div className="text-forge-muted dark:text-forge-muted-dark flex items-center gap-2 text-sm">
+          <div className="border-forge-border border-t-forge-accent h-4 w-4 rounded-full border-2 motion-safe:animate-spin" />
           Uploading...
         </div>
       )}

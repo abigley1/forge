@@ -79,15 +79,15 @@ export function SelectionPanel({
     return (
       <div
         className={cn(
-          'rounded-lg border border-dashed border-gray-300 p-6 text-center',
+          'border-forge-border rounded-lg border border-dashed p-6 text-center',
           className
         )}
       >
         <AlertCircle
-          className="mx-auto h-8 w-8 text-gray-400"
+          className="text-forge-muted mx-auto h-8 w-8"
           aria-hidden="true"
         />
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="text-forge-text-secondary mt-2 text-sm">
           Add options to the comparison table before selecting.
         </p>
       </div>
@@ -119,7 +119,7 @@ export function SelectionPanel({
         <div>
           <label
             htmlFor="selection-rationale"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-1 block font-mono text-xs tracking-wider uppercase"
           >
             Selection Rationale
           </label>
@@ -131,17 +131,17 @@ export function SelectionPanel({
             disabled={disabled}
             placeholder="Explain why this option was selected..."
             className={cn(
-              'w-full rounded-md border border-gray-300 px-3 py-2 text-sm',
-              'focus:border-blue-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500',
-              'disabled:cursor-not-allowed disabled:bg-gray-100',
-              'dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400'
+              'border-forge-border w-full rounded-md border px-3 py-2 text-sm',
+              'focus:border-forge-accent focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-1',
+              'disabled:bg-forge-surface disabled:cursor-not-allowed',
+              'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark dark:focus:border-forge-accent-dark'
             )}
             rows={3}
             aria-describedby="rationale-hint"
           />
           <p
             id="rationale-hint"
-            className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark mt-1 text-xs"
           >
             Document why this option was chosen for future reference.
           </p>
@@ -205,7 +205,7 @@ export function SelectionPanel({
   return (
     <div className={cn('space-y-4', className)}>
       <div>
-        <h3 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-2 font-mono text-xs tracking-wider uppercase">
           Select an Option
         </h3>
         <div className="space-y-2">
@@ -218,17 +218,17 @@ export function SelectionPanel({
               className={cn(
                 'flex w-full items-center justify-between rounded-lg border p-3 text-left',
                 'transition-colors motion-reduce:transition-none',
-                'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-                'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-200 disabled:hover:bg-white',
-                'dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600 dark:hover:bg-blue-950'
+                'border-forge-border bg-forge-paper hover:border-forge-accent hover:bg-forge-surface',
+                'focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                'disabled:hover:border-forge-border disabled:hover:bg-forge-paper disabled:cursor-not-allowed disabled:opacity-50',
+                'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:hover:border-forge-accent-dark dark:hover:bg-forge-surface-dark'
               )}
               aria-label={`Select ${option.name} as the decision`}
             >
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-forge-text dark:text-forge-text-dark font-medium">
                 {option.name}
               </span>
-              <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-forge-muted dark:text-forge-muted-dark flex items-center gap-1 text-sm">
                 <Check className="h-4 w-4" aria-hidden="true" />
                 Select
               </span>
@@ -239,11 +239,11 @@ export function SelectionPanel({
 
       {/* Show previous selection if reopened */}
       {node.rationale && (
-        <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+        <div className="bg-forge-surface dark:bg-forge-surface-dark rounded-md p-3">
+          <p className="text-forge-muted dark:text-forge-muted-dark text-xs font-medium">
             Previous Selection Notes
           </p>
-          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-forge-text dark:text-forge-text-dark mt-1 text-sm">
             {node.rationale}
           </p>
         </div>

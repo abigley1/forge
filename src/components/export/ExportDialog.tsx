@@ -299,7 +299,7 @@ export function ExportDialog({
           <div className="mt-6 space-y-6">
             {/* Format Selection */}
             <fieldset>
-              <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <legend className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase">
                 Export Format
               </legend>
               <div
@@ -327,22 +327,22 @@ export function ExportDialog({
                         className={cn(
                           'flex flex-col items-center gap-2 rounded-lg border-2 p-4',
                           'text-sm',
-                          'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-                          'dark:focus-visible:ring-gray-300',
+                          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+                          'dark:focus-visible:ring-forge-accent-dark',
                           isDisabled && 'cursor-not-allowed opacity-50',
                           isSelected
-                            ? 'border-gray-900 bg-gray-50 dark:border-gray-100 dark:bg-gray-800'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800'
+                            ? 'border-forge-accent bg-forge-surface dark:border-forge-accent-dark dark:bg-forge-surface-dark'
+                            : 'border-forge-border hover:border-forge-muted hover:bg-forge-surface dark:border-forge-border-dark dark:hover:border-forge-muted-dark dark:hover:bg-forge-surface-dark'
                         )}
                       >
                         <Icon
-                          className="size-6 text-gray-600 dark:text-gray-400"
+                          className="text-forge-text-secondary dark:text-forge-text-secondary-dark size-6"
                           aria-hidden="true"
                         />
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="text-forge-text dark:text-forge-text-dark font-medium">
                           {config.label}
                         </span>
-                        <span className="text-center text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-center text-xs">
                           {config.description}
                         </span>
                       </button>
@@ -359,7 +359,7 @@ export function ExportDialog({
 
             {/* Format-specific Options */}
             <fieldset className="space-y-3">
-              <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <legend className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase">
                 Options
               </legend>
 
@@ -375,9 +375,9 @@ export function ExportDialog({
                           prettyPrint: e.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4 rounded"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Pretty print (formatted with indentation)
                     </span>
                   </label>
@@ -391,9 +391,9 @@ export function ExportDialog({
                           includeMetadata: e.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4 rounded"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Include export metadata
                     </span>
                   </label>
@@ -412,9 +412,9 @@ export function ExportDialog({
                           includeFrontmatter: e.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4 rounded"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Include YAML frontmatter
                     </span>
                   </label>
@@ -424,7 +424,7 @@ export function ExportDialog({
               {selectedFormat === 'csv' && (
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Export type:
                     </span>
                     <div className="mt-2 flex gap-4">
@@ -434,9 +434,9 @@ export function ExportDialog({
                           name="csvType"
                           checked={csvExportType === 'components'}
                           onChange={() => setCsvExportType('components')}
-                          className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                          className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-forge-text dark:text-forge-text-dark text-sm">
                           Components list
                         </span>
                       </label>
@@ -446,9 +446,9 @@ export function ExportDialog({
                           name="csvType"
                           checked={csvExportType === 'bom'}
                           onChange={() => setCsvExportType('bom')}
-                          className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                          className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-forge-text dark:text-forge-text-dark text-sm">
                           Bill of Materials (grouped)
                         </span>
                       </label>
@@ -464,9 +464,9 @@ export function ExportDialog({
                           includeBOM: e.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4 rounded"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Include UTF-8 BOM (Excel compatibility)
                     </span>
                   </label>
@@ -477,7 +477,7 @@ export function ExportDialog({
             {/* Preview */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs tracking-wider uppercase">
                   Preview
                 </span>
                 <Button
@@ -502,8 +502,8 @@ export function ExportDialog({
               <div
                 ref={previewRef}
                 className={cn(
-                  'max-h-60 overflow-auto rounded-lg border border-gray-200 bg-gray-50',
-                  'dark:border-gray-700 dark:bg-gray-900'
+                  'border-forge-border bg-forge-surface max-h-60 overflow-auto rounded-lg border',
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark'
                 )}
                 role="region"
                 tabIndex={0}
@@ -511,7 +511,7 @@ export function ExportDialog({
               >
                 <pre
                   className={cn(
-                    'p-4 text-xs text-gray-800 dark:text-gray-200',
+                    'text-forge-text dark:text-forge-text-dark p-4 text-xs',
                     'font-mono whitespace-pre-wrap'
                   )}
                 >
@@ -562,7 +562,7 @@ export function ExportDialog({
           </Dialog.Footer>
 
           <Dialog.Close
-            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white hover:opacity-100 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300"
+            className="ring-offset-forge-paper focus-visible:ring-forge-accent dark:ring-offset-forge-paper-dark dark:focus-visible:ring-forge-accent-dark absolute top-4 right-4 rounded-sm opacity-70 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
             aria-label="Close"
           >
             <X className="size-4" aria-hidden="true" />

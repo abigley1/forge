@@ -429,10 +429,10 @@ export function ImportDialog({
               onDrop={handleDrop}
               className={cn(
                 'relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+                'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                 isDragging
-                  ? 'border-gray-900 bg-gray-100 dark:border-gray-100 dark:bg-gray-800'
-                  : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
+                  ? 'border-forge-accent bg-forge-surface dark:border-forge-accent-dark dark:bg-forge-surface-dark'
+                  : 'border-forge-border hover:border-forge-accent dark:border-forge-border-dark dark:hover:border-forge-accent-dark',
                 importResult &&
                   'border-green-500 bg-green-50 dark:border-green-400 dark:bg-green-900/20'
               )}
@@ -456,17 +456,17 @@ export function ImportDialog({
                     className={cn(
                       'size-12',
                       isDragging
-                        ? 'text-gray-900 dark:text-gray-100'
-                        : 'text-gray-500 dark:text-gray-400'
+                        ? 'text-forge-text dark:text-forge-text-dark'
+                        : 'text-forge-muted dark:text-forge-muted-dark'
                     )}
                     aria-hidden="true"
                   />
-                  <p className="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <p className="text-forge-text dark:text-forge-text-dark mt-2 text-sm font-medium">
                     {isDragging
                       ? 'Drop files here'
                       : 'Drag files here or click to browse'}
                   </p>
-                  <p className="text-xs text-pretty text-gray-500 dark:text-gray-400">
+                  <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs text-pretty">
                     Supports .json and .md files, or paste (Cmd/Ctrl+V)
                   </p>
                   <div className="mt-4 flex gap-2">
@@ -516,10 +516,13 @@ export function ImportDialog({
 
             {/* Selected Files Summary */}
             {importSummary && !importResult && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+              <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-lg border p-3">
                 <div className="flex items-center gap-2">
-                  <Files className="size-4 text-gray-500" aria-hidden="true" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Files
+                    className="text-forge-text-secondary dark:text-forge-text-secondary-dark size-4"
+                    aria-hidden="true"
+                  />
+                  <span className="text-forge-text dark:text-forge-text-dark text-sm font-medium">
                     {importSummary}
                   </span>
                 </div>
@@ -527,16 +530,16 @@ export function ImportDialog({
                   <div className="mt-1 flex items-center gap-2">
                     {detectedFormat.format === 'json' ? (
                       <FileJson
-                        className="size-4 text-blue-500"
+                        className="text-forge-accent dark:text-forge-accent-dark size-4"
                         aria-hidden="true"
                       />
                     ) : (
                       <FileText
-                        className="size-4 text-green-500"
+                        className="text-forge-node-component-text dark:text-forge-node-component-text-dark size-4"
                         aria-hidden="true"
                       />
                     )}
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
                       {detectedFormat.reason} ({detectedFormat.confidence}{' '}
                       confidence)
                     </span>
@@ -548,7 +551,7 @@ export function ImportDialog({
             {/* Import Options */}
             {(selectedFiles.length > 0 || fileContent) && !importResult && (
               <fieldset className="space-y-3">
-                <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <legend className="text-forge-text-secondary dark:text-forge-text-secondary-dark block font-mono text-xs tracking-wider uppercase">
                   Import Options
                 </legend>
 
@@ -558,9 +561,9 @@ export function ImportDialog({
                       type="checkbox"
                       checked={mergeMode}
                       onChange={(e) => setMergeMode(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                      className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4 rounded"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text dark:text-forge-text-dark text-sm">
                       Merge with current project
                     </span>
                   </label>
@@ -568,7 +571,7 @@ export function ImportDialog({
 
                 {mergeMode && (
                   <div className="ml-6 space-y-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm">
                       Conflict resolution:
                     </span>
                     <div className="flex flex-col gap-2">
@@ -578,9 +581,9 @@ export function ImportDialog({
                           name="conflict"
                           checked={conflictResolution === 'skip'}
                           onChange={() => setConflictResolution('skip')}
-                          className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                          className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-forge-text dark:text-forge-text-dark text-sm">
                           Skip duplicates
                         </span>
                       </label>
@@ -590,9 +593,9 @@ export function ImportDialog({
                           name="conflict"
                           checked={conflictResolution === 'overwrite'}
                           onChange={() => setConflictResolution('overwrite')}
-                          className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                          className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-forge-text dark:text-forge-text-dark text-sm">
                           Overwrite existing
                         </span>
                       </label>
@@ -602,9 +605,9 @@ export function ImportDialog({
                           name="conflict"
                           checked={conflictResolution === 'rename'}
                           onChange={() => setConflictResolution('rename')}
-                          className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                          className="border-forge-border text-forge-accent focus:ring-forge-accent h-4 w-4"
                         />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-forge-text dark:text-forge-text-dark text-sm">
                           Rename imported (add suffix)
                         </span>
                       </label>
@@ -698,7 +701,7 @@ export function ImportDialog({
           </Dialog.Footer>
 
           <Dialog.Close
-            className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-white hover:opacity-100 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300"
+            className="ring-offset-forge-paper focus-visible:ring-forge-accent dark:ring-offset-forge-paper-dark dark:focus-visible:ring-forge-accent-dark absolute top-4 right-4 rounded-sm opacity-70 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none"
             aria-label="Close"
           >
             <X className="size-4" aria-hidden="true" />
