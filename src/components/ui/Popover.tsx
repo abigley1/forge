@@ -31,8 +31,8 @@ function PopoverTrigger({
     <BasePopover.Trigger
       className={cn(
         'inline-flex items-center justify-center',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-        'dark:focus-visible:ring-gray-300',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+        'dark:focus-visible:ring-forge-accent-dark',
         className
       )}
       {...props}
@@ -79,11 +79,11 @@ function PopoverPopup({ className, children, ...props }: PopoverPopupProps) {
     <BasePopover.Popup
       className={cn(
         'w-72 rounded-lg bg-white p-4 shadow-lg',
-        'border border-gray-200',
+        'border-forge-border border',
         'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
         'data-[ending-style]:scale-95 data-[ending-style]:opacity-0',
         'origin-[var(--transform-origin)] transition-[transform,opacity] duration-150',
-        'dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100',
+        'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark',
         'focus:outline-none',
         className
       )}
@@ -111,11 +111,11 @@ function PopoverArrow({ className, ...props }: PopoverArrowProps) {
       <svg width="20" height="10" viewBox="0 0 20 10" fill="none">
         <path
           d="M9.66437 2.60207L4.80758 6.97318C4.07308 7.63423 3.11989 8 2.13172 8H0V10H20V8H18.5349C17.5468 8 16.5936 7.63423 15.8591 6.97318L11.0023 2.60207C10.622 2.2598 10.0447 2.25979 9.66437 2.60207Z"
-          className="fill-white dark:fill-gray-900"
+          className="dark:fill-forge-paper-dark fill-white"
         />
         <path
           d="M8.99542 1.85876C9.75604 1.17425 10.9106 1.17422 11.6713 1.85878L16.5281 6.22989C17.0789 6.72568 17.7938 7.00001 18.5349 7.00001L15.8591 6.97318L11.0023 2.60207C10.622 2.2598 10.0447 2.2598 9.66436 2.60207L4.80757 6.97318L2.13171 7.00001C2.87284 7.00001 3.58774 6.72568 4.13861 6.22989L8.99542 1.85876Z"
-          className="fill-gray-200 dark:fill-gray-700"
+          className="fill-forge-border dark:fill-forge-border-dark"
         />
       </svg>
     </BasePopover.Arrow>
@@ -131,7 +131,7 @@ function PopoverTitle({ className, children }: PopoverTitleProps) {
   return (
     <h3
       className={cn(
-        'text-sm font-semibold text-gray-900 dark:text-gray-100',
+        'text-forge-text dark:text-forge-text-dark text-sm font-semibold',
         className
       )}
     >
@@ -149,10 +149,10 @@ function PopoverClose({ className, children, ...props }: PopoverCloseProps) {
     <BasePopover.Close
       className={cn(
         'absolute top-2 right-2 inline-flex h-6 w-6 items-center justify-center rounded',
-        'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-        'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
-        'dark:focus-visible:ring-gray-300',
+        'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+        'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+        'dark:focus-visible:ring-forge-accent-dark',
         className
       )}
       {...props}

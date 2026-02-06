@@ -89,10 +89,10 @@ function LinkGroup({
         className={cn(
           'flex w-full items-center gap-2 px-3 py-2',
           'text-sm font-medium',
-          'text-gray-600 dark:text-gray-400',
-          'hover:text-gray-900 dark:hover:text-gray-200',
-          'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none',
-          'dark:focus-visible:ring-gray-500',
+          'text-forge-text-secondary dark:text-forge-muted-dark',
+          'hover:text-forge-text dark:hover:text-forge-text-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+          'dark:focus-visible:ring-forge-accent-dark',
           'transition-colors duration-150',
           'rounded-md'
         )}
@@ -102,18 +102,18 @@ function LinkGroup({
         {/* Chevron */}
         {expanded ? (
           <ChevronDown
-            className="h-3.5 w-3.5 shrink-0 text-gray-400"
+            className="text-forge-muted h-3.5 w-3.5 shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="h-3.5 w-3.5 shrink-0 text-gray-400"
+            className="text-forge-muted h-3.5 w-3.5 shrink-0"
             aria-hidden="true"
           />
         )}
 
         {/* Direction icon */}
-        <span className="shrink-0 text-gray-400" aria-hidden="true">
+        <span className="text-forge-muted shrink-0" aria-hidden="true">
           {icon}
         </span>
 
@@ -125,8 +125,8 @@ function LinkGroup({
           className={cn(
             'text-xs tabular-nums',
             count > 0
-              ? 'text-gray-500 dark:text-gray-400'
-              : 'text-gray-500 dark:text-gray-400'
+              ? 'text-forge-muted dark:text-forge-muted-dark'
+              : 'text-forge-muted dark:text-forge-muted-dark'
           )}
           aria-hidden="true"
         >
@@ -144,7 +144,7 @@ function LinkGroup({
         aria-hidden={!expanded}
       >
         {count === 0 ? (
-          <p className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-forge-muted dark:text-forge-muted-dark px-3 py-2 text-xs">
             {direction === 'outgoing'
               ? 'No outgoing links'
               : 'No incoming links'}
@@ -189,17 +189,17 @@ function RelatedNodeItem({
           'group flex w-full items-center gap-2 px-2 py-1.5',
           'text-left text-sm',
           'rounded-md',
-          'text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-100 dark:hover:bg-gray-800/60',
-          'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none',
-          'dark:focus-visible:ring-gray-500',
+          'text-forge-text-secondary dark:text-forge-text-secondary-dark',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+          'dark:focus-visible:ring-forge-accent-dark',
           'transition-colors duration-150'
         )}
       >
         {/* Direction indicator for incoming */}
         {direction === 'incoming' && (
           <ArrowRight
-            className="h-3 w-3 shrink-0 text-gray-500 dark:text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark h-3 w-3 shrink-0"
             aria-hidden="true"
           />
         )}
@@ -214,7 +214,7 @@ function RelatedNodeItem({
         <span
           className={cn(
             'shrink-0 text-xs',
-            'text-gray-500 dark:text-gray-400',
+            'text-forge-muted dark:text-forge-muted-dark',
             'opacity-0 transition-opacity duration-150',
             'group-hover:opacity-100 group-focus-visible:opacity-100'
           )}
@@ -227,7 +227,7 @@ function RelatedNodeItem({
           <ArrowRight
             className={cn(
               'h-3 w-3 shrink-0',
-              'text-gray-500 dark:text-gray-400',
+              'text-forge-muted dark:text-forge-muted-dark',
               'opacity-0 transition-opacity duration-150',
               'group-hover:opacity-100 group-focus-visible:opacity-100'
             )}
@@ -254,18 +254,18 @@ function EmptyRelatedNodes() {
       <div
         className={cn(
           'mb-2 flex h-8 w-8 items-center justify-center rounded-full',
-          'bg-gray-100 dark:bg-gray-800'
+          'bg-forge-surface dark:bg-forge-surface-dark'
         )}
       >
         <Link2
-          className="h-4 w-4 text-gray-500 dark:text-gray-400"
+          className="text-forge-muted dark:text-forge-muted-dark h-4 w-4"
           aria-hidden="true"
         />
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
+      <p className="text-forge-muted dark:text-forge-muted-dark text-sm">
         No related nodes
       </p>
-      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-forge-muted dark:text-forge-muted-dark mt-0.5 text-xs">
         Use [[wiki-links]] to connect nodes
       </p>
     </div>
@@ -300,8 +300,8 @@ export function RelatedNodes({
     return (
       <div
         className={cn(
-          'rounded-lg border border-gray-200 dark:border-gray-700/50',
-          'bg-gray-50/50 dark:bg-gray-900/30',
+          'border-forge-border dark:border-forge-border-dark/50 rounded-lg border',
+          'bg-forge-surface/50 dark:bg-forge-paper-dark/30',
           className
         )}
       >
@@ -313,9 +313,9 @@ export function RelatedNodes({
   return (
     <div
       className={cn(
-        'rounded-lg border border-gray-200 dark:border-gray-700/50',
-        'bg-gray-50/50 dark:bg-gray-900/30',
-        'divide-y divide-gray-200 dark:divide-gray-700/50',
+        'border-forge-border dark:border-forge-border-dark/50 rounded-lg border',
+        'bg-forge-surface/50 dark:bg-forge-paper-dark/30',
+        'divide-forge-border dark:divide-forge-border-dark/50 divide-y',
         className
       )}
     >

@@ -395,11 +395,11 @@ function ProjectWorkspace() {
   }, [nodeToDelete, activeNodeId, setActiveNode])
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="bg-forge-paper dark:bg-forge-paper-dark flex h-full flex-col">
       {/* Header with view toggle */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-800">
+      <div className="border-forge-border dark:border-forge-border-dark flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-forge-text dark:text-forge-text-dark font-mono text-sm tracking-[0.05em]">
             {hasActiveFilters
               ? `${filteredNodes.size} of ${nodes.size} nodes`
               : `${nodes.size} ${nodes.size === 1 ? 'node' : 'nodes'}`}
@@ -417,10 +417,11 @@ function ProjectWorkspace() {
               title="Save all changes (⌘S / Ctrl+S)"
               className={cn(
                 'rounded-md p-1.5 transition-colors',
-                'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                'dark:focus-visible:ring-forge-accent-dark',
                 hasUnsavedChanges && !isSaving
-                  ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/50'
-                  : 'cursor-not-allowed text-gray-300 dark:text-gray-600'
+                  ? 'text-forge-accent hover:bg-forge-accent-subtle dark:text-forge-accent-dark dark:hover:bg-forge-accent-subtle-dark'
+                  : 'text-forge-muted dark:text-forge-muted-dark cursor-not-allowed'
               )}
             >
               <Save className="h-4 w-4" aria-hidden="true" />
@@ -483,7 +484,7 @@ function ProjectWorkspace() {
               {/* Comparison table for decision nodes */}
               {isDecisionNode(activeNode) && (
                 <div>
-                  <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-2 block text-sm font-medium">
                     Comparison Table
                   </span>
                   <ComparisonTable
@@ -498,7 +499,7 @@ function ProjectWorkspace() {
               <div>
                 <label
                   htmlFor="node-content"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-forge-text-secondary dark:text-forge-text-secondary-dark mb-2 block text-sm font-medium"
                 >
                   Content
                 </label>
@@ -518,7 +519,7 @@ function ProjectWorkspace() {
               />
 
               {/* Delete node button */}
-              <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
+              <div className="border-forge-border dark:border-forge-border-dark border-t pt-6">
                 <button
                   type="button"
                   onClick={() => handleDeleteNode(activeNode.id)}
@@ -563,6 +564,17 @@ function App() {
 
   // Initialize server persistence
   const serverPersistence = useServerPersistence()
+
+  // Sync dark mode class with system preference on mount
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const apply = (dark: boolean) =>
+      document.documentElement.classList.toggle('dark', dark)
+    apply(mq.matches)
+    const handler = (e: MediaQueryListEvent) => apply(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   // Sync projects from server to workspace store
   useEffect(() => {
@@ -664,7 +676,7 @@ function App() {
           <p className="text-red-600 dark:text-red-400">
             Failed to connect to server: {serverPersistence.error}
           </p>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
             Make sure the server is running: cd server && npm run dev
           </p>
         </div>

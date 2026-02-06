@@ -56,7 +56,7 @@ export function BrokenLinksBadge({
         <div
           className={cn(
             'invisible absolute top-full right-0 z-50 mt-1 max-w-[300px] min-w-[200px]',
-            'rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800',
+            'border-forge-border dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-md border bg-white shadow-lg',
             'opacity-0 transition-opacity duration-150',
             'group-hover:visible group-hover:opacity-100',
             'focus-within:visible focus-within:opacity-100'
@@ -65,7 +65,7 @@ export function BrokenLinksBadge({
           id="broken-links-description"
         >
           <div className="p-2">
-            <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+            <h3 className="text-forge-muted dark:text-forge-muted-dark mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
               <Link2Off className="h-3 w-3" aria-hidden="true" />
               Broken Links
             </h3>
@@ -79,7 +79,7 @@ export function BrokenLinksBadge({
                       className={cn(
                         'w-full rounded px-2 py-1 text-left text-sm',
                         'text-red-600 dark:text-red-400',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700',
+                        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
                         'focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none'
                       )}
                     >

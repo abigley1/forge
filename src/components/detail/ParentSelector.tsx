@@ -261,7 +261,7 @@ export function ParentSelector({
     <div className={cn('space-y-1.5', className)}>
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         {label}
       </label>
@@ -272,10 +272,10 @@ export function ParentSelector({
           <div
             className={cn(
               'flex items-center justify-between gap-2',
-              'rounded-md border border-gray-300 bg-white px-3 py-2',
+              'border-forge-border rounded-md border bg-white px-3 py-2',
               'min-h-[42px]',
               disabled && 'cursor-not-allowed opacity-50',
-              'dark:border-gray-600 dark:bg-gray-800'
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
             onClick={handleContainerClick}
             onKeyDown={(e) => {
@@ -290,7 +290,7 @@ export function ParentSelector({
           >
             <div className="flex min-w-0 items-center gap-2">
               {/* Type icon */}
-              <span className="flex-shrink-0 text-gray-500 dark:text-gray-400">
+              <span className="text-forge-muted dark:text-forge-muted-dark flex-shrink-0">
                 {getContainerIcon(parentNode.type)}
               </span>
               {/* Type badge */}
@@ -304,7 +304,7 @@ export function ParentSelector({
                 {getContainerTypeLabel(parentNode.type)}
               </span>
               {/* Parent title */}
-              <span className="truncate text-sm text-gray-900 dark:text-gray-100">
+              <span className="text-forge-text dark:text-forge-text-dark truncate text-sm">
                 {parentNode.title}
               </span>
             </div>
@@ -315,9 +315,9 @@ export function ParentSelector({
                   type="button"
                   onClick={handleNavigateToParent}
                   className={cn(
-                    'rounded p-2.5 text-gray-400 hover:bg-blue-50 hover:text-blue-500',
-                    'dark:hover:bg-blue-900/20 dark:hover:text-blue-400',
-                    'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none'
+                    'text-forge-muted hover:bg-forge-accent-subtle hover:text-forge-accent rounded p-2.5',
+                    'dark:hover:bg-forge-accent-subtle-dark dark:hover:text-forge-accent-dark',
+                    'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none'
                   )}
                   aria-label="Navigate to parent"
                   disabled={disabled}
@@ -334,7 +334,7 @@ export function ParentSelector({
                     clearParent()
                   }}
                   className={cn(
-                    'rounded p-2.5 text-gray-400 hover:bg-red-50 hover:text-red-500',
+                    'text-forge-muted rounded p-2.5 hover:bg-red-50 hover:text-red-500',
                     'dark:hover:bg-red-900/20 dark:hover:text-red-400',
                     'focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none'
                   )}
@@ -369,19 +369,19 @@ export function ParentSelector({
               placeholder="Select parent container..."
               disabled={disabled}
               className={cn(
-                'w-full rounded-md border border-gray-300 px-3 py-2 pr-10',
-                'text-sm text-gray-900',
-                'placeholder:text-gray-400',
-                'focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 focus:outline-none',
-                'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50',
-                'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-                'dark:placeholder:text-gray-500 dark:focus:ring-gray-300'
+                'border-forge-border w-full rounded-md border px-3 py-2 pr-10',
+                'text-forge-text text-sm',
+                'placeholder:text-forge-muted',
+                'focus:ring-forge-accent focus:ring-2 focus:ring-offset-2 focus:outline-none',
+                'disabled:bg-forge-surface disabled:cursor-not-allowed disabled:opacity-50',
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+                'dark:placeholder:text-forge-muted-dark dark:focus:ring-forge-accent-dark'
               )}
             />
             <ChevronDown
               className={cn(
                 'absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2',
-                'pointer-events-none text-gray-400 transition-transform duration-150',
+                'text-forge-muted pointer-events-none transition-transform duration-150',
                 isOpen && 'rotate-180'
               )}
               aria-hidden="true"
@@ -398,13 +398,13 @@ export function ParentSelector({
             className={cn(
               'absolute right-0 left-0 mt-1',
               'max-h-60 overflow-auto rounded-md',
-              'border border-gray-200 bg-white shadow-lg',
-              'dark:border-gray-700 dark:bg-gray-800'
+              'border-forge-border border bg-white shadow-lg',
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
             style={{ zIndex: Z_POPOVER }}
           >
             {containerGroups.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+              <li className="text-forge-muted dark:text-forge-muted-dark px-3 py-2 text-sm">
                 {searchValue
                   ? 'No matching containers'
                   : 'No containers available'}
@@ -413,7 +413,7 @@ export function ParentSelector({
               containerGroups.map((group) => (
                 <li key={group.type}>
                   {/* Group header */}
-                  <div className="bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 dark:bg-gray-700/50 dark:text-gray-400">
+                  <div className="bg-forge-surface text-forge-muted dark:bg-forge-surface-dark/50 dark:text-forge-muted-dark px-3 py-1.5 text-xs font-semibold">
                     {group.label}
                   </div>
                   {/* Group items */}
@@ -432,9 +432,11 @@ export function ParentSelector({
                           aria-selected={isSelected}
                           className={cn(
                             'flex cursor-pointer items-center gap-2 px-3 py-2',
-                            'text-sm text-gray-900 dark:text-gray-100',
-                            isHighlighted && 'bg-gray-100 dark:bg-gray-700',
-                            isSelected && 'bg-blue-50 dark:bg-blue-900/20'
+                            'text-forge-text dark:text-forge-text-dark text-sm',
+                            isHighlighted &&
+                              'bg-forge-surface dark:bg-forge-surface-dark',
+                            isSelected &&
+                              'bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark'
                           )}
                           onClick={() => selectParent(container.id)}
                           onKeyDown={(e) => {
@@ -445,7 +447,7 @@ export function ParentSelector({
                           }}
                           onMouseEnter={() => setHighlightedIndex(optionIndex)}
                         >
-                          <span className="text-gray-500 dark:text-gray-400">
+                          <span className="text-forge-muted dark:text-forge-muted-dark">
                             {getContainerIcon(container.type)}
                           </span>
                           <span className="truncate">{container.title}</span>

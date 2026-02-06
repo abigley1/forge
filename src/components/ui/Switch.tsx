@@ -49,20 +49,20 @@ export function Switch({
       className={cn(
         'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full',
         'border-2 border-transparent transition-colors',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-        'dark:focus-visible:ring-gray-300',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+        'dark:focus-visible:ring-forge-accent-dark',
         'disabled:cursor-not-allowed disabled:opacity-50',
         // Unchecked state
-        'bg-gray-200 dark:bg-gray-700',
+        'bg-forge-border dark:bg-forge-border-dark',
         // Checked state (data attribute from Base UI)
-        'data-[checked]:bg-gray-900 dark:data-[checked]:bg-gray-100',
+        'data-[checked]:bg-forge-text dark:data-[checked]:bg-forge-text-dark',
         className
       )}
     >
       <BaseSwitch.Thumb
         className={cn(
           'pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-transform',
-          'bg-white dark:bg-gray-900',
+          'dark:bg-forge-paper-dark bg-white',
           // Position: left when unchecked, right when checked
           'translate-x-0 data-[checked]:translate-x-5'
         )}

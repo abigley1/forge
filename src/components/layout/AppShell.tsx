@@ -87,8 +87,8 @@ export function AppShell({
               className={cn(
                 // Base styles
                 'fixed inset-y-0 left-0 z-30 flex w-64 shrink-0 flex-col',
-                'border-r border-gray-200 bg-gray-50',
-                'dark:border-gray-800 dark:bg-gray-900',
+                'border-forge-border bg-forge-surface border-r',
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark',
                 // Transform for mobile
                 'transform transition-transform duration-200 ease-in-out',
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full',
@@ -112,16 +112,16 @@ export function AppShell({
         >
           {!hideSidebar && (
             /* Mobile header with menu toggle */
-            <header className="flex items-center border-b border-gray-200 px-4 py-2 md:hidden dark:border-gray-800">
+            <header className="border-forge-border dark:border-forge-border-dark flex items-center border-b px-4 py-2 md:hidden">
               <button
                 type="button"
                 onClick={toggleSidebar}
                 className={cn(
                   'inline-flex h-10 w-10 items-center justify-center rounded-md',
-                  'text-gray-700 hover:bg-gray-100',
-                  'dark:text-gray-300 dark:hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                  'dark:focus-visible:ring-gray-300'
+                  'text-forge-text-secondary hover:bg-forge-surface',
+                  'dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                  'dark:focus-visible:ring-forge-accent-dark'
                 )}
                 aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
                 aria-expanded={sidebarOpen}
@@ -132,7 +132,7 @@ export function AppShell({
                   <Menu className="h-5 w-5" aria-hidden="true" />
                 )}
               </button>
-              <h1 className="ml-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h1 className="text-forge-text dark:text-forge-text-dark ml-2 font-mono text-lg font-semibold tracking-[0.1em] uppercase">
                 Forge
               </h1>
             </header>

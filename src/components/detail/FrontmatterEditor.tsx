@@ -287,8 +287,8 @@ function DecisionFields({ node, onChange, disabled }: DecisionFieldsProps) {
   // Only show selected option dropdown if there are options
   if (node.options.length === 0) {
     return (
-      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark/50 rounded-md border p-4">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-sm">
           No options defined yet. Add options in the comparison table to select
           a winner.
         </p>
@@ -300,7 +300,7 @@ function DecisionFields({ node, onChange, disabled }: DecisionFieldsProps) {
     <div className="space-y-1.5">
       <label
         htmlFor="decision-selected"
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         Selected Option
       </label>
@@ -310,12 +310,12 @@ function DecisionFields({ node, onChange, disabled }: DecisionFieldsProps) {
         onChange={(e) => handleSelectedChange(e.target.value)}
         disabled={disabled}
         className={cn(
-          'w-full rounded-md border border-gray-300 px-3 py-2',
-          'text-sm text-gray-900',
-          'focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 focus:outline-none',
+          'border-forge-border w-full rounded-md border px-3 py-2',
+          'text-forge-text text-sm',
+          'focus:ring-forge-accent focus:ring-2 focus:ring-offset-2 focus:outline-none',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-          'dark:focus:ring-gray-300'
+          'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+          'dark:focus:ring-forge-accent-dark'
         )}
       >
         <option value="">None selected</option>

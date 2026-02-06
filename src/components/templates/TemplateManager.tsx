@@ -117,11 +117,11 @@ function TemplateListItem({
               type="button"
               onClick={onEdit}
               className={cn(
-                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-                'hover:bg-gray-100 hover:text-gray-600',
-                'dark:hover:bg-gray-800 dark:hover:text-gray-300',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                'dark:focus-visible:ring-gray-300'
+                'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
+                'hover:bg-forge-surface hover:text-forge-text',
+                'dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+                'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                'dark:focus-visible:ring-forge-accent-dark'
               )}
               aria-label={`Edit ${template.name}`}
             >

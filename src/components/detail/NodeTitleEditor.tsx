@@ -68,9 +68,9 @@ export function NodeTitleEditor({
           // Layout
           'w-full border-none bg-transparent px-0',
           // Typography - large heading style
-          'text-2xl font-semibold text-gray-900 dark:text-gray-100',
+          'text-forge-text dark:text-forge-text-dark text-2xl font-semibold',
           // Placeholder
-          'placeholder:text-gray-400 dark:placeholder:text-gray-500',
+          'placeholder:text-forge-muted dark:placeholder:text-forge-muted',
           // Focus styles
           'focus:ring-0 focus:outline-none',
           // Remove browser default styling

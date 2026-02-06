@@ -225,7 +225,7 @@ export function SortableNodeList({
       <EmptyState
         icon={
           <FolderPlus
-            className="h-8 w-8 text-gray-500 dark:text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark h-8 w-8"
             aria-hidden="true"
           />
         }
@@ -278,7 +278,7 @@ export function SortableNodeList({
             <NodeListItem
               node={activeDragNode}
               isActive={activeDragNode.id === activeNodeId}
-              className="rounded-md bg-white shadow-lg ring-2 ring-blue-500 dark:bg-gray-900"
+              className="ring-forge-accent dark:bg-forge-paper-dark rounded-md bg-white shadow-lg ring-2"
             />
           </div>
         ) : null}

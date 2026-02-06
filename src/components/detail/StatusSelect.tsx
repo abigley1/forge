@@ -168,7 +168,7 @@ export function StatusSelect({
     <div className={cn('space-y-1.5', className)}>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         {label}
       </label>
@@ -186,14 +186,14 @@ export function StatusSelect({
           id={id}
           className={cn(
             'inline-flex w-full items-center justify-between gap-2',
-            'rounded-md border border-gray-300 bg-white px-3 py-2',
-            'text-sm text-gray-900',
-            'hover:bg-gray-50',
-            'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
+            'border-forge-border rounded-md border bg-white px-3 py-2',
+            'text-forge-text text-sm',
+            'hover:bg-forge-surface',
+            'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-            'dark:hover:bg-gray-700',
-            'dark:focus-visible:ring-gray-300'
+            'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+            'dark:hover:bg-forge-surface-dark',
+            'dark:focus-visible:ring-forge-accent-dark'
           )}
         >
           <span className="flex items-center gap-2">
@@ -204,7 +204,10 @@ export function StatusSelect({
             <BaseSelect.Value placeholder="Select status" />
           </span>
           <BaseSelect.Icon>
-            <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+            <ChevronDown
+              className="text-forge-muted h-4 w-4"
+              aria-hidden="true"
+            />
           </BaseSelect.Icon>
         </BaseSelect.Trigger>
 
@@ -213,8 +216,8 @@ export function StatusSelect({
             <BaseSelect.Popup
               className={cn(
                 'min-w-[var(--anchor-width)] overflow-hidden rounded-md',
-                'border border-gray-200 bg-white shadow-lg',
-                'dark:border-gray-700 dark:bg-gray-800',
+                'border-forge-border border bg-white shadow-lg',
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark',
                 'data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
                 'transition-opacity duration-150'
               )}
@@ -225,9 +228,9 @@ export function StatusSelect({
                   value={option.value}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 px-3 py-2',
-                    'text-sm text-gray-900 dark:text-gray-100',
+                    'text-forge-text dark:text-forge-text-dark text-sm',
                     'outline-none',
-                    'data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700'
+                    'data-[highlighted]:bg-forge-surface dark:data-[highlighted]:bg-forge-surface-dark'
                   )}
                 >
                   <span
@@ -237,7 +240,7 @@ export function StatusSelect({
                   <BaseSelect.ItemText>{option.label}</BaseSelect.ItemText>
                   <BaseSelect.ItemIndicator className="ml-auto">
                     <Check
-                      className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                      className="text-forge-text-secondary dark:text-forge-muted-dark h-4 w-4"
                       aria-hidden="true"
                     />
                   </BaseSelect.ItemIndicator>

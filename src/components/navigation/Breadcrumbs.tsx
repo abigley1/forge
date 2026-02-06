@@ -100,7 +100,7 @@ export function Breadcrumbs({
             {/* Separator */}
             {index > 0 && (
               <ChevronRight
-                className="mx-1 h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400"
+                className="text-forge-muted dark:text-forge-muted-dark mx-1 h-4 w-4 flex-shrink-0"
                 aria-hidden="true"
               />
             )}
@@ -111,7 +111,7 @@ export function Breadcrumbs({
               <span
                 className={cn(
                   'max-w-[200px] truncate font-medium',
-                  'text-gray-900 dark:text-gray-100'
+                  'text-forge-text dark:text-forge-text-dark'
                 )}
                 aria-current="page"
               >
@@ -124,10 +124,10 @@ export function Breadcrumbs({
                 onClick={segment.onClick}
                 className={cn(
                   'inline-flex max-w-[150px] items-center truncate rounded px-1.5 py-0.5',
-                  'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                  'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                  'dark:focus-visible:ring-gray-300',
+                  'text-forge-text-secondary hover:bg-forge-surface hover:text-forge-text',
+                  'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                  'dark:focus-visible:ring-forge-accent-dark',
                   'transition-colors'
                 )}
               >
@@ -144,7 +144,7 @@ export function Breadcrumbs({
               <span
                 className={cn(
                   'max-w-[150px] truncate px-1.5 py-0.5',
-                  'text-gray-500 dark:text-gray-400'
+                  'text-forge-muted dark:text-forge-muted-dark'
                 )}
               >
                 {segment.label}

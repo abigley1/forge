@@ -4,67 +4,70 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 
 /**
- * Light theme colors matching Tailwind gray palette
+ * Light theme colors using Forge design tokens (CSS custom properties)
+ * These reference --color-forge-* vars defined in index.css @theme block
  */
 const lightColors = {
-  background: '#ffffff', // bg-white
-  foreground: '#111827', // text-gray-900
-  selection: '#e5e7eb', // bg-gray-200
-  cursor: '#111827', // text-gray-900
-  lineHighlight: '#f9fafb', // bg-gray-50
-  gutterBackground: '#f9fafb', // bg-gray-50
-  gutterForeground: '#9ca3af', // text-gray-400
-  border: '#e5e7eb', // border-gray-200
+  background: 'var(--color-forge-paper)',
+  foreground: 'var(--color-forge-text)',
+  selection: 'var(--color-forge-border)',
+  cursor: 'var(--color-forge-text)',
+  lineHighlight: 'var(--color-forge-surface)',
+  gutterBackground: 'var(--color-forge-surface)',
+  gutterForeground: 'var(--color-forge-muted)',
+  border: 'var(--color-forge-border)',
 }
 
 /**
- * Dark theme colors matching Tailwind gray palette
+ * Dark theme colors using Forge design tokens (CSS custom properties)
  */
 const darkColors = {
-  background: '#030712', // bg-gray-950
-  foreground: '#f3f4f6', // text-gray-100
-  selection: '#374151', // bg-gray-700
-  cursor: '#f3f4f6', // text-gray-100
-  lineHighlight: '#111827', // bg-gray-900
-  gutterBackground: '#030712', // bg-gray-950
-  gutterForeground: '#6b7280', // text-gray-500
-  border: '#374151', // border-gray-700
+  background: 'var(--color-forge-paper-dark)',
+  foreground: 'var(--color-forge-text-dark)',
+  selection: 'var(--color-forge-border-dark)',
+  cursor: 'var(--color-forge-text-dark)',
+  lineHighlight: 'var(--color-forge-surface-dark)',
+  gutterBackground: 'var(--color-forge-paper-dark)',
+  gutterForeground: 'var(--color-forge-muted-dark)',
+  border: 'var(--color-forge-border-dark)',
 }
 
 /**
  * Syntax highlighting colors for light mode
+ * Gray tones use forge tokens; blue/emerald/red kept for syntax readability
  */
 const lightSyntax = {
-  heading: '#1f2937', // gray-800 - bold
-  emphasis: '#374151', // gray-700 - italic
-  strong: '#111827', // gray-900 - bold
-  keyword: '#2563eb', // blue-600
-  link: '#2563eb', // blue-600
-  url: '#6b7280', // gray-500
-  string: '#059669', // emerald-600
-  code: '#dc2626', // red-600
-  codeBackground: '#f3f4f6', // gray-100
-  quote: '#6b7280', // gray-500
-  list: '#374151', // gray-700
-  hr: '#d1d5db', // gray-300
+  heading: 'var(--color-forge-text)',
+  emphasis: 'var(--color-forge-text-secondary)',
+  strong: 'var(--color-forge-text)',
+  keyword: '#2563eb', // blue-600 — syntax color, keep as-is
+  link: '#2563eb', // blue-600 — syntax color, keep as-is
+  url: 'var(--color-forge-text-secondary)',
+  string: '#059669', // emerald-600 — syntax color, keep as-is
+  code: '#dc2626', // red-600 — syntax color, keep as-is
+  codeBackground: 'var(--color-forge-surface)',
+  quote: 'var(--color-forge-muted)',
+  list: 'var(--color-forge-text-secondary)',
+  hr: 'var(--color-forge-border)',
 }
 
 /**
  * Syntax highlighting colors for dark mode
+ * Gray tones use forge tokens; blue/emerald/red kept for syntax readability
  */
 const darkSyntax = {
-  heading: '#f9fafb', // gray-50 - bold
-  emphasis: '#d1d5db', // gray-300 - italic
-  strong: '#f3f4f6', // gray-100 - bold
-  keyword: '#60a5fa', // blue-400
-  link: '#60a5fa', // blue-400
-  url: '#9ca3af', // gray-400
-  string: '#34d399', // emerald-400
-  code: '#f87171', // red-400
-  codeBackground: '#1f2937', // gray-800
-  quote: '#9ca3af', // gray-400
-  list: '#d1d5db', // gray-300
-  hr: '#4b5563', // gray-600
+  heading: 'var(--color-forge-text-dark)',
+  emphasis: 'var(--color-forge-text-secondary-dark)',
+  strong: 'var(--color-forge-text-dark)',
+  keyword: '#60a5fa', // blue-400 — syntax color, keep as-is
+  link: '#60a5fa', // blue-400 — syntax color, keep as-is
+  url: 'var(--color-forge-muted-dark)',
+  string: '#34d399', // emerald-400 — syntax color, keep as-is
+  code: '#f87171', // red-400 — syntax color, keep as-is
+  codeBackground: 'var(--color-forge-surface-dark)',
+  quote: 'var(--color-forge-muted-dark)',
+  list: 'var(--color-forge-text-secondary-dark)',
+  hr: 'var(--color-forge-border-dark)',
 }
 
 /**
@@ -116,9 +119,12 @@ function createBaseTheme(colors: typeof lightColors): Extension {
       '.cm-line': {
         padding: '0 1rem',
       },
-      // Placeholder styling with WCAG-compliant contrast (≥4.5:1)
+      // Placeholder styling
       '.cm-placeholder': {
-        color: colors === lightColors ? '#6b7280' : '#9ca3af', // gray-500 light, gray-400 dark
+        color:
+          colors === lightColors
+            ? 'var(--color-forge-muted)'
+            : 'var(--color-forge-muted-dark)',
       },
     },
     { dark: colors === darkColors }

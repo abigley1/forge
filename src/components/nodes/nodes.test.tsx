@@ -283,7 +283,7 @@ describe('NodeListItem', () => {
     render(<NodeListItem node={node} isActive={true} />)
 
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-gray-100')
+    expect(button).toHaveClass('bg-forge-surface')
     expect(button).toHaveAttribute('aria-current', 'true')
   })
 

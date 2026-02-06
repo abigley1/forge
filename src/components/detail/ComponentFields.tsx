@@ -195,17 +195,17 @@ export function ComponentFields({
   )
 
   const inputClassName = cn(
-    'w-full rounded-md border border-gray-300 px-3 py-2',
-    'text-sm text-gray-900',
-    'placeholder:text-gray-400',
-    'focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2',
-    'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50',
-    'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-    'dark:placeholder:text-gray-500 dark:focus:ring-gray-300'
+    'w-full rounded-md border border-forge-border px-3 py-2',
+    'text-sm text-forge-text',
+    'placeholder:text-forge-muted',
+    'focus:outline-none focus:ring-2 focus:ring-forge-accent focus:ring-offset-2',
+    'disabled:cursor-not-allowed disabled:bg-forge-surface disabled:opacity-50',
+    'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+    'dark:placeholder:text-forge-muted-dark dark:focus:ring-forge-accent-dark'
   )
 
   const labelClassName = cn(
-    'block text-sm font-medium text-gray-700 dark:text-gray-300'
+    'block text-sm font-medium text-forge-text-secondary dark:text-forge-text-secondary-dark'
   )
 
   return (
@@ -219,11 +219,11 @@ export function ComponentFields({
             disabled={disabled}
             className={cn(
               'flex items-center gap-2 rounded-md px-3 py-2',
-              'text-sm font-medium text-gray-600 dark:text-gray-400',
-              'border border-dashed border-gray-300 dark:border-gray-600',
-              'hover:border-gray-400 hover:text-gray-700 dark:hover:border-gray-500 dark:hover:text-gray-300',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
-              'dark:focus-visible:ring-gray-300',
+              'text-forge-text-secondary dark:text-forge-muted-dark text-sm font-medium',
+              'border-forge-border dark:border-forge-border-dark border border-dashed',
+              'hover:border-forge-muted hover:text-forge-text-secondary dark:hover:border-forge-muted-dark dark:hover:text-forge-text-secondary-dark',
+              'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+              'dark:focus-visible:ring-forge-accent-dark',
               'disabled:cursor-not-allowed disabled:opacity-50'
             )}
           >
@@ -231,9 +231,9 @@ export function ComponentFields({
             Import from Link
           </button>
         ) : (
-          <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark/50 space-y-2 rounded-md border p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium">
                 Import from Link
               </span>
               <button
@@ -244,9 +244,9 @@ export function ComponentFields({
                   setImportError(null)
                 }}
                 className={cn(
-                  'rounded p-1 text-gray-400 hover:text-gray-600',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                  'dark:hover:text-gray-300 dark:focus-visible:ring-gray-300'
+                  'text-forge-muted hover:text-forge-text-secondary rounded p-1',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                  'dark:hover:text-forge-text-secondary-dark dark:focus-visible:ring-forge-accent-dark'
                 )}
                 aria-label="Cancel import"
               >
@@ -254,7 +254,7 @@ export function ComponentFields({
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
               Supported:{' '}
               {SUPPORTED_SUPPLIERS.map(
                 (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -270,13 +270,13 @@ export function ComponentFields({
                 placeholder="Paste supplier URL..."
                 disabled={disabled || isImporting}
                 className={cn(
-                  'flex-1 rounded-md border border-gray-300 px-3 py-2',
-                  'text-sm text-gray-900',
-                  'placeholder:text-gray-400',
-                  'focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 focus:outline-none',
-                  'disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-50',
-                  'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-                  'dark:placeholder:text-gray-500 dark:focus:ring-gray-300'
+                  'border-forge-border flex-1 rounded-md border px-3 py-2',
+                  'text-forge-text text-sm',
+                  'placeholder:text-forge-muted',
+                  'focus:ring-forge-accent focus:ring-2 focus:ring-offset-2 focus:outline-none',
+                  'disabled:bg-forge-surface disabled:cursor-not-allowed disabled:opacity-50',
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+                  'dark:placeholder:text-forge-muted-dark dark:focus:ring-forge-accent-dark'
                 )}
               />
               <button
@@ -284,12 +284,12 @@ export function ComponentFields({
                 onClick={handleImportLink}
                 disabled={disabled || isImporting || !importUrl.trim()}
                 className={cn(
-                  'rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white',
-                  'hover:bg-gray-800',
-                  'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'bg-forge-accent rounded-md px-3 py-2 text-sm font-medium text-white',
+                  'hover:bg-forge-accent-hover',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                   'disabled:cursor-not-allowed disabled:opacity-50',
-                  'dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200',
-                  'dark:focus-visible:ring-gray-300'
+                  'dark:bg-forge-accent-dark dark:text-forge-paper-dark dark:hover:bg-forge-accent-hover',
+                  'dark:focus-visible:ring-forge-accent-dark'
                 )}
               >
                 {isImporting ? (
@@ -321,7 +321,7 @@ export function ComponentFields({
           Cost
         </label>
         <div className="relative">
-          <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+          <span className="text-forge-muted dark:text-forge-muted-dark absolute top-1/2 left-3 -translate-y-1/2">
             $
           </span>
           <input
@@ -377,7 +377,7 @@ export function ComponentFields({
         {/* Existing custom fields */}
         {Object.entries(customFields).map(([key, value]) => (
           <div key={key} className="flex items-center gap-2">
-            <span className="w-1/3 truncate text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-forge-text-secondary dark:text-forge-muted-dark w-1/3 truncate text-sm">
               {key}
             </span>
             <input
@@ -392,12 +392,12 @@ export function ComponentFields({
               onClick={() => handleRemoveCustomField(key)}
               disabled={disabled}
               className={cn(
-                'rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600',
+                'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary rounded-md p-2',
                 'focus-visible:ring-2 focus-visible:outline-none',
-                'focus-visible:ring-gray-950 focus-visible:ring-offset-2',
+                'focus-visible:ring-forge-accent focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:opacity-50',
-                'dark:hover:bg-gray-700 dark:hover:text-gray-300',
-                'dark:focus-visible:ring-gray-300'
+                'dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-secondary-dark',
+                'dark:focus-visible:ring-forge-accent-dark'
               )}
               aria-label={`Remove ${key} field`}
             >
@@ -431,12 +431,12 @@ export function ComponentFields({
             onClick={handleAddCustomField}
             disabled={disabled || !newFieldKey.trim()}
             className={cn(
-              'rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600',
+              'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary rounded-md p-2',
               'focus-visible:ring-2 focus-visible:outline-none',
-              'focus-visible:ring-gray-950 focus-visible:ring-offset-2',
+              'focus-visible:ring-forge-accent focus-visible:ring-offset-2',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              'dark:hover:bg-gray-700 dark:hover:text-gray-300',
-              'dark:focus-visible:ring-gray-300'
+              'dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-secondary-dark',
+              'dark:focus-visible:ring-forge-accent-dark'
             )}
             aria-label="Add custom field"
           >

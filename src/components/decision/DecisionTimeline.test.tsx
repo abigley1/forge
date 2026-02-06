@@ -183,7 +183,9 @@ describe('DecisionTimeline', () => {
       const { container } = render(<DecisionTimeline node={node} />)
 
       // Check for the vertical line element
-      const line = container.querySelector('[class*="w-px"][class*="bg-gray"]')
+      const line = container.querySelector(
+        '[class*="w-px"][class*="bg-forge-border"]'
+      )
       expect(line).toBeInTheDocument()
     })
   })

@@ -91,13 +91,13 @@ export function ContainerFilter({
   // Get the appropriate icon based on selected container
   const iconProps = {
     className:
-      'pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-gray-400',
+      'pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-forge-muted dark:text-forge-muted-dark',
     'aria-hidden': true as const,
   }
 
   return (
     <div className={cn('space-y-1.5', className)}>
-      <span className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+      <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-xs font-medium">
         Container
       </span>
       <div className="flex items-center gap-1">
@@ -116,9 +116,9 @@ export function ContainerFilter({
             onChange={(e) => onContainerChange(e.target.value || null)}
             className={cn(
               'w-full cursor-pointer appearance-none rounded-md',
-              'border border-gray-300 bg-white py-1.5 pr-8 pl-8 text-sm shadow-sm',
-              'focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none',
-              'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
+              'border-forge-border border bg-white py-1.5 pr-8 pl-8 text-sm shadow-sm',
+              'focus:border-forge-accent focus:ring-forge-accent focus:ring-2 focus:outline-none',
+              'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark'
             )}
             aria-label="Filter by container"
           >
@@ -135,7 +135,7 @@ export function ContainerFilter({
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <svg
-              className="h-4 w-4 text-gray-400"
+              className="text-forge-muted dark:text-forge-muted-dark h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -156,11 +156,11 @@ export function ContainerFilter({
             onClick={() => onContainerChange(null)}
             className={cn(
               'flex items-center justify-center rounded-md p-2.5',
-              'min-h-[44px] min-w-[44px] text-gray-600',
+              'text-forge-text-secondary min-h-[44px] min-w-[44px]',
               'transition-colors duration-150',
-              'hover:bg-gray-100 hover:text-gray-900',
-              'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-              'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100'
+              'hover:bg-forge-surface hover:text-forge-text',
+              'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+              'dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark'
             )}
             aria-label="Clear container filter"
           >

@@ -96,17 +96,17 @@ export function ContainerFields({
   }, [])
 
   const inputClassName = cn(
-    'w-full rounded-md border border-gray-300 px-3 py-2',
-    'text-sm text-gray-900',
-    'placeholder:text-gray-400',
-    'focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2',
-    'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50',
-    'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-    'dark:placeholder:text-gray-500 dark:focus:ring-gray-300'
+    'w-full rounded-md border border-forge-border px-3 py-2',
+    'text-sm text-forge-text',
+    'placeholder:text-forge-muted',
+    'focus:outline-none focus:ring-2 focus:ring-forge-accent focus:ring-offset-2',
+    'disabled:cursor-not-allowed disabled:bg-forge-surface disabled:opacity-50',
+    'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+    'dark:placeholder:text-forge-muted-dark dark:focus:ring-forge-accent-dark'
   )
 
   const labelClassName = cn(
-    'block text-sm font-medium text-gray-700 dark:text-gray-300'
+    'block text-sm font-medium text-forge-text-secondary dark:text-forge-text-secondary-dark'
   )
 
   return (
@@ -132,8 +132,8 @@ export function ContainerFields({
               <button
                 type="button"
                 className={cn(
-                  'cursor-grab text-gray-400 hover:text-gray-600',
-                  'dark:text-gray-500 dark:hover:text-gray-300',
+                  'text-forge-muted hover:text-forge-text-secondary cursor-grab',
+                  'dark:text-forge-muted-dark dark:hover:text-forge-text-secondary-dark',
                   'focus:outline-none',
                   disabled && 'cursor-not-allowed opacity-50'
                 )}
@@ -157,7 +157,7 @@ export function ContainerFields({
                 onClick={() => handleRemoveRequirement(index)}
                 disabled={disabled}
                 className={cn(
-                  'rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500',
+                  'text-forge-muted rounded p-1 hover:bg-red-50 hover:text-red-500',
                   'dark:hover:bg-red-900/20 dark:hover:text-red-400',
                   'focus:ring-2 focus:ring-red-500 focus:outline-none',
                   'disabled:cursor-not-allowed disabled:opacity-50'
@@ -188,9 +188,9 @@ export function ContainerFields({
             disabled={disabled || !newRequirement.trim()}
             className={cn(
               'rounded-md p-2',
-              'bg-gray-100 text-gray-600 hover:bg-gray-200',
-              'dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
-              'focus:ring-2 focus:ring-gray-950 focus:outline-none',
+              'bg-forge-surface text-forge-text-secondary hover:bg-forge-border',
+              'dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark dark:hover:bg-forge-border-dark',
+              'focus:ring-forge-accent focus:ring-2 focus:outline-none',
               'disabled:cursor-not-allowed disabled:opacity-50'
             )}
             aria-label="Add requirement"
@@ -200,7 +200,7 @@ export function ContainerFields({
         </div>
 
         {requirements.length === 0 && (
-          <p className="text-sm text-gray-500 italic dark:text-gray-400">
+          <p className="text-forge-muted dark:text-forge-muted-dark text-sm italic">
             No requirements yet
           </p>
         )}

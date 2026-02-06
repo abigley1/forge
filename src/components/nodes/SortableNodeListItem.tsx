@@ -110,8 +110,8 @@ export const SortableNodeListItem = forwardRef<
         'transition-colors duration-150',
         isDragging && [
           'z-50 shadow-lg',
-          'bg-white dark:bg-gray-900',
-          'ring-2 ring-blue-500',
+          'dark:bg-forge-paper-dark bg-white',
+          'ring-forge-accent ring-2',
           'opacity-90',
         ],
         className
@@ -125,9 +125,9 @@ export const SortableNodeListItem = forwardRef<
         {...listeners}
         className={cn(
           'flex h-full cursor-grab items-center px-1',
-          'text-gray-400 hover:text-gray-600',
-          'dark:text-gray-500 dark:hover:text-gray-300',
-          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none focus-visible:ring-inset',
+          'text-forge-muted hover:text-forge-text-secondary',
+          'dark:text-forge-muted-dark dark:hover:text-forge-text-secondary-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
           'rounded-l-md',
           isDragging && 'cursor-grabbing',
           disabled && 'cursor-not-allowed opacity-50'
@@ -149,12 +149,12 @@ export const SortableNodeListItem = forwardRef<
           'focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
           isActive
             ? [
-                'bg-gray-100 dark:bg-gray-800',
-                'ring-2 ring-gray-900 ring-inset dark:ring-gray-100',
+                'bg-forge-surface dark:bg-forge-surface-dark',
+                'ring-forge-text dark:ring-forge-text-dark ring-2 ring-inset',
               ]
             : [
-                'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-                'focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500',
+                'hover:bg-forge-surface dark:hover:bg-forge-surface-dark/50',
+                'focus-visible:ring-forge-muted dark:focus-visible:ring-forge-muted-dark',
               ]
         )}
         aria-current={isActive ? 'true' : undefined}
@@ -166,7 +166,7 @@ export const SortableNodeListItem = forwardRef<
         <span
           className={cn(
             'min-w-0 flex-1 truncate text-sm font-medium',
-            'text-gray-900 dark:text-gray-100'
+            'text-forge-text dark:text-forge-text-dark'
           )}
         >
           {node.title}

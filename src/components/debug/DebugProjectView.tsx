@@ -55,22 +55,23 @@ function CollapsibleSection({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   const badgeColors = {
-    default: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+    default:
+      'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
     error: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     warning:
       'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="border-forge-border dark:border-forge-border-dark rounded-lg border">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex w-full items-center justify-between px-4 py-3',
-          'text-left font-medium text-gray-900 dark:text-gray-100',
-          'hover:bg-gray-50 dark:hover:bg-gray-800',
-          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none focus-visible:ring-inset',
+          'text-forge-text dark:text-forge-text-dark text-left font-medium',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
           'rounded-lg transition-colors',
           isOpen && 'rounded-b-none'
         )}
@@ -100,7 +101,7 @@ function CollapsibleSection({
         )}
       </button>
       {isOpen && (
-        <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+        <div className="border-forge-border dark:border-forge-border-dark border-t px-4 py-3">
           {children}
         </div>
       )}
@@ -123,7 +124,7 @@ const nodeTypeColors: Record<string, string> = {
   decision: 'text-blue-600 dark:text-blue-400',
   component: 'text-green-600 dark:text-green-400',
   task: 'text-orange-600 dark:text-orange-400',
-  note: 'text-gray-600 dark:text-gray-400',
+  note: 'text-forge-text-secondary dark:text-forge-muted-dark',
 }
 
 // ============================================================================
@@ -160,13 +161,15 @@ export function DebugProjectView({
     return (
       <div
         className={cn(
-          'rounded-lg border border-gray-200 bg-gray-50 p-6',
-          'dark:border-gray-700 dark:bg-gray-800',
+          'border-forge-border bg-forge-surface rounded-lg border p-6',
+          'dark:border-forge-border-dark dark:bg-forge-surface-dark',
           'text-center',
           className
         )}
       >
-        <p className="text-gray-500 dark:text-gray-400">No project loaded</p>
+        <p className="text-forge-muted dark:text-forge-muted-dark">
+          No project loaded
+        </p>
       </div>
     )
   }
@@ -180,30 +183,34 @@ export function DebugProjectView({
   return (
     <div className={cn('space-y-4', className)}>
       {/* Project Header */}
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-        <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-lg border p-4">
+        <h2 className="text-forge-text dark:text-forge-text-dark mb-2 text-xl font-bold">
           {project.name}
         </h2>
         {project.metadata.description && (
-          <p className="mb-3 text-gray-600 dark:text-gray-400">
+          <p className="text-forge-text-secondary dark:text-forge-muted-dark mb-3">
             {project.metadata.description}
           </p>
         )}
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Path:</dt>
-          <dd className="truncate font-mono text-gray-700 dark:text-gray-300">
+          <dt className="text-forge-muted dark:text-forge-muted-dark">Path:</dt>
+          <dd className="text-forge-text-secondary dark:text-forge-text-secondary-dark truncate font-mono">
             {project.path}
           </dd>
-          <dt className="text-gray-500 dark:text-gray-400">ID:</dt>
-          <dd className="font-mono text-gray-700 dark:text-gray-300">
+          <dt className="text-forge-muted dark:text-forge-muted-dark">ID:</dt>
+          <dd className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono">
             {project.id}
           </dd>
-          <dt className="text-gray-500 dark:text-gray-400">Created:</dt>
-          <dd className="text-gray-700 dark:text-gray-300">
+          <dt className="text-forge-muted dark:text-forge-muted-dark">
+            Created:
+          </dt>
+          <dd className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
             {project.metadata.createdAt.toLocaleDateString()}
           </dd>
-          <dt className="text-gray-500 dark:text-gray-400">Modified:</dt>
-          <dd className="text-gray-700 dark:text-gray-300">
+          <dt className="text-forge-muted dark:text-forge-muted-dark">
+            Modified:
+          </dt>
+          <dd className="text-forge-text-secondary dark:text-forge-text-secondary-dark">
             {project.metadata.modifiedAt.toLocaleDateString()}
           </dd>
         </dl>
@@ -221,7 +228,7 @@ export function DebugProjectView({
               key={type}
               className={cn(
                 'rounded-lg border bg-white p-3',
-                'dark:border-gray-600 dark:bg-gray-900'
+                'dark:border-forge-border-dark dark:bg-forge-paper-dark'
               )}
             >
               <div className="mb-1 flex items-center gap-2">
@@ -235,7 +242,7 @@ export function DebugProjectView({
                   {type}s
                 </span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-forge-text dark:text-forge-text-dark text-2xl font-bold">
                 {count}
               </div>
             </div>
@@ -250,7 +257,7 @@ export function DebugProjectView({
         defaultOpen={false}
       >
         {totalNodes === 0 ? (
-          <p className="text-gray-500 italic dark:text-gray-400">
+          <p className="text-forge-muted dark:text-forge-muted-dark italic">
             No nodes in project
           </p>
         ) : (
@@ -260,24 +267,24 @@ export function DebugProjectView({
                 key={node.id}
                 className={cn(
                   'rounded border bg-white p-2',
-                  'dark:border-gray-600 dark:bg-gray-900',
+                  'dark:border-forge-border-dark dark:bg-forge-paper-dark',
                   'flex items-center gap-3'
                 )}
               >
                 <span aria-hidden="true">{nodeTypeIcons[node.type]}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-forge-text dark:text-forge-text-dark truncate font-medium">
                     {node.title}
                   </div>
-                  <div className="font-mono text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-forge-muted dark:text-forge-muted-dark font-mono text-sm">
                     {node.id}
                   </div>
                 </div>
                 <span
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs',
-                    'bg-gray-100 text-gray-600',
-                    'dark:bg-gray-700 dark:text-gray-400'
+                    'bg-forge-surface text-forge-text-secondary',
+                    'dark:bg-forge-surface-dark dark:text-forge-muted-dark'
                   )}
                 >
                   {node.type}

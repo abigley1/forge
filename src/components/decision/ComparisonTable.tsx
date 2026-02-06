@@ -526,24 +526,24 @@ export function ComparisonTable({
 
   // --- Render helpers ---
   const inputClassName = cn(
-    'w-full rounded-md border border-gray-300 px-2 py-1',
-    'text-sm text-gray-900',
-    'placeholder:text-gray-400',
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
-    'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50',
-    'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-    'dark:placeholder:text-gray-500 dark:focus:ring-blue-400'
+    'w-full rounded-md border border-forge-border px-2 py-1',
+    'text-sm text-forge-text',
+    'placeholder:text-forge-muted',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-forge-accent focus-visible:ring-offset-1',
+    'disabled:cursor-not-allowed disabled:bg-forge-surface disabled:opacity-50',
+    'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-dark',
+    'dark:placeholder:text-forge-muted-dark dark:focus:ring-forge-accent-dark'
   )
 
   const cellClassName = cn(
-    'border border-gray-200 px-3 py-2 text-sm',
-    'dark:border-gray-700'
+    'border border-forge-border px-3 py-2 text-sm',
+    'dark:border-forge-border-dark'
   )
 
   const headerCellClassName = cn(
     cellClassName,
-    'bg-gray-50 font-medium text-gray-700',
-    'dark:bg-gray-800 dark:text-gray-300'
+    'bg-forge-surface font-medium text-forge-text-secondary',
+    'dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark'
   )
 
   const getOptionToDelete = () => options.find((o) => o.id === deleteOptionId)
@@ -560,8 +560,8 @@ export function ComparisonTable({
   ) {
     return (
       <div className={cn('space-y-4', className)}>
-        <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-600 dark:bg-gray-800/50">
-          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark/50 rounded-md border border-dashed p-6 text-center">
+          <p className="text-forge-muted dark:text-forge-muted-dark mb-4 text-sm">
             No comparison data yet. Add options and criteria to compare.
           </p>
           <div className="flex justify-center gap-2">
@@ -571,8 +571,8 @@ export function ComparisonTable({
               disabled={disabled}
               className={cn(
                 'inline-flex items-center gap-1 rounded-md px-3 py-1.5',
-                'bg-blue-600 text-sm font-medium text-white',
-                'hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+                'bg-forge-accent text-sm font-medium text-white',
+                'hover:bg-forge-accent-hover focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:opacity-50'
               )}
             >
@@ -585,10 +585,10 @@ export function ComparisonTable({
               disabled={disabled}
               className={cn(
                 'inline-flex items-center gap-1 rounded-md px-3 py-1.5',
-                'border border-gray-300 bg-white text-sm font-medium text-gray-700',
-                'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+                'border-forge-border text-forge-text-secondary border bg-white text-sm font-medium',
+                'hover:bg-forge-surface focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:opacity-50',
-                'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark'
               )}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -637,7 +637,7 @@ export function ComparisonTable({
                           <button
                             type="button"
                             onClick={() => onNavigate?.(option.linkedNodeId!)}
-                            className="flex-shrink-0 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                            className="text-forge-accent hover:text-forge-accent-hover dark:text-forge-accent-dark dark:hover:text-forge-accent-dark flex-shrink-0"
                             aria-label={`Navigate to linked component ${linkedComponent.title}`}
                             title={`Linked to: ${linkedComponent.title}`}
                           >
@@ -655,10 +655,10 @@ export function ComparisonTable({
                               type="button"
                               onClick={() => handleUnlinkOption(option.id)}
                               className={cn(
-                                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-                                'hover:bg-gray-200 hover:text-amber-600',
+                                'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
+                                'hover:bg-forge-border hover:text-amber-600',
                                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
-                                'dark:hover:bg-gray-700'
+                                'dark:hover:bg-forge-surface-dark'
                               )}
                               aria-label={`Unlink ${option.name} from component`}
                               title="Unlink from component"
@@ -670,10 +670,10 @@ export function ComparisonTable({
                             type="button"
                             onClick={() => setDeleteOptionId(option.id)}
                             className={cn(
-                              'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-                              'hover:bg-gray-200 hover:text-red-600',
+                              'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
+                              'hover:bg-forge-border hover:text-red-600',
                               'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                              'dark:hover:bg-gray-700'
+                              'dark:hover:bg-forge-surface-dark'
                             )}
                             aria-label={`Delete option ${option.name}`}
                           >
@@ -721,7 +721,7 @@ export function ComparisonTable({
                           setShowComponentSelector(false)
                           setComponentSearchValue('')
                         }}
-                        className="absolute top-1/2 right-1 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                        className="text-forge-muted hover:text-forge-text-secondary absolute top-1/2 right-1 -translate-y-1/2 p-1"
                         aria-label="Cancel component selection"
                       >
                         <X className="h-4 w-4" />
@@ -733,8 +733,8 @@ export function ComparisonTable({
                           role="listbox"
                           className={cn(
                             'absolute top-full right-0 left-0 z-10 mt-1',
-                            'max-h-48 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg',
-                            'dark:border-gray-700 dark:bg-gray-800'
+                            'border-forge-border max-h-48 overflow-auto rounded-md border bg-white shadow-lg',
+                            'dark:border-forge-border-dark dark:bg-forge-surface-dark'
                           )}
                         >
                           {availableComponents.map((component, index) => (
@@ -745,8 +745,8 @@ export function ComparisonTable({
                               className={cn(
                                 'cursor-pointer px-3 py-2 text-left text-sm',
                                 highlightedIndex === index
-                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                                  : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                                  ? 'bg-forge-accent-subtle text-forge-accent-hover dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark'
+                                  : 'hover:bg-forge-surface dark:hover:bg-forge-surface-dark'
                               )}
                               onClick={() => handleAddLinkedOption(component)}
                               // Keyboard navigation handled by input's onKeyDown
@@ -760,7 +760,7 @@ export function ComparisonTable({
                                 {component.title}
                               </div>
                               {component.supplier && (
-                                <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                                <div className="text-forge-muted dark:text-forge-muted-dark truncate text-xs">
                                   {component.supplier}
                                 </div>
                               )}
@@ -773,8 +773,8 @@ export function ComparisonTable({
                           <div
                             className={cn(
                               'absolute top-full right-0 left-0 z-10 mt-1',
-                              'rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-500 shadow-lg',
-                              'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                              'border-forge-border text-forge-muted rounded-md border bg-white px-3 py-2 text-sm shadow-lg',
+                              'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-muted-dark'
                             )}
                           >
                             No matching components
@@ -805,9 +805,9 @@ export function ComparisonTable({
                           }}
                           className={cn(
                             'flex-shrink-0 rounded p-1.5',
-                            'text-gray-400 hover:bg-blue-50 hover:text-blue-600',
-                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-                            'dark:hover:bg-blue-900/50 dark:hover:text-blue-400'
+                            'text-forge-muted hover:bg-forge-accent-subtle hover:text-forge-accent',
+                            'focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2',
+                            'dark:hover:bg-forge-accent-subtle-dark dark:hover:text-forge-accent-dark'
                           )}
                           aria-label="Link to existing component"
                           title="Link to component"
@@ -824,10 +824,10 @@ export function ComparisonTable({
                     disabled={disabled}
                     className={cn(
                       'inline-flex w-full items-center justify-center gap-1 rounded px-2 py-1',
-                      'text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                      'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary text-sm',
+                      'focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2',
                       'disabled:cursor-not-allowed disabled:opacity-50',
-                      'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                      'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark'
                     )}
                     aria-label="Add option"
                   >
@@ -845,7 +845,10 @@ export function ComparisonTable({
               <tr key={criterion.id}>
                 {/* Criterion name cell */}
                 <td
-                  className={cn(cellClassName, 'bg-gray-50 dark:bg-gray-800')}
+                  className={cn(
+                    cellClassName,
+                    'bg-forge-surface dark:bg-forge-surface-dark'
+                  )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -857,13 +860,13 @@ export function ComparisonTable({
                           {criterion.name}
                         </span>
                         {criterion.unit && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-forge-muted text-xs">
                             ({criterion.unit})
                           </span>
                         )}
                         {criterion.linkedField && (
                           <span
-                            className="rounded-sm bg-blue-100 px-1 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                            className="bg-forge-accent-subtle text-forge-accent-hover dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark rounded-sm px-1 text-xs"
                             title={`Linked to component field: ${criterion.linkedField}`}
                           >
                             ← {criterion.linkedField}
@@ -892,10 +895,10 @@ export function ComparisonTable({
                             }
                           }}
                           disabled={disabled}
-                          className="h-1.5 w-16 cursor-pointer accent-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="h-1.5 w-16 cursor-pointer accent-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                           aria-label={`Weight for ${criterion.name}: ${criterion.weight}`}
                         />
-                        <span className="text-xs text-gray-500 tabular-nums dark:text-gray-400">
+                        <span className="text-forge-muted dark:text-forge-muted-dark text-xs tabular-nums">
                           {criterion.weight}
                         </span>
                       </div>
@@ -905,10 +908,10 @@ export function ComparisonTable({
                         type="button"
                         onClick={() => setDeleteCriterionId(criterion.id)}
                         className={cn(
-                          'flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-gray-400',
-                          'hover:bg-gray-200 hover:text-red-600',
+                          'text-forge-muted flex min-h-[44px] min-w-[44px] items-center justify-center rounded',
+                          'hover:bg-forge-border hover:text-red-600',
                           'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                          'dark:hover:bg-gray-700'
+                          'dark:hover:bg-forge-surface-dark'
                         )}
                         aria-label={`Delete criterion ${criterion.name}`}
                       >
@@ -947,7 +950,7 @@ export function ComparisonTable({
                         cellClassName,
                         'relative text-center',
                         !disabled &&
-                          'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800',
+                          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark cursor-pointer',
                         hasOverride && 'bg-amber-50/50 dark:bg-amber-950/20'
                       )}
                       onClick={() => startEditing(option.id, criterion.id)}
@@ -978,10 +981,10 @@ export function ComparisonTable({
                             className={cn(
                               'block min-h-[1.5rem]',
                               resolved.value === undefined &&
-                                'text-gray-300 dark:text-gray-600',
+                                'text-forge-border dark:text-forge-border-dark',
                               isLinked &&
                                 resolved.source === 'component' &&
-                                'text-blue-600 dark:text-blue-400'
+                                'text-forge-accent dark:text-forge-accent-dark'
                             )}
                           >
                             {resolved.value !== undefined
@@ -1003,7 +1006,10 @@ export function ComparisonTable({
 
                 {/* Empty cell in Add Option column */}
                 <td
-                  className={cn(cellClassName, 'bg-gray-50 dark:bg-gray-800')}
+                  className={cn(
+                    cellClassName,
+                    'bg-forge-surface dark:bg-forge-surface-dark'
+                  )}
                 />
               </tr>
             ))}
@@ -1012,7 +1018,10 @@ export function ComparisonTable({
             <tr>
               <td
                 colSpan={options.length + 2}
-                className={cn(cellClassName, 'bg-gray-50 dark:bg-gray-800')}
+                className={cn(
+                  cellClassName,
+                  'bg-forge-surface dark:bg-forge-surface-dark'
+                )}
               >
                 {isAddingCriterion ? (
                   <div className="flex flex-wrap items-center gap-2">
@@ -1050,7 +1059,7 @@ export function ComparisonTable({
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="new-criterion-weight"
-                        className="text-xs text-gray-500"
+                        className="text-forge-muted text-xs"
                       >
                         Weight:
                       </label>
@@ -1067,10 +1076,10 @@ export function ComparisonTable({
                             setNewCriterionWeight(value)
                           }
                         }}
-                        className="h-1.5 w-16 cursor-pointer accent-blue-600"
+                        className="h-1.5 w-16 cursor-pointer accent-amber-600"
                         aria-label={`Weight: ${newCriterionWeight}`}
                       />
-                      <span className="w-4 text-xs text-gray-500 tabular-nums">
+                      <span className="text-forge-muted w-4 text-xs tabular-nums">
                         {newCriterionWeight}
                       </span>
                     </div>
@@ -1105,8 +1114,8 @@ export function ComparisonTable({
                       type="button"
                       onClick={handleAddCriterion}
                       className={cn(
-                        'rounded-md bg-blue-600 px-2 py-1 text-sm font-medium text-white',
-                        'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none'
+                        'bg-forge-accent rounded-md px-2 py-1 text-sm font-medium text-white',
+                        'hover:bg-forge-accent-hover focus:ring-forge-accent focus:ring-2 focus:ring-offset-1 focus:outline-none'
                       )}
                     >
                       Add
@@ -1121,9 +1130,9 @@ export function ComparisonTable({
                         setNewCriterionLinkedField('')
                       }}
                       className={cn(
-                        'rounded-md px-2 py-1 text-sm text-gray-500',
-                        'hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-1',
-                        'dark:text-gray-400 dark:hover:bg-gray-700'
+                        'text-forge-muted rounded-md px-2 py-1 text-sm',
+                        'hover:bg-forge-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-1',
+                        'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark'
                       )}
                     >
                       Cancel
@@ -1136,10 +1145,10 @@ export function ComparisonTable({
                     disabled={disabled}
                     className={cn(
                       'inline-flex w-full items-center justify-center gap-1 rounded px-2 py-1',
-                      'text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                      'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary text-sm',
+                      'focus-visible:ring-forge-accent focus:outline-none focus-visible:ring-2',
                       'disabled:cursor-not-allowed disabled:opacity-50',
-                      'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                      'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark'
                     )}
                     aria-label="Add criterion"
                   >
@@ -1171,9 +1180,9 @@ export function ComparisonTable({
               <AlertDialog.Close
                 className={cn(
                   'rounded-md px-3 py-2 text-sm font-medium',
-                  'border border-gray-300 bg-white text-gray-700',
-                  'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2',
-                  'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  'border-forge-border text-forge-text-secondary border bg-white',
+                  'hover:bg-forge-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2',
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark'
                 )}
               >
                 Cancel
@@ -1214,9 +1223,9 @@ export function ComparisonTable({
               <AlertDialog.Close
                 className={cn(
                   'rounded-md px-3 py-2 text-sm font-medium',
-                  'border border-gray-300 bg-white text-gray-700',
-                  'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2',
-                  'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  'border-forge-border text-forge-text-secondary border bg-white',
+                  'hover:bg-forge-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2',
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark'
                 )}
               >
                 Cancel

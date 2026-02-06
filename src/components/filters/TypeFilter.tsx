@@ -54,7 +54,7 @@ export function TypeFilter({
     <div className={cn('space-y-1.5', className)}>
       <span
         id={groupId}
-        className="block text-xs font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-xs font-medium"
       >
         Type
       </span>
@@ -76,17 +76,17 @@ export function TypeFilter({
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5',
                 'text-xs font-medium',
-                'min-h-[36px]', // Accessible touch target
+                'min-h-[36px]',
                 'transition-colors duration-150',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+                'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
                 isSelected
                   ? [
-                      'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900',
-                      'hover:bg-gray-800 dark:hover:bg-gray-200',
+                      'bg-forge-text dark:bg-forge-text-dark dark:text-forge-text text-white',
+                      'hover:bg-forge-text/90 dark:hover:bg-forge-text-dark/90',
                     ]
                   : [
-                      'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                      'hover:bg-gray-200 dark:hover:bg-gray-700',
+                      'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
+                      'hover:bg-forge-border dark:hover:bg-forge-border-dark',
                     ]
               )}
               aria-pressed={isSelected}

@@ -61,23 +61,23 @@ export function EmptyState({
       )}
     >
       {/* Icon */}
-      <div className="mb-4 rounded-full bg-gray-100 p-3 dark:bg-gray-800">
+      <div className="bg-forge-surface dark:bg-forge-surface-dark mb-4 rounded-full p-3">
         {icon ?? (
           <FileQuestion
-            className="h-8 w-8 text-gray-500 dark:text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark h-8 w-8"
             aria-hidden="true"
           />
         )}
       </div>
 
       {/* Title */}
-      <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <h3 className="text-forge-text dark:text-forge-text-dark mb-1 text-lg font-semibold">
         {title}
       </h3>
 
       {/* Description */}
       {description && (
-        <p className="mb-4 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark mb-4 max-w-sm text-sm">
           {description}
         </p>
       )}

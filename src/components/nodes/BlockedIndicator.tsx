@@ -126,12 +126,12 @@ export function BlockedIndicator({
           className={cn(
             'absolute top-full left-0 z-50 mt-1',
             'max-w-[320px] min-w-[200px]',
-            'rounded-lg border border-gray-200 bg-white shadow-lg',
-            'dark:border-gray-700 dark:bg-gray-800'
+            'border-forge-border rounded-lg border bg-white shadow-lg',
+            'dark:border-forge-border-dark dark:bg-forge-surface-dark'
           )}
         >
           <div className="p-3">
-            <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+            <h4 className="text-forge-text dark:text-forge-text-dark mb-2 text-sm font-medium">
               Blocked by:
             </h4>
             <ul className="space-y-2">
@@ -173,11 +173,11 @@ function BlockingNodeItem({ blocker, onClick }: BlockingNodeItemProps) {
           type={blocker.type as (typeof NodeType)[keyof typeof NodeType]}
           size="sm"
         />
-        <span className="min-w-0 truncate font-medium text-gray-900 dark:text-gray-100">
+        <span className="text-forge-text dark:text-forge-text-dark min-w-0 truncate font-medium">
           {blocker.title}
         </span>
       </div>
-      <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+      <div className="text-forge-muted dark:text-forge-muted-dark mt-1 flex items-center gap-1 text-xs">
         <span className="capitalize">{blocker.status}</span>
         <ArrowRight className="h-3 w-3" aria-hidden="true" />
         <span className="text-green-600 capitalize dark:text-green-400">
@@ -195,8 +195,8 @@ function BlockingNodeItem({ blocker, onClick }: BlockingNodeItemProps) {
         aria-label={`Navigate to ${blocker.title}`}
         className={cn(
           'w-full rounded-md p-2 text-left',
-          'hover:bg-gray-100 dark:hover:bg-gray-700',
-          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
           'transition-colors'
         )}
       >

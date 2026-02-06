@@ -198,12 +198,12 @@ export function ChecklistEditor({
       <div className="flex items-center justify-between">
         <label
           id={`${id}-label`}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
         >
           {label}
         </label>
         {value.length > 0 && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-forge-muted dark:text-forge-muted-dark text-xs">
             {completedCount}/{value.length} complete
           </span>
         )}
@@ -217,15 +217,15 @@ export function ChecklistEditor({
             className={cn(
               'group flex items-center gap-2 rounded-md',
               '-mx-2 px-2 py-1',
-              'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+              'hover:bg-forge-surface dark:hover:bg-forge-surface-dark/50'
             )}
           >
             {/* Drag handle (visual only for now) */}
             <span
               className={cn(
-                'cursor-grab text-gray-300 opacity-0 transition-opacity',
+                'text-forge-border cursor-grab opacity-0 transition-opacity',
                 'group-hover:opacity-100',
-                'dark:text-gray-600'
+                'dark:text-forge-border-dark'
               )}
               aria-hidden="true"
             >
@@ -240,11 +240,11 @@ export function ChecklistEditor({
                 onChange={() => handleToggle(item.id)}
                 disabled={disabled}
                 className={cn(
-                  'h-4 w-4 rounded border-gray-300',
-                  'text-gray-900 focus:ring-gray-500',
+                  'border-forge-border h-4 w-4 rounded',
+                  'text-forge-text focus:ring-forge-muted',
                   'disabled:cursor-not-allowed disabled:opacity-50',
-                  'dark:border-gray-600 dark:bg-gray-700',
-                  'dark:checked:bg-gray-500'
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark',
+                  'dark:checked:bg-forge-muted'
                 )}
                 aria-label={`Mark "${item.text || 'item'}" as ${item.completed ? 'incomplete' : 'complete'}`}
               />
@@ -263,12 +263,12 @@ export function ChecklistEditor({
               placeholder="New item..."
               className={cn(
                 'flex-1 border-none bg-transparent p-0',
-                'text-sm text-gray-900',
-                'placeholder:text-gray-400',
+                'text-forge-text text-sm',
+                'placeholder:text-forge-muted',
                 'focus:ring-0 focus:outline-none',
-                item.completed && 'text-gray-400 line-through',
-                'dark:text-gray-100 dark:placeholder:text-gray-500',
-                item.completed && 'dark:text-gray-500'
+                item.completed && 'text-forge-muted line-through',
+                'dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark',
+                item.completed && 'dark:text-forge-muted-dark'
               )}
             />
           </li>
@@ -281,14 +281,14 @@ export function ChecklistEditor({
         onClick={() => addItem()}
         disabled={disabled}
         className={cn(
-          'flex items-center gap-2 text-sm text-gray-500',
+          'text-forge-muted flex items-center gap-2 text-sm',
           'rounded-md px-2 py-1',
-          'hover:bg-gray-100 hover:text-gray-700',
+          'hover:bg-forge-surface hover:text-forge-text-secondary',
           'focus-visible:ring-2 focus-visible:outline-none',
-          'focus-visible:ring-gray-950 focus-visible:ring-offset-2',
+          'focus-visible:ring-forge-accent focus-visible:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
-          'dark:focus-visible:ring-gray-300'
+          'dark:text-forge-muted-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark',
+          'dark:focus-visible:ring-forge-accent-dark'
         )}
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -296,7 +296,7 @@ export function ChecklistEditor({
       </button>
 
       {/* Help text */}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
         Enter to add, Backspace on empty to delete, Space at start to toggle
       </p>
     </div>

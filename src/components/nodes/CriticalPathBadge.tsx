@@ -140,15 +140,15 @@ export function CriticalPathBadge({
           className={cn(
             'absolute top-full left-0 z-50 mt-1',
             'max-w-[320px] min-w-[220px]',
-            'rounded-lg border border-gray-200 bg-white shadow-lg',
-            'dark:border-gray-700 dark:bg-gray-800'
+            'border-forge-border rounded-lg border bg-white shadow-lg',
+            'dark:border-forge-border-dark dark:bg-forge-surface-dark'
           )}
         >
           <div className="p-3">
-            <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+            <h4 className="text-forge-text dark:text-forge-text-dark mb-2 text-sm font-medium">
               Critical Path ({criticalPath.length} steps)
             </h4>
-            <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-forge-muted dark:text-forge-muted-dark mb-2 text-xs">
               Delaying any step delays the project.
             </p>
             <ul className="space-y-1">
@@ -199,7 +199,7 @@ function CriticalPathNodeItem({
           'flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium',
           isCurrentNode
             ? 'bg-amber-500 text-white'
-            : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+            : 'bg-forge-border text-forge-text-secondary dark:bg-forge-border-dark dark:text-forge-text-secondary-dark'
         )}
       >
         {index + 1}
@@ -213,7 +213,7 @@ function CriticalPathNodeItem({
           'min-w-0 truncate text-sm',
           isCurrentNode
             ? 'font-medium text-amber-700 dark:text-amber-400'
-            : 'text-gray-700 dark:text-gray-300'
+            : 'text-forge-text-secondary dark:text-forge-text-secondary-dark'
         )}
       >
         {node.title}
@@ -229,7 +229,7 @@ function CriticalPathNodeItem({
         aria-label={`Navigate to ${node.title}`}
         className={cn(
           'w-full rounded-md p-1.5 text-left',
-          'hover:bg-gray-100 dark:hover:bg-gray-700',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
           'focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none',
           'transition-colors'
         )}

@@ -266,10 +266,10 @@ export const MarkdownEditor = forwardRef<
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-md border border-gray-200 dark:border-gray-700',
-        'focus-within:ring-2 focus-within:ring-gray-950 focus-within:ring-offset-2',
-        'dark:focus-within:ring-gray-300',
-        readOnly && 'bg-gray-50 dark:bg-gray-900',
+        'border-forge-border dark:border-forge-border-dark overflow-hidden rounded-md border',
+        'focus-within:ring-forge-accent focus-within:ring-2 focus-within:ring-offset-2',
+        'dark:focus-within:ring-forge-accent-dark',
+        readOnly && 'bg-forge-surface dark:bg-forge-paper-dark',
         className
       )}
       aria-describedby={ariaDescribedBy}

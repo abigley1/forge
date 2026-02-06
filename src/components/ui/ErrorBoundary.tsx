@@ -99,16 +99,16 @@ export class ErrorBoundary extends Component<
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-forge-text dark:text-forge-text-dark text-lg font-semibold">
               Something went wrong
               {section && (
-                <span className="text-gray-500 dark:text-gray-400">
+                <span className="text-forge-muted dark:text-forge-muted-dark">
                   {' '}
                   in {section}
                 </span>
               )}
             </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-forge-text-secondary dark:text-forge-muted-dark mt-1 text-sm">
               {error?.message || 'An unexpected error occurred'}
             </p>
           </div>

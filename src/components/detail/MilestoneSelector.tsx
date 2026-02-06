@@ -188,7 +188,7 @@ export function MilestoneSelector({
     <div className={cn('space-y-1.5', className)}>
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         {label}
       </label>
@@ -199,10 +199,10 @@ export function MilestoneSelector({
           <div
             className={cn(
               'flex items-center justify-between gap-2',
-              'rounded-md border border-gray-300 bg-white px-3 py-2',
+              'border-forge-border rounded-md border bg-white px-3 py-2',
               'min-h-[42px]',
               disabled && 'cursor-not-allowed opacity-50',
-              'dark:border-gray-600 dark:bg-gray-800'
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
             onClick={handleContainerClick}
             role="button"
@@ -215,8 +215,11 @@ export function MilestoneSelector({
               }
             }}
           >
-            <span className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
-              <Milestone className="h-4 w-4 text-gray-500" aria-hidden="true" />
+            <span className="text-forge-text dark:text-forge-text-dark flex items-center gap-2 text-sm">
+              <Milestone
+                className="text-forge-muted h-4 w-4"
+                aria-hidden="true"
+              />
               {value}
             </span>
             <div className="flex items-center gap-1">
@@ -228,9 +231,9 @@ export function MilestoneSelector({
                     clearMilestone()
                   }}
                   className={cn(
-                    'rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600',
-                    'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none',
-                    'dark:hover:bg-gray-700 dark:hover:text-gray-300'
+                    'text-forge-muted hover:bg-forge-surface hover:text-forge-text-secondary rounded-sm p-1',
+                    'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+                    'dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-secondary-dark'
                   )}
                   aria-label="Clear milestone"
                 >
@@ -238,7 +241,7 @@ export function MilestoneSelector({
                 </button>
               )}
               <ChevronDown
-                className="h-4 w-4 text-gray-400"
+                className="text-forge-muted h-4 w-4"
                 aria-hidden="true"
               />
             </div>
@@ -247,16 +250,16 @@ export function MilestoneSelector({
           <div
             className={cn(
               'flex items-center gap-2',
-              'rounded-md border border-gray-300 bg-white px-3 py-2',
+              'border-forge-border rounded-md border bg-white px-3 py-2',
               'min-h-[42px]',
-              'focus-within:ring-2 focus-within:ring-gray-950 focus-within:ring-offset-2',
+              'focus-within:ring-forge-accent focus-within:ring-2 focus-within:ring-offset-2',
               disabled && 'cursor-not-allowed opacity-50',
-              'dark:border-gray-600 dark:bg-gray-800',
-              'dark:focus-within:ring-gray-300'
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark',
+              'dark:focus-within:ring-forge-accent-dark'
             )}
           >
             <Milestone
-              className="h-4 w-4 shrink-0 text-gray-400"
+              className="text-forge-muted h-4 w-4 shrink-0"
               aria-hidden="true"
             />
             <input
@@ -272,9 +275,9 @@ export function MilestoneSelector({
               disabled={disabled}
               className={cn(
                 'flex-1 border-0 bg-transparent p-0 text-sm',
-                'text-gray-900 placeholder:text-gray-400',
+                'text-forge-text placeholder:text-forge-muted',
                 'focus:ring-0 focus:outline-none',
-                'dark:text-gray-100 dark:placeholder:text-gray-500'
+                'dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark'
               )}
               role="combobox"
               aria-autocomplete="list"
@@ -288,7 +291,7 @@ export function MilestoneSelector({
               autoComplete="off"
             />
             <ChevronDown
-              className="h-4 w-4 shrink-0 text-gray-400"
+              className="text-forge-muted h-4 w-4 shrink-0"
               aria-hidden="true"
             />
           </div>
@@ -303,8 +306,8 @@ export function MilestoneSelector({
             className={cn(
               'absolute z-10 mt-1 w-full overflow-auto rounded-md',
               'max-h-60 bg-white py-1 shadow-lg',
-              'border border-gray-200',
-              'dark:border-gray-700 dark:bg-gray-800'
+              'border-forge-border border',
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
           >
             {/* Existing milestones */}
@@ -317,9 +320,9 @@ export function MilestoneSelector({
                 className={cn(
                   'flex cursor-pointer items-center gap-2 px-3 py-2 text-sm',
                   highlightedIndex === index
-                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100'
-                    : 'text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-forge-surface text-forge-text dark:bg-forge-surface-dark dark:text-forge-text-dark'
+                    : 'text-forge-text-secondary dark:text-forge-text-secondary-dark',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark'
                 )}
                 onClick={() => handleSuggestionClick(milestone)}
                 onKeyDown={(e) => {
@@ -330,7 +333,7 @@ export function MilestoneSelector({
                 }}
               >
                 <Milestone
-                  className="h-4 w-4 text-gray-500"
+                  className="text-forge-muted h-4 w-4"
                   aria-hidden="true"
                 />
                 {milestone}
@@ -346,10 +349,10 @@ export function MilestoneSelector({
                 className={cn(
                   'flex cursor-pointer items-center gap-2 px-3 py-2 text-sm',
                   highlightedIndex === filteredSuggestions.length
-                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100'
-                    : 'text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-700',
-                  'border-t border-gray-200 dark:border-gray-700'
+                    ? 'bg-forge-surface text-forge-text dark:bg-forge-surface-dark dark:text-forge-text-dark'
+                    : 'text-forge-text-secondary dark:text-forge-text-secondary-dark',
+                  'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                  'border-forge-border dark:border-forge-border-dark border-t'
                 )}
                 onClick={handleCreateNew}
                 onKeyDown={(e) => {

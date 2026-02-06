@@ -126,10 +126,10 @@ export function ChildNodesSection({
   if (totalChildren === 0) {
     return (
       <div className={cn('space-y-2', className)}>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium">
           Child Nodes
         </h3>
-        <p className="text-sm text-gray-500 italic dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-sm italic">
           No child nodes yet
         </p>
       </div>
@@ -138,7 +138,7 @@ export function ChildNodesSection({
 
   return (
     <div className={cn('space-y-3', className)}>
-      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium">
         Child Nodes ({totalChildren})
       </h3>
 
@@ -146,7 +146,7 @@ export function ChildNodesSection({
         {nodeGroups.map((group) => (
           <div key={group.type} className="space-y-1">
             {/* Group Header */}
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-forge-text-secondary dark:text-forge-muted-dark flex items-center gap-2 text-sm">
               {group.icon}
               <span>
                 {group.label} ({group.nodes.length})
@@ -162,16 +162,16 @@ export function ChildNodesSection({
                     onClick={() => onNavigate?.(node.id)}
                     className={cn(
                       'flex w-full items-center gap-2 rounded-md px-2 py-1.5',
-                      'text-left text-sm text-gray-700 dark:text-gray-300',
-                      'hover:bg-gray-100 dark:hover:bg-gray-700',
-                      'focus:ring-2 focus:ring-gray-950 focus:outline-none dark:focus:ring-gray-300',
+                      'text-forge-text-secondary dark:text-forge-text-secondary-dark text-left text-sm',
+                      'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+                      'focus:ring-forge-accent dark:focus:ring-forge-accent-dark focus:ring-2 focus:outline-none',
                       'transition-colors'
                     )}
                     aria-label={`Navigate to ${node.title}`}
                   >
                     <span className="flex-1 truncate">{node.title}</span>
                     <ChevronRight
-                      className="h-4 w-4 flex-shrink-0 text-gray-400"
+                      className="text-forge-muted h-4 w-4 flex-shrink-0"
                       aria-hidden="true"
                     />
                   </button>

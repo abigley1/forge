@@ -103,14 +103,14 @@ export function DecisionTimeline({ node, className }: DecisionTimelineProps) {
 
   return (
     <div className={cn('space-y-1', className)}>
-      <h4 className="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+      <h4 className="text-forge-muted dark:text-forge-muted-dark text-xs font-medium tracking-wider uppercase">
         Timeline
       </h4>
-      <div className="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+      <div className="border-forge-border dark:border-forge-border-dark dark:bg-forge-surface-dark rounded-lg border bg-white p-3">
         <div className="relative">
           {/* Vertical line connecting events */}
           <div
-            className="absolute top-2 left-3 h-[calc(100%-16px)] w-px bg-gray-200 dark:bg-gray-700"
+            className="bg-forge-border dark:bg-forge-border-dark absolute top-2 left-3 h-[calc(100%-16px)] w-px"
             aria-hidden="true"
           />
 
@@ -135,8 +135,8 @@ export function DecisionTimeline({ node, className }: DecisionTimelineProps) {
                       event.isActive
                         ? event.id === 'selected'
                           ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400'
-                          : 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                        : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
+                          : 'bg-forge-accent-subtle text-forge-accent dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark'
+                        : 'bg-forge-surface text-forge-muted dark:bg-forge-border-dark'
                     )}
                     aria-hidden="true"
                   >
@@ -150,14 +150,14 @@ export function DecisionTimeline({ node, className }: DecisionTimelineProps) {
                         className={cn(
                           'text-sm font-medium',
                           event.isActive
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-500 dark:text-gray-400'
+                            ? 'text-forge-text dark:text-white'
+                            : 'text-forge-muted dark:text-forge-muted-dark'
                         )}
                       >
                         {event.label}
                       </span>
                       {relativeStr && (
-                        <span className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-forge-muted dark:text-forge-muted-dark flex-shrink-0 text-xs">
                           {relativeStr}
                         </span>
                       )}
@@ -166,8 +166,8 @@ export function DecisionTimeline({ node, className }: DecisionTimelineProps) {
                       className={cn(
                         'text-xs',
                         event.isActive
-                          ? 'text-gray-600 dark:text-gray-300'
-                          : 'text-gray-500 dark:text-gray-400'
+                          ? 'text-forge-text-secondary dark:text-forge-text-secondary-dark'
+                          : 'text-forge-muted dark:text-forge-muted-dark'
                       )}
                     >
                       {event.isActive ? dateStr : event.description}

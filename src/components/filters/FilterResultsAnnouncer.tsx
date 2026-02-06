@@ -116,7 +116,7 @@ export function FilterResultsCount({
 
   return (
     <div className={className} role="status" aria-live="polite">
-      <span className="text-xs text-gray-600 dark:text-gray-400">
+      <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
         {resultCount === 0 ? (
           'No matches'
         ) : resultCount === totalCount ? (
@@ -124,7 +124,7 @@ export function FilterResultsCount({
         ) : (
           <>
             <span className="font-medium">{resultCount}</span>
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-forge-muted dark:text-forge-muted-dark">
               {' '}
               / {totalCount}
             </span>
@@ -135,7 +135,7 @@ export function FilterResultsCount({
         <button
           type="button"
           onClick={onClearFilters}
-          className="ml-2 text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          className="text-forge-accent hover:text-forge-accent-hover dark:text-forge-accent-dark dark:hover:text-forge-accent-hover-dark ml-2 text-xs underline"
         >
           Clear filters
         </button>

@@ -141,7 +141,7 @@ export function ImplicationsSection({
   return (
     <div className={cn('space-y-2', className)}>
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h4 className="text-forge-muted dark:text-forge-muted-dark text-xs font-medium tracking-wider uppercase">
           Implications
         </h4>
         {hasBrokenLinks && (
@@ -159,10 +159,10 @@ export function ImplicationsSection({
         {implications.map((implication, idx) => (
           <li
             key={idx}
-            className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+            className="text-forge-text-secondary dark:text-forge-text-secondary-dark flex items-start gap-2 text-sm"
           >
             <ArrowRight
-              className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
+              className="text-forge-muted mt-0.5 h-4 w-4 flex-shrink-0"
               aria-hidden="true"
             />
             <span>{renderImplicationText(implication, onNodeClick)}</span>
@@ -206,9 +206,9 @@ function renderImplicationText(
           // min-h-[44px] ensures touch target compliance while inline-flex keeps it in text flow
           'inline-flex min-h-[44px] items-center gap-0.5 rounded px-1.5 font-medium',
           link.exists
-            ? 'text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
+            ? 'text-forge-accent hover:text-forge-accent-hover dark:text-forge-accent-dark dark:hover:text-forge-accent-hover-dark hover:underline'
             : 'cursor-not-allowed text-red-500 line-through dark:text-red-400',
-          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none'
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none'
         )}
         title={
           link.exists

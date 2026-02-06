@@ -114,7 +114,7 @@ export function PrioritySelector({
     <div className={cn('space-y-1.5', className)}>
       <label
         id={`${id}-label`}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         {label}
       </label>
@@ -124,8 +124,8 @@ export function PrioritySelector({
         role="radiogroup"
         aria-labelledby={`${id}-label`}
         className={cn(
-          'inline-flex rounded-lg border border-gray-200 p-1',
-          'bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50',
+          'border-forge-border inline-flex rounded-lg border p-1',
+          'bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark/50',
           disabled && 'opacity-50'
         )}
       >
@@ -146,18 +146,18 @@ export function PrioritySelector({
                 'px-3 py-1.5 text-sm font-medium',
                 'rounded-md transition-colors duration-150',
                 'focus-visible:ring-2 focus-visible:outline-none',
-                'focus-visible:ring-gray-950 focus-visible:ring-offset-2',
-                'dark:focus-visible:ring-gray-300',
+                'focus-visible:ring-forge-accent focus-visible:ring-offset-2',
+                'dark:focus-visible:ring-forge-accent-dark',
                 // Selected state
                 isSelected && [
                   'bg-white shadow-sm',
-                  'dark:bg-gray-700',
+                  'dark:bg-forge-surface-dark',
                   option.color,
                 ],
                 // Unselected state
                 !isSelected && [
-                  'text-gray-600 hover:text-gray-900',
-                  'dark:text-gray-400 dark:hover:text-gray-200',
+                  'text-forge-text-secondary hover:text-forge-text',
+                  'dark:text-forge-muted-dark dark:hover:text-forge-text-dark',
                 ],
                 // First item
                 index === 0 && 'rounded-l-md',

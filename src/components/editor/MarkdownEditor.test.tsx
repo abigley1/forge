@@ -109,7 +109,7 @@ describe('MarkdownEditor', () => {
       const wrapper = getWrapper(container)
       expect(wrapper).toHaveClass('border')
       expect(wrapper).toHaveClass('rounded-md')
-      expect(wrapper).toHaveClass('border-gray-200')
+      expect(wrapper).toHaveClass('border-forge-border')
     })
 
     it('renders with overflow hidden', () => {
@@ -130,7 +130,7 @@ describe('MarkdownEditor', () => {
       )
       // Read-only state is indicated by background styling on wrapper
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveClass('bg-gray-50')
+      expect(wrapper).toHaveClass('bg-forge-surface')
     })
 
     it('applies aria-label to CodeMirror content element', () => {
@@ -208,13 +208,13 @@ describe('MarkdownEditor', () => {
     it('applies read-only background styling', () => {
       const { container } = render(<MarkdownEditor value="" readOnly />)
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveClass('bg-gray-50')
+      expect(wrapper).toHaveClass('bg-forge-surface')
     })
 
     it('does not apply read-only styling when editable', () => {
       const { container } = render(<MarkdownEditor value="" />)
       const wrapper = getWrapper(container)
-      expect(wrapper).not.toHaveClass('bg-gray-50')
+      expect(wrapper).not.toHaveClass('bg-forge-surface')
     })
   })
 
@@ -236,20 +236,20 @@ describe('MarkdownEditor', () => {
       const { container } = render(<MarkdownEditor value="" />)
       const wrapper = getWrapper(container)
       expect(wrapper).toHaveClass('focus-within:ring-2')
-      expect(wrapper).toHaveClass('focus-within:ring-gray-950')
+      expect(wrapper).toHaveClass('focus-within:ring-forge-accent')
       expect(wrapper).toHaveClass('focus-within:ring-offset-2')
     })
 
     it('has dark mode focus ring styles', () => {
       const { container } = render(<MarkdownEditor value="" />)
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveClass('dark:focus-within:ring-gray-300')
+      expect(wrapper).toHaveClass('dark:focus-within:ring-forge-accent-dark')
     })
 
     it('has dark mode border styles', () => {
       const { container } = render(<MarkdownEditor value="" />)
       const wrapper = getWrapper(container)
-      expect(wrapper).toHaveClass('dark:border-gray-700')
+      expect(wrapper).toHaveClass('dark:border-forge-border-dark')
     })
   })
 

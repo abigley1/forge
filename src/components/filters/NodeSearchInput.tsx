@@ -111,7 +111,7 @@ export function NodeSearchInput({
         Search nodes
       </label>
       <Search
-        className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-gray-400"
+        className="text-forge-muted dark:text-forge-muted-dark pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2"
         aria-hidden="true"
       />
       <input
@@ -124,12 +124,12 @@ export function NodeSearchInput({
         placeholder={placeholder}
         autoComplete="off"
         className={cn(
-          'w-full rounded-md border border-gray-300 dark:border-gray-700',
-          'bg-white dark:bg-gray-900',
+          'border-forge-border dark:border-forge-border-dark w-full rounded-md border',
+          'dark:bg-forge-paper-dark bg-white',
           'py-2 pr-8 pl-9',
-          'text-sm text-gray-900 dark:text-gray-100',
-          'placeholder:text-gray-500 dark:placeholder:text-gray-400',
-          'focus:border-gray-500 focus:ring-1 focus:ring-gray-500 focus:outline-none dark:focus:border-gray-400 dark:focus:ring-gray-400',
+          'text-forge-text dark:text-forge-text-dark text-sm',
+          'placeholder:text-forge-muted dark:placeholder:text-forge-muted-dark',
+          'focus:border-forge-accent focus:ring-forge-accent dark:focus:border-forge-accent-dark dark:focus:ring-forge-accent-dark focus:ring-1 focus:outline-none',
           'transition-colors duration-150'
         )}
       />
@@ -140,9 +140,9 @@ export function NodeSearchInput({
           className={cn(
             'absolute top-1/2 right-1.5 -translate-y-1/2',
             'rounded p-1',
-            'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-            'hover:bg-gray-100 dark:hover:bg-gray-800',
-            'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+            'text-forge-muted hover:text-forge-text-secondary dark:hover:text-forge-text-secondary-dark',
+            'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+            'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
             'transition-colors duration-150'
           )}
           aria-label="Clear search"

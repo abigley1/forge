@@ -61,7 +61,7 @@ export function StatusFilter({
     <div className={cn('space-y-2', className)}>
       <span
         id={groupId}
-        className="block text-xs font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-xs font-medium"
       >
         Status {selectedStatuses.length > 0 && `(${selectedStatuses.length})`}
       </span>
@@ -69,7 +69,7 @@ export function StatusFilter({
       <div role="group" aria-labelledby={groupId} className="space-y-2">
         {STATUS_CATEGORIES.map((category) => (
           <div key={category.label} className="space-y-1">
-            <span className="block text-[10px] font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <span className="text-forge-muted dark:text-forge-muted-dark block text-[10px] font-medium tracking-wider uppercase">
               {category.label}
             </span>
             <div className="space-y-0.5">
@@ -85,7 +85,7 @@ export function StatusFilter({
                     className={cn(
                       'flex items-center gap-2 rounded-md px-2 py-1.5',
                       'cursor-pointer',
-                      'hover:bg-gray-100 dark:hover:bg-gray-800',
+                      'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
                       'transition-colors duration-150',
                       'min-h-[32px]'
                     )}
@@ -97,9 +97,9 @@ export function StatusFilter({
                       onChange={() => onToggleStatus(status)}
                       className={cn(
                         'h-4 w-4 rounded',
-                        'border-gray-300 dark:border-gray-600',
-                        'text-gray-900 dark:text-gray-100',
-                        'focus:ring-2 focus:ring-gray-950 focus:ring-offset-0 dark:focus:ring-gray-300',
+                        'border-forge-border dark:border-forge-border-dark',
+                        'text-forge-text dark:text-forge-text-dark',
+                        'focus:ring-forge-accent dark:focus:ring-forge-accent-dark focus:ring-2 focus:ring-offset-0',
                         'cursor-pointer'
                       )}
                     />
@@ -110,7 +110,7 @@ export function StatusFilter({
                       )}
                       aria-hidden="true"
                     />
-                    <span className="text-xs text-gray-700 dark:text-gray-300">
+                    <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-xs">
                       {config.label}
                     </span>
                   </label>

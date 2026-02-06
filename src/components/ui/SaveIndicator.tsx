@@ -44,13 +44,13 @@ const STATUS_CONFIG: Record<
     icon: null,
     label: '',
     iconClass: '',
-    textClass: 'text-gray-500 dark:text-gray-400',
+    textClass: 'text-forge-muted dark:text-forge-muted-dark',
   },
   saving: {
     icon: Loader2,
     label: 'Saving...',
-    iconClass: 'text-blue-500',
-    textClass: 'text-blue-600 dark:text-blue-400',
+    iconClass: 'text-forge-accent',
+    textClass: 'text-forge-accent dark:text-forge-accent-dark',
     animate: true,
   },
   saved: {

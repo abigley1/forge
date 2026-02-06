@@ -63,7 +63,7 @@ export function StatusBadge({
       <span
         className={cn(
           'inline-flex items-center gap-1.5 rounded-full font-medium',
-          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+          'bg-forge-surface text-forge-text dark:bg-forge-surface-dark dark:text-forge-text-dark',
           SIZE_CLASSES[size],
           className
         )}

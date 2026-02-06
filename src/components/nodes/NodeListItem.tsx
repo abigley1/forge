@@ -86,12 +86,12 @@ export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
           'focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
           isActive
             ? [
-                'bg-gray-100 dark:bg-gray-800',
-                'ring-2 ring-gray-900 ring-inset dark:ring-gray-100',
+                'bg-forge-surface dark:bg-forge-surface-dark',
+                'ring-forge-text dark:ring-forge-text-dark ring-2 ring-inset',
               ]
             : [
-                'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-                'focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500',
+                'hover:bg-forge-surface dark:hover:bg-forge-surface-dark/50',
+                'focus-visible:ring-forge-muted dark:focus-visible:ring-forge-muted-dark',
               ],
           className
         )}
@@ -104,7 +104,7 @@ export const NodeListItem = forwardRef<HTMLButtonElement, NodeListItemProps>(
         <span
           className={cn(
             'min-w-0 flex-1 truncate text-sm font-medium',
-            'text-gray-900 dark:text-gray-100'
+            'text-forge-text dark:text-forge-text-dark'
           )}
         >
           {node.title}

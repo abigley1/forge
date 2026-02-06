@@ -148,8 +148,8 @@ const UnblockTooltip = ({
       className={cn(
         'absolute top-full left-0 z-50 mt-1',
         'max-w-[320px] min-w-[220px]',
-        'rounded-lg border border-gray-200 bg-white shadow-lg',
-        'dark:border-gray-700 dark:bg-gray-800'
+        'border-forge-border rounded-lg border bg-white shadow-lg',
+        'dark:border-forge-border-dark dark:bg-forge-surface-dark'
       )}
     >
       <div className="p-3">
@@ -184,7 +184,7 @@ function UnblockableNodeItem({ node, onClick }: UnblockableNodeItemProps) {
         aria-hidden="true"
       />
       <NodeTypeIcon type={node.type} size="sm" />
-      <span className="min-w-0 truncate text-sm text-gray-900 dark:text-gray-100">
+      <span className="text-forge-text dark:text-forge-text-dark min-w-0 truncate text-sm">
         {node.title}
       </span>
     </div>
@@ -198,7 +198,7 @@ function UnblockableNodeItem({ node, onClick }: UnblockableNodeItemProps) {
         aria-label={`Navigate to ${node.title}`}
         className={cn(
           'w-full rounded p-1.5 text-left',
-          'hover:bg-gray-100 dark:hover:bg-gray-700',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
           'focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none',
           'transition-colors'
         )}

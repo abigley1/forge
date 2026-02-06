@@ -33,7 +33,7 @@ function getTypeColor(type: ForgeNode['type']): string {
     case 'task':
       return 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
     case 'note':
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark'
     case 'subsystem':
       return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
     case 'assembly':
@@ -41,7 +41,7 @@ function getTypeColor(type: ForgeNode['type']): string {
     case 'module':
       return 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300'
     default:
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark'
   }
 }
 
@@ -63,17 +63,17 @@ function RelatedNodeItem({
       onClick={() => onNavigate?.(node.id)}
       className={cn(
         'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm',
-        'hover:bg-gray-100 dark:hover:bg-gray-800',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-1 focus-visible:outline-none',
-        'dark:focus-visible:ring-gray-300'
+        'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none',
+        'dark:focus-visible:ring-forge-accent-dark'
       )}
     >
       {direction === 'outgoing' ? (
-        <ArrowRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+        <ArrowRight className="text-forge-muted h-3.5 w-3.5 flex-shrink-0" />
       ) : (
-        <ArrowLeft className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+        <ArrowLeft className="text-forge-muted h-3.5 w-3.5 flex-shrink-0" />
       )}
-      <span className="flex-1 truncate text-gray-900 dark:text-gray-100">
+      <span className="text-forge-text dark:text-forge-text-dark flex-1 truncate">
         {node.title}
       </span>
       <span
@@ -133,20 +133,20 @@ export function RelatedNodesSection({
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center gap-2">
-        <Link2 className="h-4 w-4 text-gray-500" />
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Link2 className="text-forge-muted h-4 w-4" />
+        <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm font-medium">
           Related Nodes
         </span>
-        <span className="text-xs text-gray-500">
+        <span className="text-forge-muted text-xs">
           ({outgoingNodes.length + incomingNodes.length})
         </span>
       </div>
 
-      <div className="space-y-4 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+      <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark/50 space-y-4 rounded-md border p-3">
         {/* Outgoing links (this node references) */}
         {outgoingNodes.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            <p className="text-forge-muted dark:text-forge-muted-dark text-xs font-medium">
               References ({outgoingNodes.length})
             </p>
             <div className="space-y-0.5">
@@ -165,7 +165,7 @@ export function RelatedNodesSection({
         {/* Incoming links (referenced by) */}
         {incomingNodes.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            <p className="text-forge-muted dark:text-forge-muted-dark text-xs font-medium">
               Referenced by ({incomingNodes.length})
             </p>
             <div className="space-y-0.5">

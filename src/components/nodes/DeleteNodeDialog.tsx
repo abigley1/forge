@@ -159,9 +159,9 @@ export function DeleteNodeDialog({
           <AlertDialog.Description>
             <div className="space-y-3">
               {/* Node being deleted */}
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+              <div className="border-forge-border bg-forge-surface dark:border-forge-border-dark dark:bg-forge-surface-dark flex items-center gap-2 rounded-md border p-3">
                 <NodeTypeIcon type={node.type} size="md" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-forge-text dark:text-forge-text-dark font-medium">
                   {node.title}
                 </span>
               </div>
@@ -230,7 +230,7 @@ export function DeleteNodeDialog({
                 </div>
               )}
 
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-forge-text-secondary dark:text-forge-muted-dark">
                 This action can be undone.
               </p>
             </div>

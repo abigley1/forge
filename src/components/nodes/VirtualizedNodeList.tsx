@@ -179,7 +179,7 @@ export function VirtualizedNodeList({
       <EmptyState
         icon={
           <FolderPlus
-            className="h-8 w-8 text-gray-500 dark:text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark h-8 w-8"
             aria-hidden="true"
           />
         }

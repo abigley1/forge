@@ -20,9 +20,9 @@ export function SkipLink({ href, children, className }: SkipLinkProps) {
       className={cn(
         'sr-only focus:not-sr-only',
         'fixed top-4 left-4 z-50',
-        'rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white',
-        'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none',
-        'dark:bg-white dark:text-gray-900',
+        'bg-forge-text rounded-md px-4 py-2 text-sm font-medium text-white',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+        'dark:bg-forge-text-dark dark:text-forge-text',
         className
       )}
     >

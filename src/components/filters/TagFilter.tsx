@@ -61,10 +61,10 @@ export function TagFilter({
   if (allTags.length === 0) {
     return (
       <div className={cn('space-y-1.5', className)}>
-        <span className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-xs font-medium">
           Tags
         </span>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
           No tags available
         </p>
       </div>
@@ -75,7 +75,7 @@ export function TagFilter({
     <div className={cn('space-y-1.5', className)}>
       <span
         id={groupId}
-        className="block text-xs font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-xs font-medium"
       >
         Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
       </span>
@@ -93,7 +93,7 @@ export function TagFilter({
               className={cn(
                 'inline-flex items-center gap-1 rounded-full py-1 pr-1 pl-2.5',
                 'text-xs font-medium',
-                'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
+                'bg-forge-accent-subtle text-forge-accent-hover dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark'
               )}
             >
               <span className="max-w-[80px] truncate">{tag}</span>
@@ -102,8 +102,8 @@ export function TagFilter({
                 onClick={() => onRemoveTag(tag)}
                 className={cn(
                   'rounded-full p-0.5',
-                  'hover:bg-blue-200 dark:hover:bg-blue-800',
-                  'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none',
+                  'hover:bg-forge-accent/20 dark:hover:bg-forge-accent-dark/20',
+                  'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
                   'flex min-h-[20px] min-w-[20px] items-center justify-center'
                 )}
                 aria-label={`Remove tag: ${tag}`}
@@ -130,10 +130,10 @@ export function TagFilter({
               className={cn(
                 'inline-flex items-center gap-1 rounded-full px-2.5 py-1',
                 'text-xs font-medium',
-                'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                'hover:bg-gray-200 dark:hover:bg-gray-700',
+                'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
+                'hover:bg-forge-border dark:hover:bg-forge-border-dark',
                 'transition-colors duration-150',
-                'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none dark:focus-visible:ring-gray-300',
+                'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark focus-visible:ring-2 focus-visible:outline-none',
                 'min-h-[28px]'
               )}
               aria-label={`Add tag filter: ${tag}`}
@@ -143,7 +143,7 @@ export function TagFilter({
             </button>
           ))}
           {availableTags.length > 8 && (
-            <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-forge-muted dark:text-forge-muted-dark inline-flex items-center px-2 py-1 text-xs">
               +{availableTags.length - 8} more
             </span>
           )}
@@ -152,7 +152,7 @@ export function TagFilter({
 
       {/* AND logic hint */}
       {selectedTags.length > 1 && (
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
           Showing nodes with ALL selected tags
         </p>
       )}

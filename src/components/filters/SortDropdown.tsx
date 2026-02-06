@@ -43,14 +43,14 @@ export function SortDropdown({
       </label>
       <div className="relative">
         <ArrowUpDown
-          className="pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          className="text-forge-muted dark:text-forge-muted-dark pointer-events-none absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2"
           aria-hidden="true"
         />
         <select
           id="sort-select"
           value={sortBy}
           onChange={(e) => onSortByChange(e.target.value as SortBy)}
-          className="cursor-pointer appearance-none rounded-md border border-gray-300 bg-white py-1.5 pr-8 pl-8 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="border-forge-border focus:border-forge-accent focus:ring-forge-accent dark:border-forge-border-dark dark:bg-forge-paper-dark dark:text-forge-text-dark cursor-pointer appearance-none rounded-md border bg-white py-1.5 pr-8 pl-8 text-sm shadow-sm focus:ring-2 focus:outline-none"
           aria-label={`Sort by ${currentOption?.label || sortBy}`}
         >
           {SORT_OPTIONS.map((option) => (
@@ -61,7 +61,7 @@ export function SortDropdown({
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <svg
-            className="h-4 w-4 text-gray-400"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -79,7 +79,7 @@ export function SortDropdown({
       <button
         type="button"
         onClick={toggleDirection}
-        className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        className="text-forge-text-secondary hover:bg-forge-surface hover:text-forge-text focus:ring-forge-accent dark:text-forge-text-secondary-dark dark:hover:bg-forge-surface-dark dark:hover:text-forge-text-dark rounded-md p-1.5 transition-colors focus:ring-2 focus:outline-none"
         aria-label={`Sort direction: ${directionLabel}. Click to toggle.`}
         title={`Sort ${directionLabel.toLowerCase()}`}
       >

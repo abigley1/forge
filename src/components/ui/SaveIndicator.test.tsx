@@ -79,7 +79,7 @@ describe('SaveIndicator', () => {
       render(<SaveIndicator status="saving" />)
 
       const indicator = screen.getByRole('status')
-      expect(indicator).toHaveClass('text-blue-600')
+      expect(indicator).toHaveClass('text-forge-accent')
     })
 
     it('applies saved status styling', () => {

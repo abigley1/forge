@@ -77,7 +77,10 @@ function highlightText(text: string, query: string): React.ReactNode {
 
   return segments.map((seg, i) =>
     seg.isMatch ? (
-      <mark key={i} className="rounded-sm bg-yellow-200 dark:bg-yellow-900">
+      <mark
+        key={i}
+        className="bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark rounded-sm"
+      >
         {seg.text}
       </mark>
     ) : (
@@ -105,17 +108,17 @@ function ProjectResult({
       onClick={onClick}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg px-3 py-2',
-        'text-sm text-gray-700 dark:text-gray-300',
+        'text-forge-text-secondary dark:text-forge-text-secondary-dark text-sm',
         'transition-colors duration-100',
         isSelected
-          ? 'bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+          ? 'bg-forge-accent-subtle text-forge-accent-hover dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark'
+          : 'hover:bg-forge-surface dark:hover:bg-forge-surface-dark'
       )}
     >
       <FolderOpen
         className={cn(
           'h-5 w-5 shrink-0',
-          isSelected ? 'text-blue-500' : 'text-gray-400'
+          isSelected ? 'text-forge-accent' : 'text-forge-muted'
         )}
         aria-hidden="true"
       />
@@ -123,7 +126,7 @@ function ProjectResult({
         <div className="truncate font-medium">
           {highlightText(project.name, searchQuery)}
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-forge-muted dark:text-forge-muted-dark flex items-center gap-2 text-xs">
           <span>{project.nodeCount} nodes</span>
           {project.description && (
             <>
@@ -134,7 +137,7 @@ function ProjectResult({
         </div>
       </div>
       {isRecent && (
-        <div className="flex items-center gap-1 text-xs text-gray-400">
+        <div className="text-forge-muted flex items-center gap-1 text-xs">
           <Clock className="h-3 w-3" aria-hidden="true" />
           <span>Recent</span>
         </div>
@@ -273,8 +276,8 @@ export function QuickProjectSwitcher({
         <Dialog.Popup
           className={cn(
             'fixed top-[20%] left-1/2 -translate-x-1/2',
-            'w-full max-w-lg rounded-xl bg-white shadow-2xl',
-            'dark:border dark:border-gray-800 dark:bg-gray-900',
+            'bg-forge-paper w-full max-w-lg rounded-xl shadow-2xl',
+            'dark:border-forge-border-dark dark:bg-forge-paper-dark dark:border',
             'overflow-hidden',
             'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
             'data-[ending-style]:scale-95 data-[ending-style]:opacity-0',
@@ -286,9 +289,9 @@ export function QuickProjectSwitcher({
           <Dialog.Title className="sr-only">Switch Project</Dialog.Title>
 
           {/* Search Input */}
-          <div className="relative border-b border-gray-200 dark:border-gray-800">
+          <div className="border-forge-border dark:border-forge-border-dark relative border-b">
             <Search
-              className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400"
+              className="text-forge-muted absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
               aria-hidden="true"
             />
             <input
@@ -307,8 +310,8 @@ export function QuickProjectSwitcher({
               onChange={(e) => handleSearchChange(e.target.value)}
               className={cn(
                 'w-full py-4 pr-4 pl-12',
-                'text-base text-gray-900 placeholder:text-gray-400',
-                'dark:bg-gray-900 dark:text-gray-100',
+                'text-forge-text placeholder:text-forge-muted text-base',
+                'dark:bg-forge-paper-dark dark:text-forge-text-dark',
                 'focus:outline-none'
               )}
             />
@@ -326,7 +329,7 @@ export function QuickProjectSwitcher({
               <>
                 {/* Recent Section Label */}
                 {!searchQuery && recentProjectIds.length > 0 && (
-                  <div className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <div className="text-forge-muted dark:text-forge-muted-dark px-3 py-1.5 text-xs font-medium">
                     Recent Projects
                   </div>
                 )}
@@ -341,7 +344,7 @@ export function QuickProjectSwitcher({
                         filteredProjects[index - 1]?.id
                       ) &&
                       !recentProjectIds.includes(project.id) && (
-                        <div className="mt-2 border-t border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                        <div className="border-forge-border text-forge-muted dark:border-forge-border-dark dark:text-forge-muted-dark mt-2 border-t px-3 py-1.5 text-xs font-medium">
                           All Projects
                         </div>
                       )}
@@ -356,17 +359,17 @@ export function QuickProjectSwitcher({
                 ))}
               </>
             ) : searchQuery ? (
-              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+              <div className="text-forge-muted flex flex-col items-center justify-center py-8">
                 <Folder
-                  className="mb-2 h-8 w-8 text-gray-300"
+                  className="text-forge-border mb-2 h-8 w-8"
                   aria-hidden="true"
                 />
                 <p className="text-sm">No projects matching "{searchQuery}"</p>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+              <div className="text-forge-muted flex flex-col items-center justify-center py-8">
                 <Folder
-                  className="mb-2 h-8 w-8 text-gray-300"
+                  className="text-forge-border mb-2 h-8 w-8"
                   aria-hidden="true"
                 />
                 <p className="text-sm">No projects in workspace</p>
@@ -375,22 +378,22 @@ export function QuickProjectSwitcher({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-gray-200 px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          <div className="border-forge-border text-forge-muted dark:border-forge-border-dark dark:text-forge-muted-dark flex items-center justify-between border-t px-4 py-2 text-xs">
             <div className="flex items-center gap-3">
               <span>
-                <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <kbd className="bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   ↑↓
                 </kbd>{' '}
                 to navigate
               </span>
               <span>
-                <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <kbd className="bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   ↵
                 </kbd>{' '}
                 to select
               </span>
               <span>
-                <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <kbd className="bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark rounded px-1.5 py-0.5 font-mono">
                   esc
                 </kbd>{' '}
                 to close

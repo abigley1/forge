@@ -314,7 +314,7 @@ export function DependencyEditor({
       <div className="space-y-1.5">
         <label
           htmlFor="dependency-input"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
         >
           Depends On
         </label>
@@ -337,12 +337,12 @@ export function DependencyEditor({
           <div
             className={cn(
               'flex flex-wrap items-center gap-1.5',
-              'rounded-md border border-gray-300 bg-white px-2 py-1.5',
+              'border-forge-border rounded-md border bg-white px-2 py-1.5',
               'min-h-[42px]',
-              'focus-within:ring-2 focus-within:ring-gray-950 focus-within:ring-offset-2',
+              'focus-within:ring-forge-accent focus-within:ring-2 focus-within:ring-offset-2',
               disabled && 'cursor-not-allowed opacity-50',
-              'dark:border-gray-600 dark:bg-gray-800',
-              'dark:focus-within:ring-gray-300'
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark',
+              'dark:focus-within:ring-forge-accent-dark'
             )}
           >
             {/* Dependency chips */}
@@ -353,10 +353,10 @@ export function DependencyEditor({
                   key={depId}
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-md',
-                    'bg-blue-50 px-2 py-0.5 text-sm text-blue-700',
-                    'dark:bg-blue-950 dark:text-blue-200',
+                    'bg-forge-accent-subtle text-forge-accent-hover px-2 py-0.5 text-sm',
+                    'dark:bg-forge-accent-subtle-dark dark:text-forge-accent-dark',
                     onNavigate &&
-                      'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900'
+                      'hover:bg-forge-accent-subtle dark:hover:bg-forge-accent-subtle-dark cursor-pointer'
                   )}
                 >
                   {nodeInfo && (
@@ -383,9 +383,9 @@ export function DependencyEditor({
                     }}
                     disabled={disabled}
                     className={cn(
-                      'rounded-sm p-0.5 hover:bg-blue-200',
-                      'focus-visible:ring-1 focus-visible:ring-blue-400 focus-visible:outline-none',
-                      'dark:hover:bg-blue-800'
+                      'hover:bg-forge-accent-subtle rounded-sm p-0.5',
+                      'focus-visible:ring-forge-accent focus-visible:ring-1 focus-visible:outline-none',
+                      'dark:hover:bg-forge-accent-subtle-dark'
                     )}
                     aria-label={`Remove dependency on ${nodeInfo?.title || depId}`}
                   >
@@ -410,9 +410,9 @@ export function DependencyEditor({
               placeholder={value.length === 0 ? 'Add dependency...' : ''}
               className={cn(
                 'min-w-[120px] flex-1 border-0 bg-transparent px-1 py-0.5',
-                'text-sm text-gray-900 placeholder:text-gray-500',
+                'text-forge-text placeholder:text-forge-muted text-sm',
                 'focus:ring-0 focus:outline-none',
-                'dark:text-gray-100 dark:placeholder:text-gray-400'
+                'dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark'
               )}
               autoComplete="off"
               aria-autocomplete="list"
@@ -433,8 +433,8 @@ export function DependencyEditor({
               role="listbox"
               className={cn(
                 'absolute z-10 mt-1 max-h-60 w-full overflow-auto',
-                'rounded-md border border-gray-200 bg-white shadow-lg',
-                'dark:border-gray-700 dark:bg-gray-800'
+                'border-forge-border rounded-md border bg-white shadow-lg',
+                'dark:border-forge-border-dark dark:bg-forge-surface-dark'
               )}
             >
               {filteredSuggestions.map((node, index) => (
@@ -445,8 +445,9 @@ export function DependencyEditor({
                   aria-selected={index === highlightedIndex}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 px-3 py-2',
-                    'text-sm text-gray-700 dark:text-gray-200',
-                    index === highlightedIndex && 'bg-gray-100 dark:bg-gray-700'
+                    'text-forge-text-secondary dark:text-forge-text-dark text-sm',
+                    index === highlightedIndex &&
+                      'bg-forge-surface dark:bg-forge-surface-dark'
                   )}
                   onMouseDown={(e) => {
                     e.preventDefault()
@@ -467,8 +468,8 @@ export function DependencyEditor({
               <div
                 className={cn(
                   'absolute z-10 mt-1 w-full px-3 py-2',
-                  'rounded-md border border-gray-200 bg-white text-sm text-gray-500',
-                  'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                  'border-forge-border text-forge-muted rounded-md border bg-white text-sm',
+                  'dark:border-forge-border-dark dark:bg-forge-surface-dark dark:text-forge-muted-dark'
                 )}
               >
                 No matching nodes found
@@ -478,7 +479,7 @@ export function DependencyEditor({
 
         {/* Empty state hint */}
         {value.length === 0 && !showSuggestions && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
             Add tasks or decisions that must complete before this one
           </p>
         )}
@@ -487,7 +488,7 @@ export function DependencyEditor({
       {/* Blocks Section (nodes blocked by this one) */}
       {blockedNodes.length > 0 && (
         <div className="space-y-1.5">
-          <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium">
             Blocks
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -523,7 +524,7 @@ export function DependencyEditor({
               </span>
             ))}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
             These nodes are waiting on this one to complete
           </p>
         </div>
@@ -532,10 +533,10 @@ export function DependencyEditor({
       {/* Show empty blocks state if no blocked nodes */}
       {blockedNodes.length === 0 && value.length > 0 && (
         <div className="space-y-1.5">
-          <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium">
             Blocks
           </span>
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-forge-muted dark:text-forge-muted-dark flex items-center gap-2 text-sm">
             <Link2 className="h-4 w-4" aria-hidden="true" />
             <span>No nodes depend on this one yet</span>
           </div>

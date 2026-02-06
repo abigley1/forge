@@ -120,11 +120,13 @@ function TypeBadge({ type }: TypeBadgeProps) {
     <span
       className={cn(
         'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium',
-        'bg-gray-100 dark:bg-gray-800'
+        'bg-forge-surface dark:bg-forge-surface-dark'
       )}
     >
       <Icon className={cn('h-3 w-3', config.color)} aria-hidden="true" />
-      <span className="text-gray-600 dark:text-gray-400">{config.label}</span>
+      <span className="text-forge-text-secondary dark:text-forge-muted-dark">
+        {config.label}
+      </span>
     </span>
   )
 }
@@ -165,16 +167,16 @@ function ResolvedPreview({ linkInfo, onNavigate }: ResolvedPreviewProps) {
       <div className="mb-1.5 flex items-center gap-2">
         <TypeBadge type={linkInfo.type} />
       </div>
-      <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+      <p className="text-forge-text dark:text-forge-text-dark mb-1 text-sm font-semibold">
         {linkInfo.title}
       </p>
       {linkInfo.contentPreview && (
-        <p className="line-clamp-2 text-xs text-gray-600 dark:text-gray-400">
+        <p className="text-forge-text-secondary dark:text-forge-muted-dark line-clamp-2 text-xs">
           {linkInfo.contentPreview}
         </p>
       )}
-      <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-        <kbd className="rounded bg-gray-100 px-1 py-0.5 text-[10px] dark:bg-gray-800">
+      <p className="text-forge-muted dark:text-forge-muted-dark mt-2 text-xs">
+        <kbd className="bg-forge-surface dark:bg-forge-surface-dark rounded px-1 py-0.5 text-[10px]">
           {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}
         </kbd>
         +Click to navigate
@@ -214,10 +216,10 @@ function UnresolvedPreview({ linkInfo, onCreate }: UnresolvedPreviewProps) {
           Broken Link
         </span>
       </div>
-      <p className="mb-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+      <p className="text-forge-text dark:text-forge-text-dark mb-1 text-sm font-medium">
         "{linkInfo.target}"
       </p>
-      <p className="mb-2 text-xs text-gray-600 dark:text-gray-400">
+      <p className="text-forge-text-secondary dark:text-forge-muted-dark mb-2 text-xs">
         This node doesn't exist yet.
       </p>
       {onCreate && (
@@ -227,9 +229,9 @@ function UnresolvedPreview({ linkInfo, onCreate }: UnresolvedPreviewProps) {
           onKeyDown={handleKeyDown}
           className={cn(
             'min-h-[44px] rounded-md px-3 py-2 text-xs font-medium',
-            'bg-blue-600 text-white',
-            'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none',
-            'dark:focus:ring-offset-gray-900'
+            'bg-forge-accent text-white',
+            'hover:bg-forge-accent-hover focus:ring-forge-accent focus:ring-2 focus:ring-offset-1 focus:outline-none',
+            'dark:focus:ring-offset-forge-paper-dark'
           )}
         >
           Create Linked Node
@@ -326,7 +328,7 @@ export function WikiLinkPreview({
       aria-hidden={!isVisible}
       className={cn(
         'fixed z-50 w-64 rounded-lg border bg-white p-3 shadow-lg',
-        'dark:border-gray-700 dark:bg-gray-900',
+        'dark:border-forge-border-dark dark:bg-forge-paper-dark',
         'transition-opacity duration-150',
         position ? 'opacity-100' : 'pointer-events-none opacity-0'
       )}

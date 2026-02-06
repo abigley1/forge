@@ -173,7 +173,7 @@ export function TagInput({
     <div className={cn('space-y-1.5', className)}>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="text-forge-text-secondary dark:text-forge-text-secondary-dark block text-sm font-medium"
       >
         {label}
       </label>
@@ -182,12 +182,12 @@ export function TagInput({
         <div
           className={cn(
             'flex flex-wrap items-center gap-1.5',
-            'rounded-md border border-gray-300 bg-white px-2 py-1.5',
+            'border-forge-border rounded-md border bg-white px-2 py-1.5',
             'min-h-[42px]',
-            'focus-within:ring-2 focus-within:ring-gray-950 focus-within:ring-offset-2',
+            'focus-within:ring-forge-accent focus-within:ring-2 focus-within:ring-offset-2',
             disabled && 'cursor-not-allowed opacity-50',
-            'dark:border-gray-600 dark:bg-gray-800',
-            'dark:focus-within:ring-gray-300'
+            'dark:border-forge-border-dark dark:bg-forge-surface-dark',
+            'dark:focus-within:ring-forge-accent-dark'
           )}
         >
           {/* Tag chips */}
@@ -196,8 +196,8 @@ export function TagInput({
               key={tag}
               className={cn(
                 'inline-flex items-center gap-1 rounded-md',
-                'bg-gray-100 px-2 py-0.5 text-sm text-gray-700',
-                'dark:bg-gray-700 dark:text-gray-200'
+                'bg-forge-surface text-forge-text-secondary px-2 py-0.5 text-sm',
+                'dark:bg-forge-surface-dark dark:text-forge-text-dark'
               )}
             >
               {tag}
@@ -206,9 +206,9 @@ export function TagInput({
                 onClick={() => removeTag(tag)}
                 disabled={disabled}
                 className={cn(
-                  'rounded-sm p-0.5 hover:bg-gray-200',
-                  'focus-visible:ring-1 focus-visible:ring-gray-400 focus-visible:outline-none',
-                  'dark:hover:bg-gray-600'
+                  'hover:bg-forge-border rounded-sm p-0.5',
+                  'focus-visible:ring-forge-muted focus-visible:ring-1 focus-visible:outline-none',
+                  'dark:hover:bg-forge-border-dark'
                 )}
                 aria-label={`Remove ${tag} tag`}
               >
@@ -239,10 +239,10 @@ export function TagInput({
             }
             className={cn(
               'flex-1 border-none bg-transparent p-1',
-              'min-w-[80px] text-sm text-gray-900',
-              'placeholder:text-gray-400',
+              'text-forge-text min-w-[80px] text-sm',
+              'placeholder:text-forge-muted',
               'focus:ring-0 focus:outline-none',
-              'dark:text-gray-100 dark:placeholder:text-gray-500'
+              'dark:text-forge-text-dark dark:placeholder:text-forge-muted-dark'
             )}
           />
         </div>
@@ -256,8 +256,8 @@ export function TagInput({
             className={cn(
               'absolute top-full right-0 left-0 z-10 mt-1',
               'max-h-48 overflow-y-auto',
-              'rounded-md border border-gray-200 bg-white shadow-lg',
-              'dark:border-gray-700 dark:bg-gray-800'
+              'border-forge-border rounded-md border bg-white shadow-lg',
+              'dark:border-forge-border-dark dark:bg-forge-surface-dark'
             )}
           >
             {filteredSuggestions.map((tag, index) => (
@@ -276,10 +276,11 @@ export function TagInput({
                 tabIndex={-1}
                 className={cn(
                   'cursor-pointer px-3 py-2 text-sm',
-                  'text-gray-900 dark:text-gray-100',
-                  index === highlightedIndex && 'bg-gray-100 dark:bg-gray-700',
+                  'text-forge-text dark:text-forge-text-dark',
+                  index === highlightedIndex &&
+                    'bg-forge-surface dark:bg-forge-surface-dark',
                   index !== highlightedIndex &&
-                    'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    'hover:bg-forge-surface dark:hover:bg-forge-surface-dark/50'
                 )}
               >
                 {tag}
@@ -290,7 +291,7 @@ export function TagInput({
       </div>
 
       {/* Help text */}
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-forge-muted dark:text-forge-muted-dark text-xs">
         Press Enter or comma to add, Backspace to remove
       </p>
     </div>

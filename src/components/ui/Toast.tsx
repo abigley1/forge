@@ -259,7 +259,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
           <button
             type="button"
             onClick={handleUndo}
-            className="mt-2 text-sm font-medium underline underline-offset-2 hover:no-underline focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:outline-none"
+            className="focus-visible:ring-offset-forge-text mt-2 text-sm font-medium underline underline-offset-2 hover:no-underline focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Undo
           </button>
