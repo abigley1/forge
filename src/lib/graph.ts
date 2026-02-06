@@ -76,7 +76,7 @@ export interface GraphData {
 const GRID_CONFIG = {
   startX: 100,
   startY: 100,
-  nodeWidth: 200,
+  nodeWidth: 180,
   nodeHeight: 80,
   horizontalGap: 80,
   verticalGap: 60,
@@ -184,7 +184,7 @@ function createDependencyEdges(
               animated: false,
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: '#3b82f6', // blue-500
+                color: '#b87333', // copper
               },
             })
           }
@@ -685,6 +685,11 @@ export function getAllTagsForClustering(
 const elk = new ELK()
 
 /**
+ * Virtual container ID for orphan nodes in the compound graph.
+ * Used during layout only — not rendered as a real node.
+ */
+
+/**
  * Index mapping parent IDs to their children
  */
 type ParentChildIndex = Map<string, string[]>
@@ -715,9 +720,9 @@ export interface AutoLayoutOptions {
  */
 const DEFAULT_LAYOUT_OPTIONS: Required<AutoLayoutOptions> = {
   direction: 'DOWN',
-  nodeSpacing: 80,
-  levelSpacing: 100,
-  edgeSpacing: 30,
+  nodeSpacing: 50,
+  levelSpacing: 80,
+  edgeSpacing: 20,
   algorithm: 'layered',
 }
 
@@ -740,9 +745,17 @@ function toElkGraph(
       mergedOptions.levelSpacing
     ),
     'elk.spacing.edgeEdge': String(mergedOptions.edgeSpacing),
+    'elk.spacing.componentComponent': '80',
+    'elk.aspectRatio': '1.0',
     'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-    'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+    'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+    'elk.layered.layering.strategy': 'NETWORK_SIMPLEX',
     'elk.layered.considerModelOrder.strategy': 'PREFER_EDGES',
+    'elk.alignment': 'CENTER',
+    'elk.layered.compaction.postCompaction.strategy': 'EDGE_LENGTH',
+    'elk.layered.compaction.connectedComponents': 'true',
+    'elk.spacing.edgeNode': '25',
+    'elk.spacing.edgeNodeBetweenLayers': '25',
   }
 
   // Convert nodes to ELK format
@@ -936,24 +949,22 @@ function buildElkNodeWithChildren(
   })
 
   // Container nodes get extra padding for their children
-  const isContainer = children.length > 0
-  const padding = isContainer ? 60 : 0
+  const isContainer = elkChildren.length > 0
+  const sidePadding = isContainer ? 24 : 0
+  // Top padding must exceed nodeHeight so children render well below the parent card
+  const topPadding = isContainer ? GRID_CONFIG.nodeHeight + 32 : 0
 
-  // Configure port constraints for cleaner edge routing:
-  // - Containers: edges to children exit from SOUTH (bottom)
-  // - Children: edges from parent enter from NORTH (top)
-  // - Allow FREE ports for dependency/reference edges
+  // Configure port constraints for cleaner edge routing
   const nodeLayoutOptions: Record<string, string> = {
-    // Allow ports on any side for flexibility
     'elk.portConstraints': 'FREE',
   }
 
   if (isContainer) {
-    // Container nodes: extra padding and layout for children
     nodeLayoutOptions['elk.padding'] =
-      `[top=${padding + 20},left=${padding},bottom=${padding},right=${padding}]`
-    // Children should be laid out below the parent label area
+      `[top=${topPadding},left=${sidePadding},bottom=${sidePadding},right=${sidePadding}]`
     nodeLayoutOptions['elk.direction'] = 'DOWN'
+    // Center children horizontally under the parent card
+    nodeLayoutOptions['elk.contentAlignment'] = 'H_CENTER'
   }
 
   return {
@@ -988,10 +999,20 @@ function toCompoundElkGraph(
     return !parentId || !allNodesMap.has(parentId)
   })
 
-  // Build nested ELK structure from roots
+  // Build nested ELK structure from root nodes.
+  // Container nodes with children get their own compound ELK structure.
+  // Orphan nodes (no children in graph) sit at root level — ELK's
+  // componentComponent spacing separates them from container groups,
+  // and GroupBackgrounds renders the visual "Unlinked" bubble.
   const elkChildren: ElkNode[] = []
   rootNodes.forEach((rootNode) => {
-    if (!visitedIds.has(rootNode.id)) {
+    if (visitedIds.has(rootNode.id)) return
+
+    const hasChildrenInGraph = (parentChildIndex.get(rootNode.id) ?? []).some(
+      (childId) => allNodesMap.has(childId)
+    )
+
+    if (hasChildrenInGraph) {
       elkChildren.push(
         buildElkNodeWithChildren(
           rootNode,
@@ -1000,15 +1021,27 @@ function toCompoundElkGraph(
           visitedIds
         )
       )
+    } else {
+      // Orphan node — add directly at root level
+      visitedIds.add(rootNode.id)
+      elkChildren.push({
+        id: rootNode.id,
+        width: GRID_CONFIG.nodeWidth,
+        height: GRID_CONFIG.nodeHeight,
+      })
     }
   })
 
-  // Convert edges to ELK format
-  const elkEdges: ElkExtendedEdge[] = edges.map((edge) => ({
-    id: edge.id,
-    sources: [edge.source],
-    targets: [edge.target],
-  }))
+  // Convert edges to ELK format, excluding containment edges.
+  // Containment is already encoded structurally via nested children above —
+  // passing containment edges too creates redundant constraints that spread the layout.
+  const elkEdges: ElkExtendedEdge[] = edges
+    .filter((edge) => edge.data?.linkType !== 'containment')
+    .map((edge) => ({
+      id: edge.id,
+      sources: [edge.source],
+      targets: [edge.target],
+    }))
 
   // ELK layout options for compound graphs with flexible edge routing
   const layoutOptions: Record<string, string> = {
@@ -1019,15 +1052,32 @@ function toCompoundElkGraph(
       mergedOptions.levelSpacing
     ),
     'elk.spacing.edgeEdge': String(mergedOptions.edgeSpacing),
+    // Spacing between disconnected subgraphs (container groups).
+    // Must exceed 2 × GroupBackgrounds padding (30px each side = 60px)
+    // to prevent background bubbles from overlapping.
+    'elk.spacing.componentComponent': '80',
+    // Target a square-ish aspect ratio so disconnected subgraphs
+    // pack into a grid rather than a single wide row.
+    'elk.aspectRatio': '1.0',
     'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-    'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+    'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+    // NETWORK_SIMPLEX layering minimizes total edge length,
+    // placing nodes at the layer where their edges enter the graph
+    // (vs LONGEST_PATH which can push nodes too high).
+    'elk.layered.layering.strategy': 'NETWORK_SIMPLEX',
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     'elk.layered.considerModelOrder.strategy': 'PREFER_EDGES',
+    // Center nodes within their layer instead of left-aligning
+    'elk.alignment': 'CENTER',
+    // Post-layout compaction to remove wasted whitespace
+    'elk.layered.compaction.postCompaction.strategy': 'EDGE_LENGTH',
+    // Pack disconnected subgraphs together
+    'elk.layered.compaction.connectedComponents': 'true',
     // Edge routing: allow edges to connect from any side
     'elk.layered.edgeRouting.selfLoopDistribution': 'EQUALLY',
-    // Better edge spacing around nodes
+    // Edge-node spacing — enough room for edges to route around nodes
     'elk.spacing.edgeNode': '25',
-    'elk.spacing.edgeNodeBetweenLayers': '20',
+    'elk.spacing.edgeNodeBetweenLayers': '25',
     // Merge edges going to same target for cleaner look
     'elk.layered.mergeEdges': 'true',
   }

@@ -9,8 +9,6 @@ import ReactFlow, {
   Controls,
   ControlButton,
   MiniMap,
-  Background,
-  BackgroundVariant,
   ReactFlowProvider,
   useNodesState,
   useEdgesState,
@@ -96,21 +94,21 @@ interface ContextMenuState {
 function getMinimapNodeColor(node: RFNode): string {
   // Handle cluster nodes
   if (node.type === 'tagCluster') {
-    return '#a855f7' // purple-500
+    return '#9a7b4f' // warm gold (cluster)
   }
 
   const nodeType = node.data?.nodeType
   switch (nodeType) {
     case 'decision':
-      return '#3b82f6' // blue-500
+      return '#e8a84c' // warm amber-gold
     case 'component':
-      return '#22c55e' // green-500
+      return '#8b7355' // warm brown
     case 'task':
-      return '#f97316' // orange-500
+      return '#c87941' // copper
     case 'note':
-      return '#6b7280' // gray-500
+      return '#a09890' // warm taupe
     default:
-      return '#9ca3af' // gray-400
+      return '#9a7b4f' // warm gold
   }
 }
 
@@ -427,6 +425,78 @@ function GraphViewInner({
     reactFlowInstance,
     reducedMotion,
   ])
+
+  // One-shot auto-layout for initial render when no positions are stored.
+  // The structural-change effect above skips initial render, so nodes with no
+  // stored positions would stay in the meaningless default grid. This effect
+  // detects that case and immediately runs hierarchical layout once.
+  const initialLayoutDoneRef = useRef(false)
+  useEffect(() => {
+    if (initialLayoutDoneRef.current) return
+    if (rfNodes.length === 0) return
+    if (isLayouting) return
+
+    // Check if most nodes lack stored positions
+    const forgeNodes = rfNodes.filter(
+      (n) => n.type === 'forgeNode'
+    ) as ForgeGraphNode[]
+    if (forgeNodes.length === 0) return
+
+    const nodesWithPositions = forgeNodes.filter(
+      (n) => storedPositions?.[n.id] != null
+    ).length
+    const coverageRatio = nodesWithPositions / forgeNodes.length
+
+    // If >50% of nodes already have stored positions, skip
+    if (coverageRatio > 0.5) {
+      initialLayoutDoneRef.current = true
+      return
+    }
+
+    // Run layout immediately (no debounce for initial render)
+    initialLayoutDoneRef.current = true
+    setIsLayouting(true)
+
+    const relevantEdges = rfEdges.filter(
+      (e) =>
+        forgeNodes.some((n) => n.id === e.source) &&
+        forgeNodes.some((n) => n.id === e.target)
+    )
+
+    calculateHierarchicalLayout(forgeNodes, relevantEdges)
+      .then((newPositions) => {
+        setRfNodes((currentNodes) =>
+          currentNodes.map((node) => {
+            const newPos = newPositions[node.id]
+            if (newPos) {
+              return { ...node, position: newPos }
+            }
+            return node
+          })
+        )
+
+        // Persist positions to project metadata
+        if (project) {
+          updateMetadata({ nodePositions: newPositions })
+        }
+        onPositionsChange?.(newPositions)
+
+        // Fit view after layout
+        setTimeout(() => {
+          reactFlowInstance?.fitView({
+            padding: 0.2,
+            duration: reducedMotion ? 0 : 200,
+          })
+        }, 50)
+      })
+      .catch((error) => {
+        console.error('Initial auto-layout failed:', error)
+      })
+      .finally(() => {
+        setIsLayouting(false)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rfNodes.length, rfEdges.length, storedPositions])
 
   // Keyboard navigation
   const handleKeyboardSelect = useCallback(
@@ -882,11 +952,13 @@ function GraphViewInner({
         selectionOnDrag={false}
       >
         {/* Group backgrounds for container relationships */}
-        {showGroupBackgrounds && <GroupBackgrounds nodes={processedNodes} />}
+        {showGroupBackgrounds && (
+          <GroupBackgrounds nodes={processedNodes} edges={processedEdges} />
+        )}
 
         {/* Controls for zoom/pan */}
         <Controls
-          className="!border-gray-200 !bg-white !shadow-md dark:!border-gray-700 dark:!bg-gray-800"
+          className="!border-forge-border !bg-forge-surface dark:!border-forge-border-dark dark:!bg-forge-surface-dark !rounded-md !shadow-sm"
           showInteractive={false}
           showFitView={true}
           fitViewOptions={{
@@ -951,23 +1023,17 @@ function GraphViewInner({
         {showMinimap && (
           <MiniMap
             nodeColor={getMinimapNodeColor}
-            maskColor="rgba(0, 0, 0, 0.1)"
-            className="!border-gray-200 !bg-white dark:!border-gray-700 dark:!bg-gray-800"
+            maskColor="rgba(44, 40, 37, 0.08)"
+            className="!border-forge-border !bg-forge-surface dark:!border-forge-border-dark dark:!bg-forge-surface-dark"
             pannable
             zoomable
             aria-label="Graph minimap showing overview of all nodes"
           />
         )}
 
-        {/* Background grid */}
+        {/* Engineering grid background */}
         {showBackground && (
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={20}
-            size={1}
-            color="#d1d5db"
-            className="dark:!bg-gray-900"
-          />
+          <div className="forge-engineering-grid absolute inset-0 -z-10" />
         )}
       </ReactFlow>
 
