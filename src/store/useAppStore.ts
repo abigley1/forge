@@ -6,7 +6,7 @@ import { devtools } from 'zustand/middleware'
  */
 export interface UIState {
   sidebarOpen: boolean
-  activeView: 'outline' | 'graph' | 'kanban'
+  activeView: 'outline' | 'graph' | 'kanban' | 'inventory'
 }
 
 /**

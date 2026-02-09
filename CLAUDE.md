@@ -113,6 +113,8 @@ packages/forge-mcp-server/   # MCP server for AI agent integration
 
 **AppShell sidebar hiding:** `AppShell` accepts `hideSidebar` prop. Sidebar is hidden on welcome/loading screens — E2E tests should not assert sidebar visibility when no project is loaded.
 
+**Standalone tools:** `App.tsx` supports rendering project-independent views (e.g., Inventory) via `standaloneTool` state. These render full-page with a breadcrumb header back to the landing page, no sidebar.
+
 **Node Type System:** Uses discriminated unions with type guards. Seven node types:
 - **Leaf nodes:** Decision, Component, Task, Note (all have `parent` field for hierarchy)
 - **Container nodes:** Subsystem (top-level), Assembly, Module (Assembly/Module have `parent` field)
@@ -120,6 +122,8 @@ packages/forge-mcp-server/   # MCP server for AI agent integration
 Always narrow with `isTaskNode(node)`, `isContainerNode(node)`, etc. before accessing type-specific fields.
 
 **Persistence:** The app uses server-backed persistence via the Express server. The `useServerPersistence` hook handles loading/saving nodes through the API. `MemoryFileSystemAdapter` is used for unit tests.
+
+**Workspace persistence:** `useWorkspaceStore` persists projects, recentProjectIds, and config to localStorage. `activeProjectId` is intentionally NOT persisted — every page load starts at the landing page.
 
 **Validation:** `validateNode()` in `src/lib/validation.ts` returns `ValidationResult<ForgeNode>` - a Result type that's either `{ success: true, data: ForgeNode }` or `{ success: false, error: ValidationError }`. Never throw on validation failure.
 
@@ -179,6 +183,8 @@ E2E tests are in `e2e/` and use helper utilities from `e2e/test-utils.ts`. Key h
 E2E tests communicate with Zustand stores via custom events (`e2e-setup-nodes`, `e2e-clear-nodes`).
 
 The app exposes `window.__e2eReady` flag that tests wait for before interacting.
+
+**Landing page selectors:** Welcome screen has `data-testid="welcome-screen"`, heading matches `/forge/i`, create button matches `/new project/i`. Sidebar is not rendered on the landing page.
 
 ## Ralph Loop (Automated Development)
 

@@ -405,6 +405,69 @@ export function createApiClient(config: ApiClientConfig) {
     )
   }
 
+  // ========== Inventory API ==========
+
+  async function searchInventory(
+    filters?: InventorySearchFilters
+  ): Promise<ApiResult<ApiInventoryItem[]>> {
+    const params = new URLSearchParams()
+
+    if (filters) {
+      if (filters.category) {
+        params.set('category', filters.category)
+      }
+      if (filters.subcategory) {
+        params.set('subcategory', filters.subcategory)
+      }
+      if (filters.status) {
+        params.set('status', filters.status)
+      }
+      if (filters.location) {
+        params.set('location', filters.location)
+      }
+      if (filters.q) {
+        params.set('q', filters.q)
+      }
+      if (filters.limit !== undefined) {
+        params.set('limit', String(filters.limit))
+      }
+      if (filters.low_stock) {
+        params.set('low_stock', 'true')
+      }
+    }
+
+    const query = params.toString()
+    return request<ApiInventoryItem[]>(
+      'GET',
+      `/inventory${query ? `?${query}` : ''}`
+    )
+  }
+
+  async function getInventoryItem(
+    id: string
+  ): Promise<ApiResult<ApiInventoryItem>> {
+    return request<ApiInventoryItem>('GET', `/inventory/${id}`)
+  }
+
+  async function createInventoryItem(
+    data: CreateInventoryItemInput
+  ): Promise<ApiResult<ApiInventoryItem>> {
+    return request<ApiInventoryItem>('POST', '/inventory', data)
+  }
+
+  async function updateInventoryQuantity(
+    id: string,
+    data: UpdateInventoryQuantityInput
+  ): Promise<ApiResult<ApiInventoryItem>> {
+    return request<ApiInventoryItem>('PATCH', `/inventory/${id}/quantity`, data)
+  }
+
+  async function listInventoryCategories(): Promise<
+    ApiResult<ApiInventoryCategory[]>
+  > {
+    return request<ApiInventoryCategory[]>('GET', '/inventory/categories')
+  }
+
   return {
     // Projects
     listProjects,
@@ -425,7 +488,80 @@ export function createApiClient(config: ApiClientConfig) {
     getCriticalPath,
     // Component Search
     findComponents,
+    // Inventory
+    searchInventory,
+    getInventoryItem,
+    createInventoryItem,
+    updateInventoryQuantity,
+    listInventoryCategories,
   }
+}
+
+// ========== Inventory Types ==========
+
+export interface ApiInventoryItem {
+  id: string
+  name: string
+  category_id: string
+  subcategory_id: string | null
+  status: 'owned' | 'wishlist' | 'on_order'
+  quantity: number
+  low_stock_threshold: number | null
+  location: string | null
+  supplier: string | null
+  supplier_url: string | null
+  part_number: string | null
+  cost: number | null
+  barcode: string | null
+  notes: string | null
+  image_url: string | null
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface ApiInventoryCategory {
+  id: string
+  name: string
+  sort_order: number
+  subcategories: Array<{
+    id: string
+    name: string
+    sort_order: number
+  }>
+}
+
+export interface InventorySearchFilters {
+  category?: string
+  subcategory?: string
+  status?: 'owned' | 'wishlist' | 'on_order'
+  location?: string
+  q?: string
+  limit?: number
+  /** Filter to items below their individual low_stock_threshold */
+  low_stock?: boolean
+}
+
+export interface CreateInventoryItemInput {
+  name: string
+  category_id: string
+  subcategory_id?: string | null
+  status?: 'owned' | 'wishlist' | 'on_order'
+  quantity?: number
+  low_stock_threshold?: number | null
+  location?: string | null
+  supplier?: string | null
+  supplier_url?: string | null
+  part_number?: string | null
+  cost?: number | null
+  barcode?: string | null
+  notes?: string | null
+  image_url?: string | null
+  tags?: string[]
+}
+
+export interface UpdateInventoryQuantityInput {
+  delta: number
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>

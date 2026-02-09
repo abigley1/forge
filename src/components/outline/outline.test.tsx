@@ -294,7 +294,7 @@ describe('OutlineView', () => {
         />
       )
 
-      expect(screen.getByText('No nodes yet')).toBeInTheDocument()
+      expect(screen.getByText('No Nodes')).toBeInTheDocument()
     })
 
     it('shows empty message for sections without nodes', () => {
@@ -310,7 +310,9 @@ describe('OutlineView', () => {
         />
       )
 
-      expect(screen.getByText('No decisions yet')).toBeInTheDocument()
+      // Empty sections show "--" equipment readout style (may appear multiple times for different empty sections)
+      const dashes = screen.getAllByText('--')
+      expect(dashes.length).toBeGreaterThan(0)
     })
 
     it('highlights active node', () => {

@@ -219,8 +219,10 @@ describe('ForgeGraphNode', () => {
     )
 
     expect(screen.getByText('Test Decision')).toBeInTheDocument()
-    // Check for blue color classes (decision)
-    expect(container.querySelector('.text-blue-600')).toBeInTheDocument()
+    // Check for warm decision type color classes
+    expect(
+      container.querySelector('.text-forge-node-decision-text')
+    ).toBeInTheDocument()
   })
 
   it('does not show status badge for note nodes without status', () => {
@@ -565,7 +567,7 @@ describe('GraphView', () => {
     expect(minimap).not.toBeInTheDocument()
   })
 
-  it('renders background when showBackground is true', () => {
+  it('renders engineering grid background when showBackground is true', () => {
     const { container } = render(
       <ReactFlowWrapper>
         <div style={{ width: 800, height: 600 }}>
@@ -574,7 +576,7 @@ describe('GraphView', () => {
       </ReactFlowWrapper>
     )
 
-    const background = container.querySelector('.react-flow__background')
+    const background = container.querySelector('.forge-engineering-grid')
     expect(background).toBeInTheDocument()
   })
 
@@ -587,7 +589,7 @@ describe('GraphView', () => {
       </ReactFlowWrapper>
     )
 
-    const background = container.querySelector('.react-flow__background')
+    const background = container.querySelector('.forge-engineering-grid')
     expect(background).not.toBeInTheDocument()
   })
 
@@ -816,7 +818,7 @@ describe('DependencyEdge', () => {
     expect(path).toHaveAttribute('d')
   })
 
-  it('applies blue color to edge', () => {
+  it('applies copper color to edge', () => {
     const { container } = render(
       <ReactFlowWrapper>
         <svg>
@@ -826,10 +828,10 @@ describe('DependencyEdge', () => {
     )
 
     const path = container.querySelector('path')
-    expect(path).toHaveStyle({ stroke: '#3b82f6' }) // blue-500
+    expect(path).toHaveStyle({ stroke: '#b87333' }) // copper
   })
 
-  it('applies darker blue when selected', () => {
+  it('applies dark copper when selected', () => {
     const { container } = render(
       <ReactFlowWrapper>
         <svg>
@@ -839,7 +841,7 @@ describe('DependencyEdge', () => {
     )
 
     const path = container.querySelector('path')
-    expect(path).toHaveStyle({ stroke: '#1d4ed8' }) // blue-700
+    expect(path).toHaveStyle({ stroke: '#9a5b2f' }) // dark copper
   })
 
   it('has 2px stroke width', () => {
@@ -912,7 +914,7 @@ describe('ReferenceEdge', () => {
     expect(path).toHaveAttribute('d')
   })
 
-  it('applies gray color to edge', () => {
+  it('applies warm taupe color to edge', () => {
     const { container } = render(
       <ReactFlowWrapper>
         <svg>
@@ -922,10 +924,10 @@ describe('ReferenceEdge', () => {
     )
 
     const path = container.querySelector('path')
-    expect(path).toHaveStyle({ stroke: '#94a3b8' }) // gray-400
+    expect(path).toHaveStyle({ stroke: '#a09890' }) // warm taupe
   })
 
-  it('applies darker gray when selected', () => {
+  it('applies darker taupe when selected', () => {
     const { container } = render(
       <ReactFlowWrapper>
         <svg>
@@ -935,7 +937,7 @@ describe('ReferenceEdge', () => {
     )
 
     const path = container.querySelector('path')
-    expect(path).toHaveStyle({ stroke: '#4b5563' }) // gray-600
+    expect(path).toHaveStyle({ stroke: '#706860' }) // warm taupe dark
   })
 
   it('has 1px stroke width', () => {

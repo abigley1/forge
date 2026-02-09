@@ -19,8 +19,8 @@ function CircleMarker({
   y: number
   selected: boolean
 }) {
-  const fillColor = selected ? '#4b5563' : '#94a3b8' // gray-600 when selected, gray-400 otherwise
-  const strokeColor = selected ? '#374151' : '#64748b' // gray-700 when selected, gray-500 otherwise
+  const fillColor = selected ? '#706860' : '#a09890' // warm taupe-dark when selected, warm taupe otherwise
+  const strokeColor = selected ? '#5a5550' : '#8a8278' // darker taupe when selected, mid taupe otherwise
 
   return (
     <circle
@@ -69,8 +69,8 @@ export function ReferenceEdge({
     borderRadius: 8,
   })
 
-  // Gray color for references (dashed, subtle)
-  const strokeColor = selected ? '#4b5563' : '#94a3b8' // gray-600 when selected, gray-400 otherwise
+  // Warm taupe for references (dashed, subtle)
+  const strokeColor = selected ? '#706860' : '#a09890' // warm taupe-dark when selected, warm taupe otherwise
 
   return (
     <>

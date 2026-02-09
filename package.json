@@ -42,6 +42,7 @@
     "clsx": "^2.1.1",
     "elkjs": "^0.11.0",
     "gray-matter": "^4.0.3",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.562.0",
     "minisearch": "^7.2.0",
     "nuqs": "^2.8.6",

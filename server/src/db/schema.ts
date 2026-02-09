@@ -11,7 +11,18 @@
  * - attachments: File attachments for nodes
  */
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 4
+
+/**
+ * Inventory item status values
+ */
+export type InventoryItemStatus = 'owned' | 'wishlist' | 'on_order'
+
+export const VALID_INVENTORY_STATUSES: InventoryItemStatus[] = [
+  'owned',
+  'wishlist',
+  'on_order',
+]
 
 /**
  * SQL statements to create the database schema
@@ -117,6 +128,135 @@ CREATE TABLE IF NOT EXISTS schema_version (
   version INTEGER PRIMARY KEY,
   applied_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Inventory module tables
+
+-- Inventory categories
+CREATE TABLE IF NOT EXISTS inventory_categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0
+);
+
+-- Inventory subcategories
+CREATE TABLE IF NOT EXISTS inventory_subcategories (
+  id TEXT PRIMARY KEY,
+  category_id TEXT NOT NULL REFERENCES inventory_categories(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0
+);
+
+-- Inventory items
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category_id TEXT NOT NULL REFERENCES inventory_categories(id),
+  subcategory_id TEXT REFERENCES inventory_subcategories(id),
+  status TEXT NOT NULL DEFAULT 'owned' CHECK(status IN ('owned', 'wishlist', 'on_order')),
+  quantity INTEGER NOT NULL DEFAULT 0,
+  low_stock_threshold INTEGER,
+  location TEXT,
+  supplier TEXT,
+  supplier_url TEXT,
+  part_number TEXT,
+  cost REAL,
+  barcode TEXT,
+  notes TEXT,
+  image_url TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Inventory item tags
+CREATE TABLE IF NOT EXISTS inventory_item_tags (
+  item_id TEXT NOT NULL REFERENCES inventory_items(id) ON DELETE CASCADE,
+  tag TEXT NOT NULL,
+  PRIMARY KEY (item_id, tag)
+);
+
+-- Full-text search for inventory items
+CREATE VIRTUAL TABLE IF NOT EXISTS inventory_items_fts USING fts5(
+  name, notes, part_number,
+  content='inventory_items',
+  content_rowid='rowid'
+);
+
+-- Triggers to keep FTS in sync
+CREATE TRIGGER IF NOT EXISTS inventory_items_ai AFTER INSERT ON inventory_items BEGIN
+  INSERT INTO inventory_items_fts(rowid, name, notes, part_number)
+  VALUES (NEW.rowid, NEW.name, NEW.notes, NEW.part_number);
+END;
+
+CREATE TRIGGER IF NOT EXISTS inventory_items_ad AFTER DELETE ON inventory_items BEGIN
+  INSERT INTO inventory_items_fts(inventory_items_fts, rowid, name, notes, part_number)
+  VALUES ('delete', OLD.rowid, OLD.name, OLD.notes, OLD.part_number);
+END;
+
+CREATE TRIGGER IF NOT EXISTS inventory_items_au AFTER UPDATE ON inventory_items BEGIN
+  INSERT INTO inventory_items_fts(inventory_items_fts, rowid, name, notes, part_number)
+  VALUES ('delete', OLD.rowid, OLD.name, OLD.notes, OLD.part_number);
+  INSERT INTO inventory_items_fts(rowid, name, notes, part_number)
+  VALUES (NEW.rowid, NEW.name, NEW.notes, NEW.part_number);
+END;
+
+-- Indexes for inventory items
+CREATE INDEX IF NOT EXISTS idx_inventory_items_category ON inventory_items(category_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_items_subcategory ON inventory_items(subcategory_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_items_status ON inventory_items(status);
+CREATE INDEX IF NOT EXISTS idx_inventory_items_location ON inventory_items(location);
+
+-- Seed default inventory categories
+INSERT OR IGNORE INTO inventory_categories (id, name, sort_order) VALUES
+  ('electronics', 'Electronics', 0),
+  ('fasteners', 'Fasteners', 1),
+  ('mechanical', 'Mechanical', 2),
+  ('raw-materials', 'Raw Materials', 3),
+  ('tools', 'Tools', 4),
+  ('consumables', 'Consumables', 5),
+  ('other', 'Other', 6);
+
+-- Seed default subcategories for Electronics
+INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order) VALUES
+  ('electronics-capacitors', 'electronics', 'Capacitors', 0),
+  ('electronics-resistors', 'electronics', 'Resistors', 1),
+  ('electronics-ics', 'electronics', 'ICs', 2),
+  ('electronics-connectors', 'electronics', 'Connectors', 3),
+  ('electronics-sensors', 'electronics', 'Sensors', 4),
+  ('electronics-leds', 'electronics', 'LEDs', 5),
+  ('electronics-other', 'electronics', 'Other', 6);
+
+-- Seed default subcategories for Fasteners
+INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order) VALUES
+  ('fasteners-screws', 'fasteners', 'Screws', 0),
+  ('fasteners-nuts', 'fasteners', 'Nuts', 1),
+  ('fasteners-bolts', 'fasteners', 'Bolts', 2),
+  ('fasteners-washers', 'fasteners', 'Washers', 3),
+  ('fasteners-standoffs', 'fasteners', 'Standoffs', 4),
+  ('fasteners-other', 'fasteners', 'Other', 5);
+
+-- Seed default subcategories for Mechanical
+INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order) VALUES
+  ('mechanical-bearings', 'mechanical', 'Bearings', 0),
+  ('mechanical-gears', 'mechanical', 'Gears', 1),
+  ('mechanical-pulleys', 'mechanical', 'Pulleys', 2),
+  ('mechanical-shafts', 'mechanical', 'Shafts', 3),
+  ('mechanical-motors', 'mechanical', 'Motors', 4),
+  ('mechanical-other', 'mechanical', 'Other', 5);
+
+-- Seed default subcategories for Raw Materials
+INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order) VALUES
+  ('raw-materials-sheet', 'raw-materials', 'Sheet', 0),
+  ('raw-materials-rod', 'raw-materials', 'Rod', 1),
+  ('raw-materials-tube', 'raw-materials', 'Tube', 2),
+  ('raw-materials-wire', 'raw-materials', 'Wire', 3),
+  ('raw-materials-other', 'raw-materials', 'Other', 4);
+
+-- Seed default subcategories for Consumables
+INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order) VALUES
+  ('consumables-solder', 'consumables', 'Solder', 0),
+  ('consumables-tape', 'consumables', 'Tape', 1),
+  ('consumables-adhesives', 'consumables', 'Adhesives', 2),
+  ('consumables-other', 'consumables', 'Other', 3);
 `
 
 /**

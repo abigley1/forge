@@ -50,9 +50,9 @@ function MenuItem({
       role="menuitem"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-        'hover:bg-gray-100 dark:hover:bg-gray-700',
-        'focus-visible:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:bg-gray-700',
+        'flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs tracking-wide',
+        'hover:bg-forge-paper dark:hover:bg-forge-paper-dark',
+        'focus-visible:bg-forge-paper focus-visible:ring-forge-accent dark:focus-visible:bg-forge-paper-dark focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
         variant === 'danger' &&
           'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950'
       )}
@@ -146,8 +146,8 @@ export function NodeContextMenu({
       aria-label={`Actions for ${nodeTitle}`}
       tabIndex={-1}
       className={cn(
-        'fixed z-50 min-w-[160px] rounded-lg border bg-white dark:bg-gray-800',
-        'border-gray-200 shadow-lg dark:border-gray-700',
+        'bg-forge-surface dark:bg-forge-surface-dark fixed z-50 min-w-[160px] rounded-md border',
+        'border-forge-border dark:border-forge-border-dark shadow-lg',
         'py-1 focus:outline-none'
       )}
       style={{
@@ -155,8 +155,8 @@ export function NodeContextMenu({
         top: y,
       }}
     >
-      <div className="border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-        <p className="max-w-[200px] truncate text-xs font-medium text-gray-500 dark:text-gray-400">
+      <div className="border-forge-border-subtle dark:border-forge-border-subtle-dark border-b px-3 py-2">
+        <p className="text-forge-text-secondary dark:text-forge-text-secondary-dark max-w-[200px] truncate font-mono text-[10px] font-semibold tracking-[0.1em] uppercase">
           {nodeTitle}
         </p>
       </div>
@@ -171,7 +171,7 @@ export function NodeContextMenu({
             onClick={handleShowChildrenOnly}
           />
         )}
-        <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+        <div className="border-forge-border-subtle dark:border-forge-border-subtle-dark my-1 border-t" />
         <MenuItem
           icon={Trash2}
           label="Delete"

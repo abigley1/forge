@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import { Milestone, ChevronDown, ChevronRight, FileText } from 'lucide-react'
+import { Milestone, ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   groupTasksByMilestone,
@@ -36,15 +36,15 @@ function ProgressIndicator({ progress, className }: ProgressIndicatorProps) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {/* Progress bar - uses scaleX transform for animation (not width) per CLAUDE.md */}
-      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="bg-forge-border dark:bg-forge-border-dark h-1.5 w-16 overflow-hidden rounded-full">
         <div
           className={cn(
             'h-full origin-left transition-transform duration-200',
             percentage === 100
-              ? 'bg-green-500'
+              ? 'bg-forge-node-assembly-text dark:bg-forge-node-assembly-text-dark'
               : percentage > 0
-                ? 'bg-blue-500'
-                : 'bg-gray-300 dark:bg-gray-600'
+                ? 'bg-forge-accent dark:bg-forge-accent-dark'
+                : 'bg-forge-muted dark:bg-forge-muted-dark'
           )}
           style={{ transform: `scaleX(${percentage / 100})` }}
         />
@@ -52,10 +52,10 @@ function ProgressIndicator({ progress, className }: ProgressIndicatorProps) {
       {/* Count */}
       <span
         className={cn(
-          'text-xs tabular-nums',
+          'font-mono text-xs tabular-nums',
           percentage === 100
-            ? 'text-green-600 dark:text-green-400'
-            : 'text-gray-500 dark:text-gray-400'
+            ? 'text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark'
+            : 'text-forge-muted dark:text-forge-muted-dark'
         )}
       >
         {completed}/{total}
@@ -131,15 +131,15 @@ function MilestoneItem({
       }}
       className={cn(
         'flex cursor-pointer items-center gap-2 rounded-md px-3 py-2',
-        'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset',
-        'dark:focus-visible:ring-gray-300',
+        'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+        'dark:focus-visible:ring-forge-accent-dark',
         isActive
-          ? 'bg-gray-100 ring-2 ring-gray-300 ring-inset dark:bg-gray-800 dark:ring-gray-600'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ? 'bg-forge-surface ring-forge-accent dark:bg-forge-surface-dark dark:ring-forge-accent-dark ring-2 ring-inset'
+          : 'hover:bg-forge-surface dark:hover:bg-forge-surface-dark'
       )}
     >
       <NodeTypeIcon type={task.type} size="sm" />
-      <span className="min-w-0 flex-1 truncate text-sm text-gray-900 dark:text-gray-100">
+      <span className="text-forge-text dark:text-forge-text-dark min-w-0 flex-1 truncate text-sm">
         {task.title}
       </span>
       <button
@@ -148,8 +148,9 @@ function MilestoneItem({
         onKeyDown={handleStatusKeyDown}
         className={cn(
           'rounded-sm p-2', // min 44x44px touch target
-          'hover:bg-gray-200 dark:hover:bg-gray-700',
-          'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none'
+          'hover:bg-forge-border dark:hover:bg-forge-border-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+          'dark:focus-visible:ring-forge-accent-dark'
         )}
         aria-label={`Toggle status of ${task.title}`}
       >
@@ -183,17 +184,18 @@ function MilestoneSection({
   const contentId = `milestone-content-${group.milestone || 'none'}`
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-800">
+    <div className="border-forge-border dark:border-forge-border-dark border-b">
       {/* Header */}
       <button
         type="button"
         onClick={onToggle}
         className={cn(
           'flex w-full items-center gap-2 px-4 py-3',
-          'text-sm font-medium text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-          'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset',
-          'dark:focus-visible:ring-gray-300'
+          'font-mono text-xs tracking-[0.1em] uppercase',
+          'text-forge-text-secondary dark:text-forge-text-secondary-dark',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+          'dark:focus-visible:ring-forge-accent-dark'
         )}
         aria-expanded={expanded}
         aria-controls={contentId}
@@ -201,19 +203,19 @@ function MilestoneSection({
         {/* Chevron */}
         {expanded ? (
           <ChevronDown
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         )}
 
         {/* Milestone icon */}
         <Milestone
-          className="h-4 w-4 shrink-0 text-gray-500"
+          className="text-forge-accent dark:text-forge-accent-dark h-4 w-4 shrink-0"
           aria-hidden="true"
         />
 
@@ -380,18 +382,15 @@ export function MilestoneOutlineView({
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center py-12 text-center',
+          'flex flex-col items-center justify-center gap-3 py-12 text-center',
           className
         )}
       >
-        <FileText
-          className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600"
-          aria-hidden="true"
-        />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          No tasks yet
+        <div className="bg-forge-muted dark:bg-forge-muted-dark h-1.5 w-1.5 rounded-full" />
+        <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs font-medium tracking-[0.1em] uppercase">
+          No Tasks
         </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-sm">
           Create tasks and assign milestones to see them here.
         </p>
       </div>

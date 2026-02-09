@@ -30,18 +30,18 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
       <Handle
         type="target"
         position={Position.Left}
-        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!bg-forge-muted dark:!bg-forge-muted-dark !size-2"
       />
 
       <div
         className={cn(
           // Ensure 44x44px minimum touch target for accessibility (WCAG 2.1)
-          'min-h-[44px] min-w-[120px] cursor-pointer rounded-lg border-2 p-3 shadow-sm transition-colors transition-shadow',
-          'bg-purple-50 dark:bg-purple-950',
-          'border-purple-300 dark:border-purple-700',
-          'hover:border-purple-400 hover:shadow-md dark:hover:border-purple-600',
+          'min-h-[44px] min-w-[120px] cursor-pointer rounded-md border-2 p-3 shadow-sm transition-colors transition-shadow',
+          'bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark',
+          'border-forge-node-subsystem-border dark:border-forge-node-subsystem-border-dark',
+          'hover:border-forge-accent dark:hover:border-forge-accent-dark hover:shadow-md',
           selected &&
-            'shadow-md ring-2 ring-purple-500 ring-offset-2 dark:ring-offset-gray-900'
+            'ring-forge-accent ring-offset-forge-paper dark:ring-offset-forge-paper-dark shadow-md ring-2 ring-offset-2'
         )}
         role="button"
         aria-expanded={expanded}
@@ -52,21 +52,21 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
         <div className="flex items-center gap-2">
           {expanded ? (
             <FolderOpen
-              className="h-4 w-4 flex-shrink-0 text-purple-600 dark:text-purple-400"
+              className="text-forge-accent dark:text-forge-accent-dark h-4 w-4 flex-shrink-0"
               aria-hidden="true"
             />
           ) : (
             <Tag
-              className="h-4 w-4 flex-shrink-0 text-purple-600 dark:text-purple-400"
+              className="text-forge-accent dark:text-forge-accent-dark h-4 w-4 flex-shrink-0"
               aria-hidden="true"
             />
           )}
-          <span className="flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+          <span className="text-forge-text dark:text-forge-text-dark flex-1 truncate font-mono text-sm font-medium">
             {tag}
           </span>
           <ChevronRight
             className={cn(
-              'h-4 w-4 flex-shrink-0 text-purple-500 transition-transform dark:text-purple-400',
+              'text-forge-accent dark:text-forge-accent-dark h-4 w-4 flex-shrink-0 transition-transform',
               expanded && 'rotate-90'
             )}
             aria-hidden="true"
@@ -75,13 +75,13 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
 
         {/* Node count badge */}
         <div className="mt-1.5 flex items-center justify-between">
-          <span className="text-xs text-purple-600 dark:text-purple-400">
+          <span className="text-forge-accent dark:text-forge-accent-dark font-mono text-xs">
             {nodeCount} {nodeCount === 1 ? 'node' : 'nodes'}
           </span>
           <span
             className={cn(
-              'inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium',
-              'bg-purple-200 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+              'inline-flex h-5 w-5 items-center justify-center rounded-full font-mono text-xs font-medium',
+              'bg-forge-accent-subtle dark:bg-forge-accent-subtle-dark text-amber-800 dark:text-amber-200'
             )}
           >
             {nodeCount}
@@ -93,7 +93,7 @@ function TagClusterComponent({ data, selected }: TagClusterProps) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!size-2 !bg-gray-400 dark:!bg-gray-500"
+        className="!bg-forge-muted dark:!bg-forge-muted-dark !size-2"
       />
     </>
   )

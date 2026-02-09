@@ -27,39 +27,46 @@ const NODE_TYPE_COLORS: Record<
   { bg: string; border: string; text: string }
 > = {
   [NodeType.Decision]: {
-    bg: 'bg-blue-50 dark:bg-blue-950',
-    border: 'border-blue-300 dark:border-blue-700',
-    text: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-forge-node-decision dark:bg-forge-node-decision-dark',
+    border:
+      'border-forge-node-decision-border dark:border-forge-node-decision-border-dark',
+    text: 'text-forge-node-decision-text dark:text-forge-node-decision-text-dark',
   },
   [NodeType.Component]: {
-    bg: 'bg-green-50 dark:bg-green-950',
-    border: 'border-green-300 dark:border-green-700',
-    text: 'text-green-600 dark:text-green-400',
+    bg: 'bg-forge-node-component dark:bg-forge-node-component-dark',
+    border:
+      'border-forge-node-component-border dark:border-forge-node-component-border-dark',
+    text: 'text-forge-node-component-text dark:text-forge-node-component-text-dark',
   },
   [NodeType.Task]: {
-    bg: 'bg-orange-50 dark:bg-orange-950',
-    border: 'border-orange-300 dark:border-orange-700',
-    text: 'text-orange-600 dark:text-orange-400',
+    bg: 'bg-forge-node-task dark:bg-forge-node-task-dark',
+    border:
+      'border-forge-node-task-border dark:border-forge-node-task-border-dark',
+    text: 'text-forge-node-task-text dark:text-forge-node-task-text-dark',
   },
   [NodeType.Note]: {
-    bg: 'bg-gray-50 dark:bg-gray-900',
-    border: 'border-gray-300 dark:border-gray-700',
-    text: 'text-gray-600 dark:text-gray-400',
+    bg: 'bg-forge-node-note dark:bg-forge-node-note-dark',
+    border:
+      'border-forge-node-note-border dark:border-forge-node-note-border-dark',
+    text: 'text-forge-node-note-text dark:text-forge-node-note-text-dark',
   },
   [NodeType.Subsystem]: {
-    bg: 'bg-purple-50 dark:bg-purple-950',
-    border: 'border-purple-300 dark:border-purple-700',
-    text: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-forge-node-subsystem dark:bg-forge-node-subsystem-dark',
+    border:
+      'border-forge-node-subsystem-border dark:border-forge-node-subsystem-border-dark',
+    text: 'text-forge-node-subsystem-text dark:text-forge-node-subsystem-text-dark',
   },
   [NodeType.Assembly]: {
-    bg: 'bg-cyan-50 dark:bg-cyan-950',
-    border: 'border-cyan-300 dark:border-cyan-700',
-    text: 'text-cyan-600 dark:text-cyan-400',
+    bg: 'bg-forge-node-assembly dark:bg-forge-node-assembly-dark',
+    border:
+      'border-forge-node-assembly-border dark:border-forge-node-assembly-border-dark',
+    text: 'text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark',
   },
   [NodeType.Module]: {
-    bg: 'bg-rose-50 dark:bg-rose-950',
-    border: 'border-rose-300 dark:border-rose-700',
-    text: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-forge-node-module dark:bg-forge-node-module-dark',
+    border:
+      'border-forge-node-module-border dark:border-forge-node-module-border-dark',
+    text: 'text-forge-node-module-text dark:text-forge-node-module-text-dark',
   },
 }
 
@@ -81,18 +88,23 @@ const NODE_TYPE_ICONS: Record<NodeType, LucideIcon> = {
  */
 const STATUS_COLORS: Record<string, string> = {
   pending:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  complete: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    'bg-forge-accent-subtle text-amber-800 dark:bg-forge-accent-subtle-dark dark:text-amber-200',
+  in_progress:
+    'bg-forge-accent-subtle text-amber-900 dark:bg-forge-accent-subtle-dark dark:text-amber-100',
+  complete:
+    'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
   blocked: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  selected: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  selected:
+    'bg-forge-surface text-forge-text-secondary dark:bg-forge-surface-dark dark:text-forge-text-secondary-dark',
   considering:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  rejected: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+    'bg-forge-accent-subtle text-amber-800 dark:bg-forge-accent-subtle-dark dark:text-amber-200',
+  rejected:
+    'bg-forge-surface text-forge-muted dark:bg-forge-surface-dark dark:text-forge-muted-dark',
   // Container statuses
   planning:
-    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  on_hold: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+    'bg-forge-accent-subtle text-amber-800 dark:bg-forge-accent-subtle-dark dark:text-amber-200',
+  on_hold:
+    'bg-forge-surface text-forge-muted dark:bg-forge-surface-dark dark:text-forge-muted-dark',
 }
 
 /**
@@ -108,7 +120,9 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
   // Common handle styles
   const handleClass = cn(
     '!size-2',
-    isOnCriticalPath ? '!bg-amber-500' : '!bg-gray-400 dark:!bg-gray-500'
+    isOnCriticalPath
+      ? '!bg-amber-500'
+      : '!bg-forge-muted dark:!bg-forge-muted-dark'
   )
 
   return (
@@ -132,17 +146,17 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
         data-node-type={data.nodeType}
         className={cn(
           // Ensure 44x44px minimum touch target for accessibility (WCAG 2.1)
-          'min-h-[44px] rounded-lg border-2 p-3 shadow-sm transition-shadow',
+          'min-h-[44px] rounded-md border p-3 shadow-sm transition-shadow',
           // Container nodes are larger with different styling
           isContainer
             ? 'max-w-[240px] min-w-[180px] border-[3px] border-dashed'
-            : 'max-w-[200px] min-w-[140px]',
+            : 'max-w-[200px] min-w-[140px] border-l-[3px]',
           // Use amber styling when on critical path, otherwise use type colors
           isOnCriticalPath
             ? 'border-amber-400 bg-amber-50 dark:border-amber-600 dark:bg-amber-950'
             : cn(colors.bg, colors.border),
           selected &&
-            'shadow-md ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900'
+            'ring-forge-accent ring-offset-forge-paper dark:ring-offset-forge-paper-dark shadow-md ring-2 ring-offset-2'
         )}
       >
         {/* Critical path indicator */}
@@ -165,7 +179,7 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
           />
           <span
             className={cn(
-              'text-xs font-medium tracking-wide uppercase',
+              'font-mono text-[10px] font-semibold tracking-[0.12em] uppercase',
               isOnCriticalPath
                 ? 'text-amber-600 dark:text-amber-400'
                 : colors.text
@@ -181,7 +195,7 @@ function ForgeGraphNodeComponent({ data, selected }: NodeProps<GraphNodeData>) {
         </div>
 
         {/* Title */}
-        <h3 className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+        <h3 className="text-forge-text dark:text-forge-text-dark truncate text-sm font-medium">
           {data.label}
         </h3>
 

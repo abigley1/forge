@@ -6,7 +6,7 @@
         "/Users/andrewbigley/Projects/ProjectAccelerator/packages/forge-mcp-server/dist/index.js"
       ],
       "env": {
-        "FORGE_PROJECT_PATH": "/Users/andrewbigley/Projects/ProjectAccelerator/data/test-project"
+        "FORGE_API_URL": "http://192.168.1.130:8099/api"
       }
     }
   }

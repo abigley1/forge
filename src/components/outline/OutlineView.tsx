@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils'
 import { NodeType, isTaskNode } from '@/types/nodes'
 import type { ForgeNode, TaskStatus } from '@/types/nodes'
+import { useReducedMotion } from '@/hooks'
 import {
   groupNodesByType,
   getPersistedCollapseState,
@@ -83,15 +84,27 @@ function getNextTaskStatus(current: TaskStatus): TaskStatus {
 }
 
 /**
- * Icons for task status toggle button
+ * Icons for task status toggle button — forge palette
+ * pending=muted (dormant), in_progress=amber (active), complete=olive-green (done), blocked=red (fault)
  */
 const TASK_STATUS_ICONS: Record<TaskStatus, React.ReactNode> = {
-  pending: <Circle className="h-4 w-4 text-yellow-500" aria-hidden="true" />,
+  pending: (
+    <Circle
+      className="text-forge-muted dark:text-forge-muted-dark h-4 w-4"
+      aria-hidden="true"
+    />
+  ),
   in_progress: (
-    <CircleDot className="h-4 w-4 text-blue-500" aria-hidden="true" />
+    <CircleDot
+      className="text-forge-accent dark:text-forge-accent-dark h-4 w-4"
+      aria-hidden="true"
+    />
   ),
   complete: (
-    <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
+    <CheckCircle2
+      className="text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark h-4 w-4"
+      aria-hidden="true"
+    />
   ),
   blocked: <Circle className="h-4 w-4 text-red-500" aria-hidden="true" />,
 }
@@ -107,6 +120,10 @@ interface OutlineItemProps {
   onStatusToggle?: () => void
   tabIndex?: number
   id: string
+  /** Animation delay in ms for staggered entry */
+  animationDelay?: number
+  /** Whether to skip entry animation */
+  skipAnimation?: boolean
 }
 
 /**
@@ -119,12 +136,16 @@ function OutlineItem({
   onStatusToggle,
   tabIndex = -1,
   id,
+  animationDelay = 0,
+  skipAnimation = false,
 }: OutlineItemProps) {
   const isTask = isTaskNode(node)
+  const [ticking, setTicking] = useState(false)
 
   const handleStatusClick = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation()
+      setTicking(true)
       onStatusToggle?.()
     },
     [onStatusToggle]
@@ -135,11 +156,19 @@ function OutlineItem({
       if (event.key === 'Enter' || event.key === ' ') {
         event.stopPropagation()
         event.preventDefault()
+        setTicking(true)
         onStatusToggle?.()
       }
     },
     [onStatusToggle]
   )
+
+  // Clear tick animation after it completes
+  useEffect(() => {
+    if (!ticking) return
+    const timer = setTimeout(() => setTicking(false), 200)
+    return () => clearTimeout(timer)
+  }, [ticking])
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- keyboard support via tabIndex and onKeyDown
@@ -152,14 +181,20 @@ function OutlineItem({
         'focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
         isActive
           ? [
-              'bg-gray-100 dark:bg-gray-800',
-              'ring-2 ring-gray-900 ring-inset dark:ring-gray-100',
+              'bg-forge-surface dark:bg-forge-surface-dark',
+              'ring-forge-accent dark:ring-forge-accent-dark ring-2 ring-inset',
             ]
           : [
-              'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-              'focus-visible:ring-gray-400 dark:focus-visible:ring-gray-500',
-            ]
+              'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+              'focus-visible:ring-forge-accent dark:focus-visible:ring-forge-accent-dark',
+            ],
+        !skipAnimation && 'forge-card-enter'
       )}
+      style={
+        !skipAnimation && animationDelay > 0
+          ? { animationDelay: `${animationDelay}ms` }
+          : undefined
+      }
       tabIndex={tabIndex}
       onClick={onClick}
       onKeyDown={(e) => {
@@ -177,8 +212,10 @@ function OutlineItem({
           onKeyDown={handleStatusKeyDown}
           className={cn(
             'shrink-0 rounded p-0.5',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
-            'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none'
+            'hover:bg-forge-border dark:hover:bg-forge-border-dark',
+            'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none',
+            'dark:focus-visible:ring-forge-accent-dark',
+            ticking && 'forge-status-tick'
           )}
           aria-label={`Toggle status from ${node.status} to ${getNextTaskStatus(node.status)}`}
           title={`Click to mark as ${getNextTaskStatus(node.status)}`}
@@ -193,7 +230,7 @@ function OutlineItem({
       <span
         className={cn(
           'min-w-0 flex-1 truncate text-sm',
-          'text-gray-900 dark:text-gray-100'
+          'text-forge-text dark:text-forge-text-dark'
         )}
       >
         {node.title}
@@ -230,6 +267,7 @@ export function OutlineView({
   className,
 }: OutlineViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const reducedMotion = useReducedMotion()
 
   // Collapse state persisted to localStorage
   const [collapseState, setCollapseState] = useState<CollapseState>(() =>
@@ -408,18 +446,15 @@ export function OutlineView({
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center py-12 text-center',
+          'flex flex-col items-center justify-center gap-3 py-12 text-center',
           className
         )}
       >
-        <FileText
-          className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600"
-          aria-hidden="true"
-        />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          No nodes yet
+        <div className="bg-forge-muted dark:bg-forge-muted-dark h-1.5 w-1.5 rounded-full" />
+        <h3 className="text-forge-text-secondary dark:text-forge-text-secondary-dark font-mono text-xs font-medium tracking-[0.1em] uppercase">
+          No Nodes
         </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-forge-muted dark:text-forge-muted-dark text-sm">
           Create your first node to see it here.
         </p>
       </div>
@@ -446,6 +481,7 @@ export function OutlineView({
           expanded={!collapseState[group.type]}
           onToggle={() => toggleSection(group.type)}
           itemCount={group.nodes.length}
+          nodeType={group.type}
         >
           {group.nodes.length > 0 ? (
             <div className="space-y-0.5">
@@ -462,12 +498,14 @@ export function OutlineView({
                       : undefined
                   }
                   tabIndex={index === 0 && !collapseState[group.type] ? 0 : -1}
+                  animationDelay={index < 10 ? index * 30 : 0}
+                  skipAnimation={reducedMotion || index >= 10}
                 />
               ))}
             </div>
           ) : (
-            <p className="py-2 text-sm text-gray-500 dark:text-gray-400">
-              No {group.label.toLowerCase()} yet
+            <p className="text-forge-muted dark:text-forge-muted-dark py-2 font-mono text-xs">
+              --
             </p>
           )}
         </CollapsibleSection>

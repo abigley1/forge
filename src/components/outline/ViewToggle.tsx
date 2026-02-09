@@ -7,7 +7,7 @@
  * - Ctrl/Cmd+3: Switch to Kanban view
  */
 
-import { List, GitBranch, Columns3 } from 'lucide-react'
+import { List, GitBranch, Columns3, Package } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useHotkey } from '@/hooks'
@@ -16,7 +16,7 @@ import { useHotkey } from '@/hooks'
 // Types
 // ============================================================================
 
-export type ViewMode = 'outline' | 'graph' | 'kanban'
+export type ViewMode = 'outline' | 'graph' | 'kanban' | 'inventory'
 
 export interface ViewToggleProps {
   /** Current view mode */
@@ -60,6 +60,12 @@ const VIEW_CONFIG: Record<
     shortcut: '3',
     shortcutLabel: '⌘3',
   },
+  inventory: {
+    label: 'Inventory',
+    icon: Package,
+    shortcut: '4',
+    shortcutLabel: '⌘4',
+  },
 }
 
 // ============================================================================
@@ -89,6 +95,8 @@ export function ViewToggle({
 
   useHotkey('3', () => onChange('kanban'), { ctrl: true })
 
+  useHotkey('4', () => onChange('inventory'), { ctrl: true })
+
   // Also register with meta key for Mac
   useHotkey('1', () => onChange('outline'), { meta: true })
 
@@ -96,10 +104,12 @@ export function ViewToggle({
 
   useHotkey('3', () => onChange('kanban'), { meta: true })
 
+  useHotkey('4', () => onChange('inventory'), { meta: true })
+
   return (
     <div
       className={cn(
-        'inline-flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800',
+        'border-forge-border dark:border-forge-border-dark inline-flex gap-1 border-b',
         className
       )}
       role="tablist"
@@ -121,12 +131,14 @@ export function ViewToggle({
             aria-controls={`${mode}-panel`}
             onClick={() => onChange(mode)}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5',
-              'text-sm font-medium transition-colors duration-150',
-              'focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:outline-none focus-visible:ring-inset',
+              'flex items-center gap-1.5 px-3 py-1.5',
+              'font-mono text-xs tracking-[0.08em] uppercase',
+              'border-b-2 transition-colors duration-150',
+              'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+              'dark:focus-visible:ring-forge-accent-dark',
               isSelected
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                ? 'border-forge-accent text-forge-text dark:border-forge-accent-dark dark:text-forge-text-dark'
+                : 'text-forge-muted hover:text-forge-text-secondary dark:text-forge-muted-dark dark:hover:text-forge-text-secondary-dark border-transparent'
             )}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
@@ -134,10 +146,10 @@ export function ViewToggle({
             {showShortcuts && (
               <kbd
                 className={cn(
-                  'ml-1 hidden rounded px-1 py-0.5 text-xs font-normal sm:inline-block',
+                  'ml-1 hidden font-mono text-[10px] tracking-[0.05em] sm:inline-block',
                   isSelected
-                    ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
-                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                    ? 'text-forge-text-secondary dark:text-forge-text-secondary-dark'
+                    : 'text-forge-muted dark:text-forge-muted-dark'
                 )}
               >
                 {config.shortcutLabel}

@@ -9,6 +9,11 @@ import {
   createNodesRouter,
   createProjectAnalyticsRouter,
 } from './routes/nodes.js'
+import { createInventoryRouter } from './routes/inventory.js'
+import { urlExtractionRouter } from './routes/url-extraction.js'
+import { barcodeLookupRouter } from './routes/barcode-lookup.js'
+import { createCsvImportRouter } from './routes/csv-import.js'
+import { createImageUploadRouter } from './routes/image-upload.js'
 import { ServerFileSystemAdapter } from './adapters/ServerFileSystemAdapter.js'
 import { initializeDatabase, closeDatabase } from './db/index.js'
 import type { DatabaseInstance } from './db/index.js'
@@ -97,6 +102,13 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   app.use('/api/projects', createProjectsRouter(db))
   app.use('/api/projects/:projectId/nodes', createNodesRouter(db))
   app.use('/api/projects/:projectId', createProjectAnalyticsRouter(db))
+
+  // Inventory module routes
+  app.use('/api/inventory', createInventoryRouter(db))
+  app.use('/api/inventory', urlExtractionRouter)
+  app.use('/api/inventory', barcodeLookupRouter)
+  app.use('/api/inventory', createCsvImportRouter(db))
+  app.use('/api/inventory', createImageUploadRouter(db))
 
   // Serve static files from the Vite build output
   app.use(express.static(path.resolve(config.staticDir)))

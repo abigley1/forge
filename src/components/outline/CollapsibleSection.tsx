@@ -11,10 +11,41 @@ import { useId, useCallback } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import type { NodeType } from '@/types/nodes'
 
 // ============================================================================
 // Types
 // ============================================================================
+
+/** Node-type color mapping for left border + icon tint */
+const NODE_TYPE_BORDER_COLORS: Record<NodeType, string> = {
+  task: 'border-l-forge-node-task-border dark:border-l-forge-node-task-border-dark',
+  decision:
+    'border-l-forge-node-decision-border dark:border-l-forge-node-decision-border-dark',
+  component:
+    'border-l-forge-node-component-border dark:border-l-forge-node-component-border-dark',
+  note: 'border-l-forge-node-note-border dark:border-l-forge-node-note-border-dark',
+  subsystem:
+    'border-l-forge-node-subsystem-border dark:border-l-forge-node-subsystem-border-dark',
+  assembly:
+    'border-l-forge-node-assembly-border dark:border-l-forge-node-assembly-border-dark',
+  module:
+    'border-l-forge-node-module-border dark:border-l-forge-node-module-border-dark',
+}
+
+const NODE_TYPE_ICON_COLORS: Record<NodeType, string> = {
+  task: 'text-forge-node-task-text dark:text-forge-node-task-text-dark',
+  decision:
+    'text-forge-node-decision-text dark:text-forge-node-decision-text-dark',
+  component:
+    'text-forge-node-component-text dark:text-forge-node-component-text-dark',
+  note: 'text-forge-node-note-text dark:text-forge-node-note-text-dark',
+  subsystem:
+    'text-forge-node-subsystem-text dark:text-forge-node-subsystem-text-dark',
+  assembly:
+    'text-forge-node-assembly-text dark:text-forge-node-assembly-text-dark',
+  module: 'text-forge-node-module-text dark:text-forge-node-module-text-dark',
+}
 
 export interface CollapsibleSectionProps {
   /** Section title displayed in the header */
@@ -33,6 +64,8 @@ export interface CollapsibleSectionProps {
   className?: string
   /** ID for the section (used for keyboard navigation) */
   id?: string
+  /** Node type for colored left border and icon tinting */
+  nodeType?: NodeType
 }
 
 // ============================================================================
@@ -62,6 +95,7 @@ export function CollapsibleSection({
   children,
   className,
   id,
+  nodeType,
 }: CollapsibleSectionProps) {
   const contentId = useId()
 
@@ -78,7 +112,12 @@ export function CollapsibleSection({
 
   return (
     <div
-      className={cn('border-b border-gray-200 dark:border-gray-800', className)}
+      className={cn(
+        'border-forge-border dark:border-forge-border-dark border-b',
+        nodeType && 'border-l-2',
+        nodeType && NODE_TYPE_BORDER_COLORS[nodeType],
+        className
+      )}
       id={id}
     >
       {/* Header button */}
@@ -88,9 +127,11 @@ export function CollapsibleSection({
         onKeyDown={handleKeyDown}
         className={cn(
           'flex w-full items-center gap-2 px-4 py-3',
-          'text-sm font-medium text-gray-700 dark:text-gray-300',
-          'hover:bg-gray-50 dark:hover:bg-gray-800/50',
-          'focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none focus-visible:ring-inset dark:focus-visible:ring-gray-300',
+          'font-mono text-xs tracking-[0.1em] uppercase',
+          'text-forge-text-secondary dark:text-forge-text-secondary-dark',
+          'hover:bg-forge-surface dark:hover:bg-forge-surface-dark',
+          'focus-visible:ring-forge-accent focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+          'dark:focus-visible:ring-forge-accent-dark',
           'transition-colors duration-150'
         )}
         aria-expanded={expanded}
@@ -99,19 +140,27 @@ export function CollapsibleSection({
         {/* Chevron icon */}
         {expanded ? (
           <ChevronDown
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         ) : (
           <ChevronRight
-            className="h-4 w-4 shrink-0 text-gray-500"
+            className="text-forge-muted dark:text-forge-muted-dark h-4 w-4 shrink-0"
             aria-hidden="true"
           />
         )}
 
-        {/* Custom icon */}
+        {/* Custom icon — tinted to node type color when provided */}
         {icon && (
-          <span className="shrink-0 text-gray-500" aria-hidden="true">
+          <span
+            className={cn(
+              'shrink-0',
+              nodeType
+                ? NODE_TYPE_ICON_COLORS[nodeType]
+                : 'text-forge-muted dark:text-forge-muted-dark'
+            )}
+            aria-hidden="true"
+          >
             {icon}
           </span>
         )}
@@ -119,16 +168,10 @@ export function CollapsibleSection({
         {/* Title */}
         <span className="flex-1 truncate text-left">{title}</span>
 
-        {/* Item count badge */}
+        {/* Item count — plain monospace number */}
         {typeof itemCount === 'number' && (
           <span
-            className={cn(
-              'ml-auto rounded-full px-2 py-0.5',
-              'text-xs font-medium tabular-nums',
-              itemCount > 0
-                ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
-            )}
+            className="text-forge-muted dark:text-forge-muted-dark ml-auto font-mono text-xs tabular-nums"
             aria-label={`${itemCount} items`}
           >
             {itemCount}

@@ -40,8 +40,8 @@ export function ContainmentEdge({
     borderRadius: 8,
   })
 
-  // Emerald color for containment (hierarchical grouping)
-  const strokeColor = selected ? '#059669' : '#10b981' // emerald-600 when selected, emerald-500 otherwise
+  // Warm brown for containment (hierarchical grouping)
+  const strokeColor = selected ? '#6b5b3e' : '#8b7355' // dark brown when selected, warm brown otherwise
 
   return (
     <>

@@ -52,7 +52,7 @@ export function DependencyEdge({
     strokeColor = selected ? '#d97706' : '#f59e0b' // amber-600 when selected, amber-500 otherwise
     strokeWidth = 3
   } else {
-    strokeColor = selected ? '#1d4ed8' : '#3b82f6' // blue-700 when selected, blue-500 otherwise
+    strokeColor = selected ? '#9a5b2f' : '#b87333' // dark copper when selected, copper otherwise
     strokeWidth = 2
   }
 

@@ -1553,6 +1553,296 @@ async function handleFindComponents(
 }
 
 // ============================================================================
+// Inventory Tool Handlers
+// ============================================================================
+
+async function handleSearchInventory(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  if (!apiClient) {
+    throw new Error('Inventory tools require API mode (FORGE_API_URL)')
+  }
+
+  const { query, category, subcategory, status, limit } = args as {
+    query?: string
+    category?: string
+    subcategory?: string
+    status?: 'owned' | 'wishlist' | 'on_order'
+    limit?: number
+  }
+
+  const result = await apiClient.searchInventory({
+    q: query,
+    category,
+    subcategory,
+    status,
+    limit: limit ?? 50,
+  })
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  const items = result.data
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(
+          {
+            success: true,
+            count: items.length,
+            items: items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              location: item.location,
+              category: item.category_id,
+              subcategory: item.subcategory_id,
+              status: item.status,
+              supplier: item.supplier,
+              partNumber: item.part_number,
+              cost: item.cost,
+            })),
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  }
+}
+
+async function handleGetInventoryItem(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  if (!apiClient) {
+    throw new Error('Inventory tools require API mode (FORGE_API_URL)')
+  }
+
+  const { id } = args as { id: string }
+
+  if (!id) {
+    throw new Error('id is required')
+  }
+
+  const result = await apiClient.getInventoryItem(id)
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  const item = result.data
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(
+          {
+            success: true,
+            item: {
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              location: item.location,
+              category: item.category_id,
+              subcategory: item.subcategory_id,
+              status: item.status,
+              supplier: item.supplier,
+              supplierUrl: item.supplier_url,
+              partNumber: item.part_number,
+              cost: item.cost,
+              barcode: item.barcode,
+              notes: item.notes,
+              imageUrl: item.image_url,
+              tags: item.tags,
+              createdAt: item.created_at,
+              updatedAt: item.updated_at,
+            },
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  }
+}
+
+async function handleAddInventoryItem(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  if (!apiClient) {
+    throw new Error('Inventory tools require API mode (FORGE_API_URL)')
+  }
+
+  const {
+    name,
+    category_id,
+    subcategory_id,
+    status,
+    quantity,
+    location,
+    supplier,
+    supplier_url,
+    part_number,
+    cost,
+    notes,
+    tags,
+  } = args as {
+    name: string
+    category_id: string
+    subcategory_id?: string
+    status?: 'owned' | 'wishlist' | 'on_order'
+    quantity?: number
+    location?: string
+    supplier?: string
+    supplier_url?: string
+    part_number?: string
+    cost?: number
+    notes?: string
+    tags?: string[]
+  }
+
+  if (!name) {
+    throw new Error('name is required')
+  }
+  if (!category_id) {
+    throw new Error('category_id is required')
+  }
+
+  const result = await apiClient.createInventoryItem({
+    name,
+    category_id,
+    subcategory_id,
+    status,
+    quantity,
+    location,
+    supplier,
+    supplier_url,
+    part_number,
+    cost,
+    notes,
+    tags,
+  })
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  const item = result.data
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(
+          {
+            success: true,
+            message: `Added "${item.name}" to inventory`,
+            item: {
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              category: item.category_id,
+              status: item.status,
+            },
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  }
+}
+
+async function handleUpdateInventoryQuantity(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  if (!apiClient) {
+    throw new Error('Inventory tools require API mode (FORGE_API_URL)')
+  }
+
+  const { id, delta } = args as { id: string; delta: number }
+
+  if (!id) {
+    throw new Error('id is required')
+  }
+  if (delta === undefined || delta === null) {
+    throw new Error('delta is required')
+  }
+
+  const result = await apiClient.updateInventoryQuantity(id, { delta })
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  const item = result.data
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(
+          {
+            success: true,
+            message: `Updated quantity of "${item.name}" to ${item.quantity}`,
+            item: {
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+            },
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  }
+}
+
+async function handleListInventoryCategories(): Promise<{
+  content: Array<{ type: string; text: string }>
+}> {
+  if (!apiClient) {
+    throw new Error('Inventory tools require API mode (FORGE_API_URL)')
+  }
+
+  const result = await apiClient.listInventoryCategories()
+
+  if (!result.success) {
+    throw new Error(result.error)
+  }
+
+  const categories = result.data
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(
+          {
+            success: true,
+            categories: categories.map((cat) => ({
+              id: cat.id,
+              name: cat.name,
+              subcategories: cat.subcategories.map((sub) => ({
+                id: sub.id,
+                name: sub.name,
+              })),
+            })),
+          },
+          null,
+          2
+        ),
+      },
+    ],
+  }
+}
+
+// ============================================================================
 // Main Server Setup
 // ============================================================================
 
@@ -1940,6 +2230,144 @@ async function main() {
             },
           },
         },
+        // =====================================================================
+        // Inventory Tools
+        // =====================================================================
+        {
+          name: 'search_inventory',
+          description:
+            'Search the personal inventory for items. Use this to check what parts, components, or materials you already own before recommending purchases.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'Free-text search in name, notes, part number',
+              },
+              category: {
+                type: 'string',
+                description:
+                  'Filter by category ID (e.g., "electronics", "fasteners")',
+              },
+              subcategory: {
+                type: 'string',
+                description: 'Filter by subcategory ID',
+              },
+              status: {
+                type: 'string',
+                enum: ['owned', 'wishlist', 'on_order'],
+                description: 'Filter by item status',
+              },
+              limit: {
+                type: 'number',
+                description: 'Maximum results to return (default 50)',
+              },
+            },
+          },
+        },
+        {
+          name: 'get_inventory_item',
+          description: 'Get full details of a specific inventory item by ID.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                description: 'ID of the inventory item',
+              },
+            },
+            required: ['id'],
+          },
+        },
+        {
+          name: 'add_inventory_item',
+          description:
+            'Add a new item to the personal inventory. Use this to capture parts during brainstorming.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Name of the item',
+              },
+              category_id: {
+                type: 'string',
+                description:
+                  'Category ID (e.g., "electronics", "fasteners", "mechanical")',
+              },
+              subcategory_id: {
+                type: 'string',
+                description: 'Optional subcategory ID',
+              },
+              status: {
+                type: 'string',
+                enum: ['owned', 'wishlist', 'on_order'],
+                description: 'Item status (default: "owned")',
+              },
+              quantity: {
+                type: 'number',
+                description: 'Quantity in stock (default: 1)',
+              },
+              location: {
+                type: 'string',
+                description: 'Physical storage location (e.g., "Bin A3")',
+              },
+              supplier: {
+                type: 'string',
+                description: 'Where the item was purchased',
+              },
+              supplier_url: {
+                type: 'string',
+                description: 'URL to product page',
+              },
+              part_number: {
+                type: 'string',
+                description: 'Manufacturer or supplier part number',
+              },
+              cost: {
+                type: 'number',
+                description: 'Price per unit',
+              },
+              notes: {
+                type: 'string',
+                description: 'Additional notes about the item',
+              },
+              tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Tags for organization',
+              },
+            },
+            required: ['name', 'category_id'],
+          },
+        },
+        {
+          name: 'update_inventory_quantity',
+          description:
+            'Adjust the quantity of an inventory item (add or subtract).',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                description: 'ID of the inventory item',
+              },
+              delta: {
+                type: 'number',
+                description: 'Amount to add (positive) or subtract (negative)',
+              },
+            },
+            required: ['id', 'delta'],
+          },
+        },
+        {
+          name: 'list_inventory_categories',
+          description: 'List all inventory categories and their subcategories.',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+        },
       ],
     }
   })
@@ -1978,6 +2406,17 @@ async function main() {
           return await handleBulkUpdate(args ?? {})
         case 'find_components':
           return await handleFindComponents(args ?? {})
+        // Inventory tools
+        case 'search_inventory':
+          return await handleSearchInventory(args ?? {})
+        case 'get_inventory_item':
+          return await handleGetInventoryItem(args ?? {})
+        case 'add_inventory_item':
+          return await handleAddInventoryItem(args ?? {})
+        case 'update_inventory_quantity':
+          return await handleUpdateInventoryQuantity(args ?? {})
+        case 'list_inventory_categories':
+          return await handleListInventoryCategories()
         default:
           throw new Error(`Unknown tool: ${name}`)
       }
