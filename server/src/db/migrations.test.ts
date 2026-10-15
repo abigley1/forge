@@ -51,3 +51,34 @@ describe('migration 4 -> 5', () => {
     ])
   })
 })
+
+describe('migration 5 -> 6', () => {
+  afterEach(() => resetDatabase())
+
+  it('creates workspace_links and session_closeouts on upgraded databases', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'forge-migration-6-'))
+    const dbPath = join(dir, 'forge.sqlite')
+    const legacy = new Database(dbPath)
+    legacy.exec(`
+      CREATE TABLE schema_version (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')));
+      INSERT INTO schema_version (version) VALUES (5);
+      CREATE TABLE projects (id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')), modified_at TEXT NOT NULL DEFAULT (datetime('now')));
+    `)
+    legacy.close()
+
+    const db = initializeDatabase({ dbPath })
+    const tables = (
+      db
+        .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+        .all() as Array<{
+        name: string
+      }>
+    ).map((t) => t.name)
+    expect(tables).toEqual(
+      expect.arrayContaining(['workspace_links', 'session_closeouts'])
+    )
+    resetDatabase()
+    rmSync(dir, { recursive: true, force: true })
+  })
+})

@@ -8,7 +8,11 @@
 import Database from 'better-sqlite3'
 import * as path from 'node:path'
 import * as fs from 'node:fs'
-import { CREATE_TABLES_SQL, SCHEMA_VERSION } from './schema.js'
+import {
+  AGENT_LOOP_TABLES_SQL,
+  CREATE_TABLES_SQL,
+  SCHEMA_VERSION,
+} from './schema.js'
 import { LEGACY_STATUS_ALIASES } from '../domain/nodeRules.js'
 
 /**
@@ -375,6 +379,10 @@ function runIncrementalMigrations(
           rewrite.run(canonical, type, legacy)
         }
       }
+    },
+    // Migration 5 -> 6: workspace links + session closeouts
+    (db: DatabaseInstance) => {
+      db.exec(AGENT_LOOP_TABLES_SQL)
     },
   ]
 
