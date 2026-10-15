@@ -11,7 +11,7 @@
  * - attachments: File attachments for nodes
  */
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 /**
  * Inventory item status values
@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS nodes (
   priority TEXT,
   parent_id TEXT,
   milestone TEXT,
+  version INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   modified_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
@@ -305,6 +306,7 @@ export interface NodeRow {
   priority: string | null
   parent_id: string | null
   milestone: string | null
+  version: number
   created_at: string
   modified_at: string
 }
