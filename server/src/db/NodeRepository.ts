@@ -18,6 +18,7 @@ import type {
 } from './schema.js'
 import { VALID_NODE_TYPES } from './schema.js'
 import { randomUUID } from 'node:crypto'
+import { isDependencyResolved } from '../domain/nodeRules.js'
 
 /**
  * Full node data including tags, dependencies, and type-specific extras
@@ -553,20 +554,27 @@ export class NodeRepository {
    * Get blocked tasks (tasks with incomplete dependencies)
    */
   getBlockedTasks(projectId: string): NodeWithRelations[] {
-    // A task is blocked if any of its dependencies are incomplete (status != 'complete')
-    const sql = `
-      SELECT DISTINCT n.*
-      FROM nodes n
-      INNER JOIN node_dependencies nd ON n.id = nd.node_id
-      INNER JOIN nodes dep ON nd.depends_on_id = dep.id
-      WHERE n.project_id = ?
-        AND n.type = 'task'
-        AND (n.status IS NULL OR n.status != 'complete')
-        AND (dep.status IS NULL OR dep.status != 'complete')
-    `
-    const stmt = this.db.prepare(sql)
-    const nodes = stmt.all(projectId) as NodeRow[]
-    return nodes.map((node) => this.enrichNode(node))
+    const tasks = this.db
+      .prepare(
+        `SELECT * FROM nodes WHERE project_id = ? AND type = 'task'
+           AND (status IS NULL OR status != 'complete')`
+      )
+      .all(projectId) as NodeRow[]
+    const depsOf = this.db.prepare(
+      `SELECT dep.type AS type, dep.status AS status
+         FROM node_dependencies nd JOIN nodes dep ON dep.id = nd.depends_on_id
+        WHERE nd.node_id = ?`
+    )
+    return tasks
+      .filter((task) =>
+        (
+          depsOf.all(task.id) as Array<{
+            type: NodeType
+            status: string | null
+          }>
+        ).some((dep) => !isDependencyResolved(dep.type, dep.status))
+      )
+      .map((node) => this.enrichNode(node))
   }
 
   /**

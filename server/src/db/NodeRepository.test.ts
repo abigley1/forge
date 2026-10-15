@@ -695,4 +695,52 @@ describe('NodeRepository', () => {
       expect(repo.findById(node.id)!.title).toBe('Agent edit')
     })
   })
+
+  describe('getBlockedTasks readiness', () => {
+    it('uses the shared rule: decisions unblock when selected, components never block', () => {
+      const decision = repo.create({
+        project_id: projectId,
+        type: 'decision',
+        title: 'Motor',
+        status: 'selected',
+      })
+      const openDecision = repo.create({
+        project_id: projectId,
+        type: 'decision',
+        title: 'Finish',
+        status: 'pending',
+      })
+      const part = repo.create({
+        project_id: projectId,
+        type: 'component',
+        title: 'NEMA17',
+        status: 'considering',
+      })
+      const doneTask = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Order',
+        status: 'complete',
+      })
+
+      const ready = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Mount motor',
+        status: 'pending',
+        depends_on: [decision.id, part.id, doneTask.id],
+      })
+      const waiting = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Paint',
+        status: 'pending',
+        depends_on: [openDecision.id],
+      })
+
+      const blockedIds = repo.getBlockedTasks(projectId).map((n) => n.id)
+      expect(blockedIds).toContain(waiting.id)
+      expect(blockedIds).not.toContain(ready.id)
+    })
+  })
 })

@@ -9,6 +9,7 @@
 
 import type { ForgeNode, TaskNode, DecisionNode } from '@/types/nodes'
 import { isTaskNode, isDecisionNode, NodeType } from '@/types/nodes'
+import { isDependencyResolved as isResolvedByRule } from '../../server/src/domain/nodeRules'
 
 /**
  * Result of checking blocked status for a node
@@ -59,14 +60,26 @@ export interface UnblockResult {
  * @returns true if the node is resolved and won't block dependents
  */
 export function isDependencyResolved(node: ForgeNode): boolean {
-  if (isTaskNode(node)) {
-    return node.status === 'complete'
+  return isResolvedByRule(node.type, 'status' in node ? node.status : null)
+}
+
+/**
+ * IDs of incomplete tasks with at least one unresolved, existing prerequisite
+ */
+export function getBlockedTaskIds(
+  tasks: TaskNode[],
+  nodesById: Map<string, ForgeNode>
+): Set<string> {
+  const blocked = new Set<string>()
+  for (const task of tasks) {
+    if (task.status === 'complete') continue
+    const waiting = task.dependsOn.some((depId) => {
+      const dep = nodesById.get(depId)
+      return dep !== undefined && !isDependencyResolved(dep)
+    })
+    if (waiting) blocked.add(task.id)
   }
-  if (isDecisionNode(node)) {
-    return node.status === 'selected'
-  }
-  // Components and Notes don't have blocking states - they're always "resolved"
-  return true
+  return blocked
 }
 
 /**

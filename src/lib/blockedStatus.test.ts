@@ -9,6 +9,7 @@ import {
   getBlockingNodes,
   getBlockedNodes,
   shouldBeBlocked,
+  getBlockedTaskIds,
 } from './blockedStatus'
 import type {
   ForgeNode,
@@ -624,5 +625,25 @@ describe('shouldBeBlocked', () => {
     const allNodes = new Map<string, ForgeNode>([['task-1', task]])
 
     expect(shouldBeBlocked(task, allNodes)).toBe(false)
+  })
+})
+
+describe('getBlockedTaskIds', () => {
+  it('flags only tasks with an unresolved prerequisite', () => {
+    const doneTask = createTaskNode('done', 'Order parts', 'complete')
+    const pendingDecision = createDecisionNode('dec', 'Finish', 'pending')
+    const ready = createTaskNode('ready', 'Mount', 'pending', ['done'])
+    const waiting = createTaskNode('waiting', 'Paint', 'pending', ['dec'])
+    const finished = createTaskNode('finished', 'Old', 'complete', ['dec'])
+
+    const nodesById = new Map<string, ForgeNode>(
+      [doneTask, pendingDecision, ready, waiting, finished].map((n) => [
+        n.id,
+        n,
+      ])
+    )
+    expect(getBlockedTaskIds([ready, waiting, finished], nodesById)).toEqual(
+      new Set(['waiting'])
+    )
   })
 })

@@ -19,6 +19,7 @@ COPY tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.htm
 COPY public/ ./public/
 COPY src/ ./src/
 COPY server/src/print-queue-model.ts ./server/src/print-queue-model.ts
+COPY server/src/domain/ ./server/src/domain/
 
 # Build frontend with production settings
 RUN npm run build:prod
