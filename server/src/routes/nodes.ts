@@ -15,11 +15,47 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express'
-import { NodeRepository, NodeSearchFilters } from '../db/NodeRepository.js'
+import {
+  NodeRepository,
+  NodeSearchFilters,
+  type CreateNodeData,
+  type UpdateNodeData,
+} from '../db/NodeRepository.js'
 import { ProjectRepository } from '../db/ProjectRepository.js'
 import type { DatabaseInstance } from '../db/index.js'
 import type { NodeType } from '../db/schema.js'
 import { VALID_NODE_TYPES } from '../db/schema.js'
+import { normalizeStatus } from '../domain/nodeRules.js'
+
+/** Every client-writable node field. Keep in sync with UpdateNodeData. */
+const NODE_BODY_FIELDS = [
+  'title',
+  'content',
+  'status',
+  'priority',
+  'parent_id',
+  'milestone',
+  'tags',
+  'depends_on',
+  'supplier',
+  'part_number',
+  'cost',
+  'datasheet_url',
+  'custom_fields',
+  'selected_option',
+  'selection_rationale',
+  'selected_date',
+  'comparison_data',
+  'checklist',
+] as const satisfies ReadonlyArray<keyof UpdateNodeData>
+
+function pickNodeFields(body: Record<string, unknown>): UpdateNodeData {
+  const out: Record<string, unknown> = {}
+  for (const key of NODE_BODY_FIELDS) {
+    if (body[key] !== undefined) out[key] = body[key]
+  }
+  return out as UpdateNodeData
+}
 
 /** Typed params for project routes */
 interface ProjectParams {
@@ -110,25 +146,8 @@ export function createNodesRouter(db: DatabaseInstance): Router {
   router.post('/', (req: Request<ProjectParams>, res: Response) => {
     try {
       const projectId = req.params.projectId
-      const {
-        id,
-        type,
-        title,
-        content,
-        status,
-        priority,
-        parent_id,
-        milestone,
-        tags,
-        depends_on,
-        supplier,
-        part_number,
-        cost,
-        datasheet_url,
-        selected_option,
-        selection_rationale,
-        comparison_data,
-      } = req.body
+      const { id, type, title, parent_id, depends_on } = req.body
+      const fields = pickNodeFields(req.body)
 
       // Validate required fields
       if (!type || !VALID_NODE_TYPES.includes(type)) {
@@ -169,26 +188,20 @@ export function createNodesRouter(db: DatabaseInstance): Router {
         }
       }
 
+      const status = normalizeStatus(type, req.body.status)
+      if (!status.ok) {
+        res.status(400).json({ error: status.error })
+        return
+      }
+      fields.status = status.status
+
       const node = nodeRepo.create({
+        ...fields,
         id,
         project_id: projectId,
         type,
         title,
-        content,
-        status,
-        priority,
-        parent_id,
-        milestone,
-        tags,
-        depends_on,
-        supplier,
-        part_number,
-        cost,
-        datasheet_url,
-        selected_option,
-        selection_rationale,
-        comparison_data,
-      })
+      } as CreateNodeData)
 
       // Touch project to update modified_at
       projectRepo.touch(projectId)
@@ -246,23 +259,8 @@ export function createNodesRouter(db: DatabaseInstance): Router {
         return
       }
 
-      const {
-        title,
-        content,
-        status,
-        priority,
-        parent_id,
-        milestone,
-        tags,
-        depends_on,
-        supplier,
-        part_number,
-        cost,
-        datasheet_url,
-        selected_option,
-        selection_rationale,
-        comparison_data,
-      } = req.body
+      const { parent_id, depends_on } = req.body
+      const fields = pickNodeFields(req.body)
 
       // Validate parent if being changed
       if (parent_id !== undefined && parent_id !== null) {
@@ -302,23 +300,14 @@ export function createNodesRouter(db: DatabaseInstance): Router {
         }
       }
 
-      const node = nodeRepo.update(nodeId, {
-        title,
-        content,
-        status,
-        priority,
-        parent_id,
-        milestone,
-        tags,
-        depends_on,
-        supplier,
-        part_number,
-        cost,
-        datasheet_url,
-        selected_option,
-        selection_rationale,
-        comparison_data,
-      })
+      const status = normalizeStatus(existing.type, req.body.status)
+      if (!status.ok) {
+        res.status(400).json({ error: status.error })
+        return
+      }
+      fields.status = status.status
+
+      const node = nodeRepo.update(nodeId, fields)
 
       // Touch project to update modified_at
       projectRepo.touch(projectId)

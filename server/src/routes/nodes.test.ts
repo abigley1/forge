@@ -433,4 +433,84 @@ describe('Nodes API', () => {
       expect(response.body.data[2].title).toBe('C')
     })
   })
+
+  describe('field round trip', () => {
+    const base = () => `/api/projects/${projectId}/nodes`
+
+    it('persists task checklist on create and update', async () => {
+      const created = await request(app)
+        .post(base())
+        .send({
+          type: 'task',
+          title: 'Crimp harness',
+          checklist: [{ id: 'c1', text: 'Crimp JST', completed: false }],
+        })
+      expect(created.status).toBe(201)
+      expect(created.body.data.checklist).toEqual([
+        { id: 'c1', text: 'Crimp JST', completed: false },
+      ])
+
+      const id = created.body.data.id
+      await request(app)
+        .put(`${base()}/${id}`)
+        .send({ checklist: [{ id: 'c1', text: 'Crimp JST', completed: true }] })
+        .expect(200)
+
+      const reloaded = await request(app).get(`${base()}/${id}`)
+      expect(reloaded.body.data.checklist).toEqual([
+        { id: 'c1', text: 'Crimp JST', completed: true },
+      ])
+    })
+
+    it('persists component custom_fields on create and update', async () => {
+      const created = await request(app)
+        .post(base())
+        .send({
+          type: 'component',
+          title: 'NEMA17',
+          custom_fields: { torque_ncm: 45 },
+        })
+      expect(created.body.data.custom_fields).toEqual({ torque_ncm: 45 })
+
+      const id = created.body.data.id
+      await request(app)
+        .put(`${base()}/${id}`)
+        .send({ custom_fields: { torque_ncm: 59 } })
+        .expect(200)
+      const reloaded = await request(app).get(`${base()}/${id}`)
+      expect(reloaded.body.data.custom_fields).toEqual({ torque_ncm: 59 })
+    })
+
+    it('persists decision selected_date', async () => {
+      const created = await request(app).post(base()).send({
+        type: 'decision',
+        title: 'Controller',
+        status: 'selected',
+        selected_date: '2026-10-15',
+      })
+      expect(created.body.data.selected_date).toBe('2026-10-15')
+    })
+
+    it('rejects an invalid status on create and update', async () => {
+      const bad = await request(app)
+        .post(base())
+        .send({ type: 'task', title: 'X', status: 'invalid-review-status' })
+      expect(bad.status).toBe(400)
+
+      const ok = await request(app)
+        .post(base())
+        .send({ type: 'task', title: 'Y' })
+      const badUpdate = await request(app)
+        .put(`${base()}/${ok.body.data.id}`)
+        .send({ status: 'done-ish' })
+      expect(badUpdate.status).toBe(400)
+    })
+
+    it('stores legacy aliases canonically', async () => {
+      const created = await request(app)
+        .post(base())
+        .send({ type: 'decision', title: 'Motor', status: 'open' })
+      expect(created.body.data.status).toBe('pending')
+    })
+  })
 })
