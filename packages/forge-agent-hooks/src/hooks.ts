@@ -47,9 +47,12 @@ export async function sessionStart(
     const resolved = await resolve(input, deps)
     if (!resolved) return ''
 
+    // Resume/compact reuse the session id: keep the existing baseline so
+    // changes made before the restart still prompt a closeout.
+    const previous = readState(deps.stateDir, input.session_id)
     writeState(deps.stateDir, input.session_id, {
       projectId: resolved.project?.id ?? null,
-      baseline: workspaceFingerprint(input.cwd),
+      baseline: previous?.baseline ?? workspaceFingerprint(input.cwd),
     })
 
     if (!resolved.project) {

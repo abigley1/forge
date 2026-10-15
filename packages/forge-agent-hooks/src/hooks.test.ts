@@ -131,4 +131,18 @@ describe('forge hooks', () => {
       decision: 'block',
     })
   })
+
+  it('keeps the baseline across resume/compact so earlier edits still prompt', async () => {
+    await link()
+    await sessionStart({ session_id: 's9', cwd: workDir }, deps)
+    await new Promise((r) => setTimeout(r, 20))
+    await fs.writeFile(path.join(workDir, 'bracket.scad'), 'cube(5);')
+    await sessionStart(
+      { session_id: 's9', cwd: workDir, source: 'compact' },
+      deps
+    )
+    expect(await stop({ session_id: 's9', cwd: workDir }, deps)).toMatchObject({
+      decision: 'block',
+    })
+  })
 })
