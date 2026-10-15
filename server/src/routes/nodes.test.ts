@@ -506,6 +506,34 @@ describe('Nodes API', () => {
       expect(badUpdate.status).toBe(400)
     })
 
+    it('rejects stale expected_version with 409 and the current node', async () => {
+      const created = await request(app)
+        .post(base())
+        .send({ type: 'task', title: 'Glue up' })
+      const id = created.body.data.id
+      await request(app)
+        .put(`${base()}/${id}`)
+        .send({ title: 'Glue up legs', expected_version: 1 })
+        .expect(200)
+
+      const stale = await request(app)
+        .put(`${base()}/${id}`)
+        .send({ title: 'Glue up top', expected_version: 1 })
+      expect(stale.status).toBe(409)
+      expect(stale.body.current.title).toBe('Glue up legs')
+      expect(stale.body.current.version).toBe(2)
+    })
+
+    it('rejects a non-integer expected_version', async () => {
+      const created = await request(app)
+        .post(base())
+        .send({ type: 'task', title: 'Sand' })
+      const res = await request(app)
+        .put(`${base()}/${created.body.data.id}`)
+        .send({ expected_version: '1' })
+      expect(res.status).toBe(400)
+    })
+
     it('stores legacy aliases canonically', async () => {
       const created = await request(app)
         .post(base())

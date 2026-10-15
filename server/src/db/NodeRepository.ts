@@ -110,6 +110,18 @@ export interface NodeSearchFilters {
 }
 
 /**
+ * Thrown when an update's expected version no longer matches the stored node
+ */
+export class VersionConflictError extends Error {
+  constructor(readonly current: NodeWithRelations) {
+    super(
+      `Version conflict: node ${current.id} is at version ${current.version}. Re-read it and retry.`
+    )
+    this.name = 'VersionConflictError'
+  }
+}
+
+/**
  * Repository for node database operations
  */
 export class NodeRepository {
@@ -302,13 +314,24 @@ export class NodeRepository {
   /**
    * Update a node
    */
-  update(id: string, data: UpdateNodeData): NodeWithRelations | null {
+  update(
+    id: string,
+    data: UpdateNodeData,
+    options: { expectedVersion?: number } = {}
+  ): NodeWithRelations | null {
     const existing = this.findById(id)
     if (!existing) {
       return null
     }
 
     return this.db.transaction(() => {
+      if (
+        options.expectedVersion !== undefined &&
+        existing.version !== options.expectedVersion
+      ) {
+        throw new VersionConflictError(existing)
+      }
+
       const updates: string[] = []
       const values: unknown[] = []
 
@@ -446,6 +469,9 @@ export class NodeRepository {
           )
       }
 
+      this.db
+        .prepare('UPDATE nodes SET version = version + 1 WHERE id = ?')
+        .run(id)
       return this.findById(id)!
     })()
   }

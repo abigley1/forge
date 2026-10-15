@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { createTestDatabase, type DatabaseInstance } from './index.js'
-import { NodeRepository } from './NodeRepository.js'
+import { NodeRepository, VersionConflictError } from './NodeRepository.js'
 import { ProjectRepository } from './ProjectRepository.js'
 
 describe('NodeRepository', () => {
@@ -667,6 +667,32 @@ describe('NodeRepository', () => {
       const found = repo.findById(node.id)
       expect(found).not.toBeNull()
       expect(found?.checklist).toBeNull()
+    })
+  })
+
+  describe('versions', () => {
+    it('increments version on every update', () => {
+      const node = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Cut panel',
+      })
+      expect(node.version).toBe(1)
+      expect(repo.update(node.id, { title: 'Cut side panel' })!.version).toBe(2)
+      expect(repo.update(node.id, { tags: ['cnc'] })!.version).toBe(3)
+    })
+
+    it('rejects stale expected_version and writes nothing', () => {
+      const node = repo.create({
+        project_id: projectId,
+        type: 'task',
+        title: 'Cut panel',
+      })
+      repo.update(node.id, { title: 'Agent edit' })
+      expect(() =>
+        repo.update(node.id, { title: 'Stale edit' }, { expectedVersion: 1 })
+      ).toThrow(VersionConflictError)
+      expect(repo.findById(node.id)!.title).toBe('Agent edit')
     })
   })
 })

@@ -18,6 +18,7 @@ import { Router, Request, Response, NextFunction } from 'express'
 import {
   NodeRepository,
   NodeSearchFilters,
+  VersionConflictError,
   type CreateNodeData,
   type UpdateNodeData,
 } from '../db/NodeRepository.js'
@@ -300,6 +301,12 @@ export function createNodesRouter(db: DatabaseInstance): Router {
         }
       }
 
+      const expectedVersion = req.body.expected_version
+      if (expectedVersion !== undefined && !Number.isInteger(expectedVersion)) {
+        res.status(400).json({ error: 'expected_version must be an integer' })
+        return
+      }
+
       const status = normalizeStatus(existing.type, req.body.status)
       if (!status.ok) {
         res.status(400).json({ error: status.error })
@@ -307,13 +314,17 @@ export function createNodesRouter(db: DatabaseInstance): Router {
       }
       fields.status = status.status
 
-      const node = nodeRepo.update(nodeId, fields)
+      const node = nodeRepo.update(nodeId, fields, { expectedVersion })
 
       // Touch project to update modified_at
       projectRepo.touch(projectId)
 
       res.json({ data: node })
     } catch (error) {
+      if (error instanceof VersionConflictError) {
+        res.status(409).json({ error: error.message, current: error.current })
+        return
+      }
       console.error('Error updating node:', error)
       res.status(500).json({ error: 'Failed to update node' })
     }
