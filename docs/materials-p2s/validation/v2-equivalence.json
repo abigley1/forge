@@ -1,0 +1,24 @@
+{
+  "presets_checked": [
+    "cc3d-tpu72d-black.json",
+    "elegoo-abs-blue-order-match.json",
+    "elegoo-petg-cf-black.json",
+    "elegoo-rapid-tpu95a-black.json",
+    "fiberon-asa-cf08-navy.json",
+    "fiberon-pa6-gf25-grey.json",
+    "fiberon-pet-gf15-blue.json",
+    "process-flex95a.json",
+    "process-rigid.json",
+    "process-tpu72d.json"
+  ],
+  "result": "pass",
+  "allowed_changes": [
+    "v2 Studio24 names",
+    "third extruder variant removed",
+    "filament_colour removed"
+  ],
+  "native_import_count": 10,
+  "v2_cli_reslicing": "not performed",
+  "selector_visual_inspection": "not performed",
+  "physical_calibration": "not performed"
+}

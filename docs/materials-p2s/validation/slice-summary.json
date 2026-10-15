@@ -1,0 +1,611 @@
+[
+  {
+    "material": "elegoo-petg-cf-black",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "de67609a0c5a1c7974a87d7ec83eb4f46fffd7d0b9e0fd13d17c0e19a47c1e6f",
+        "settings": {
+          "nozzle_temperature": "255",
+          "nozzle_temperature_initial_layer": "255",
+          "textured_plate_temp": "70",
+          "filament_max_volumetric_speed": "8",
+          "filament_flow_ratio": "0.95",
+          "filament_type": "PETG-CF",
+          "fan_min_speed": "20",
+          "fan_max_speed": "40",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 61,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 20.841922760009766,
+            "Bridge": 27.64205551147461,
+            "Custom": 403.55670166015625,
+            "Flush": 26.0,
+            "Inner wall": 140.5255584716797,
+            "Internal solid infill": 83.97342681884766,
+            "Outer wall": 88.5113525390625,
+            "Sparse infill": 156.21969604492188,
+            "Top surface": 24.539487838745117,
+            "Travel": 33.10005187988281,
+            "Undefined": 25.634084701538086
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFG98",
+              "id": 1,
+              "main_used_g": 2.4391777515411377,
+              "total_used_g": 2.4391777515411377
+            }
+          ],
+          "generate_support_material_time": 1,
+          "id": 1,
+          "infill_time": 8,
+          "layer_filament_change": 0,
+          "main_predication": 549.35595703125,
+          "make_perimeters_time": 12,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 62,
+          "sliced_time_with_cache": 32,
+          "total_predication": 997.4466552734375,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  },
+  {
+    "material": "elegoo-rapid-tpu95a-black",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "3ce430d4c5d08bdefaa224b5e94a7c700ec27af658ae44dc38ea8a83c145361c",
+        "settings": {
+          "nozzle_temperature": "230",
+          "nozzle_temperature_initial_layer": "230",
+          "textured_plate_temp": "35",
+          "filament_max_volumetric_speed": "3",
+          "filament_flow_ratio": "1",
+          "filament_type": "TPU",
+          "fan_min_speed": "100",
+          "fan_max_speed": "100",
+          "layer_height": "0.2",
+          "wall_loops": "2",
+          "sparse_infill_density": "15%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 26,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 29.735504150390625,
+            "Bridge": 38.53247833251953,
+            "Custom": 402.9269714355469,
+            "Flush": 26.0,
+            "Inner wall": 110.2806396484375,
+            "Internal solid infill": 170.60269165039062,
+            "Outer wall": 142.41737365722656,
+            "Sparse infill": 183.162841796875,
+            "Top surface": 44.23012924194336,
+            "Travel": 28.499767303466797,
+            "Undefined": 21.03380012512207
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFU99",
+              "id": 1,
+              "main_used_g": 2.06699538230896,
+              "total_used_g": 2.06699538230896
+            }
+          ],
+          "generate_support_material_time": 2,
+          "id": 1,
+          "infill_time": 7,
+          "layer_filament_change": 0,
+          "main_predication": 721.4507446289062,
+          "make_perimeters_time": 3,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 63,
+          "sliced_time_with_cache": 28,
+          "total_predication": 1168.9117431640625,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 15.0,
+      "wall_loops": 2
+    }
+  },
+  {
+    "material": "cc3d-tpu72d-black",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "fe2c20a21580baf74cf2c1be43e8165170e551400d89c2bf84fd2584052ae21f",
+        "settings": {
+          "nozzle_temperature": "235",
+          "nozzle_temperature_initial_layer": "235",
+          "textured_plate_temp": "60",
+          "filament_max_volumetric_speed": "3",
+          "filament_flow_ratio": "1",
+          "filament_type": "TPU",
+          "fan_min_speed": "20",
+          "fan_max_speed": "40",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 17,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 26.771026611328125,
+            "Bridge": 34.672420501708984,
+            "Custom": 402.926025390625,
+            "Flush": 26.0,
+            "Inner wall": 215.913818359375,
+            "Internal solid infill": 156.65679931640625,
+            "Outer wall": 142.4172821044922,
+            "Sparse infill": 225.31634521484375,
+            "Top surface": 39.230125427246094,
+            "Travel": 34.18204879760742,
+            "Undefined": 26.716081619262695
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFU99",
+              "id": 1,
+              "main_used_g": 2.5470175743103027,
+              "total_used_g": 2.5470175743103027
+            }
+          ],
+          "generate_support_material_time": 1,
+          "id": 1,
+          "infill_time": 4,
+          "layer_filament_change": 0,
+          "main_predication": 849.15185546875,
+          "make_perimeters_time": 3,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 41,
+          "sliced_time_with_cache": 26,
+          "total_predication": 1296.6119384765625,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  },
+  {
+    "material": "fiberon-pet-gf15-blue",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "8de7a93d00f4ab4577fdc3c2c7d352801756308c1f9d16959e3f7b46fbf35785",
+        "settings": {
+          "nozzle_temperature": "290",
+          "nozzle_temperature_initial_layer": "290",
+          "textured_plate_temp": "80",
+          "filament_max_volumetric_speed": "8",
+          "filament_flow_ratio": "0.94",
+          "filament_type": "PET-CF",
+          "fan_min_speed": "0",
+          "fan_max_speed": "0",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 14,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 20.841922760009766,
+            "Bridge": 27.64205551147461,
+            "Custom": 403.55670166015625,
+            "Flush": 26.0,
+            "Inner wall": 102.03756713867188,
+            "Internal solid infill": 83.97098541259766,
+            "Outer wall": 88.44232177734375,
+            "Sparse infill": 132.21139526367188,
+            "Top surface": 24.539487838745117,
+            "Travel": 33.11335372924805,
+            "Undefined": 25.64738655090332
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFT01",
+              "id": 1,
+              "main_used_g": 2.7610414028167725,
+              "total_used_g": 2.7610414028167725
+            }
+          ],
+          "generate_support_material_time": 1,
+          "id": 1,
+          "infill_time": 4,
+          "layer_filament_change": 0,
+          "main_predication": 486.804443359375,
+          "make_perimeters_time": 2,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 39,
+          "sliced_time_with_cache": 27,
+          "total_predication": 934.8951416015625,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  },
+  {
+    "material": "fiberon-pa6-gf25-grey",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "0049cce21ea77b13e49c04bcd9f49dedb1d5dbf03e6cd5242a178fd7f6efebc9",
+        "settings": {
+          "nozzle_temperature": "290",
+          "nozzle_temperature_initial_layer": "290",
+          "textured_plate_temp": "50",
+          "filament_max_volumetric_speed": "6",
+          "filament_flow_ratio": "0.95",
+          "filament_type": "PA-GF",
+          "fan_min_speed": "0",
+          "fan_max_speed": "0",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 17,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 20.841922760009766,
+            "Bridge": 27.64205551147461,
+            "Custom": 403.55670166015625,
+            "Flush": 26.0,
+            "Inner wall": 108.73582458496094,
+            "Internal solid infill": 83.97098541259766,
+            "Outer wall": 88.44232177734375,
+            "Sparse infill": 134.0733642578125,
+            "Top surface": 24.539487838745117,
+            "Travel": 33.097782135009766,
+            "Undefined": 25.63181495666504
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFN98",
+              "id": 1,
+              "main_used_g": 2.3416106700897217,
+              "total_used_g": 2.3416106700897217
+            }
+          ],
+          "generate_support_material_time": 2,
+          "id": 1,
+          "infill_time": 4,
+          "layer_filament_change": 0,
+          "main_predication": 495.34710693359375,
+          "make_perimeters_time": 3,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 49,
+          "sliced_time_with_cache": 32,
+          "total_predication": 943.4378051757812,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  },
+  {
+    "material": "fiberon-asa-cf08-navy",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "119ae77a92ba7b3ced7ae433cb252ba4a94b062f3da48aa73725b9aec3cc4036",
+        "settings": {
+          "nozzle_temperature": "270",
+          "nozzle_temperature_initial_layer": "270",
+          "textured_plate_temp": "100",
+          "filament_max_volumetric_speed": "8",
+          "filament_flow_ratio": "0.95",
+          "filament_type": "ASA",
+          "fan_min_speed": "0",
+          "fan_max_speed": "0",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 15,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 20.85629653930664,
+            "Bridge": 27.65643882751465,
+            "Custom": 403.5833740234375,
+            "Flush": 26.0,
+            "Inner wall": 199.00155639648438,
+            "Internal solid infill": 84.7202377319336,
+            "Outer wall": 117.65298461914062,
+            "Sparse infill": 216.23934936523438,
+            "Top surface": 24.54052734375,
+            "Travel": 33.03178405761719,
+            "Undefined": 25.56581687927246
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFB51",
+              "id": 1,
+              "main_used_g": 2.1269631385803223,
+              "total_used_g": 2.1269631385803223
+            }
+          ],
+          "generate_support_material_time": 2,
+          "id": 1,
+          "infill_time": 5,
+          "layer_filament_change": 0,
+          "main_predication": 697.7068481445312,
+          "make_perimeters_time": 3,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 54,
+          "sliced_time_with_cache": 37,
+          "total_predication": 1145.82421875,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  },
+  {
+    "material": "elegoo-abs-blue-order-match",
+    "returncode": 0,
+    "success_text": true,
+    "toolpaths": [
+      {
+        "filename": "plate_1.gcode",
+        "sha256": "1ce3624fbc970bfb7defacfd2f650efdd8e68b9c0c6d6513f8ac65af20383b59",
+        "settings": {
+          "nozzle_temperature": "260",
+          "nozzle_temperature_initial_layer": "260",
+          "textured_plate_temp": "100",
+          "filament_max_volumetric_speed": "8",
+          "filament_flow_ratio": "0.95",
+          "filament_type": "ABS",
+          "fan_min_speed": "0",
+          "fan_max_speed": "20",
+          "layer_height": "0.2",
+          "wall_loops": "3",
+          "sparse_infill_density": "20%"
+        }
+      }
+    ],
+    "slicer_result": {
+      "error_string": "Success.",
+      "export_time": 0,
+      "layer_height": 0.20000000298023224,
+      "plate_index": 0,
+      "prepare_time": 14,
+      "return_code": 0,
+      "sliced_plates": [
+        {
+          "feature_type_times": {
+            "Bottom surface": 20.841922760009766,
+            "Bridge": 27.64205551147461,
+            "Custom": 403.55670166015625,
+            "Flush": 26.0,
+            "Inner wall": 102.03756713867188,
+            "Internal solid infill": 83.97098541259766,
+            "Outer wall": 88.44232177734375,
+            "Sparse infill": 132.09762573242188,
+            "Top surface": 24.539487838745117,
+            "Travel": 33.0451774597168,
+            "Undefined": 25.57921028137207
+          },
+          "filament_change_times": 0,
+          "filaments": [
+            {
+              "filament_id": "GFB99",
+              "id": 1,
+              "main_used_g": 2.1464765071868896,
+              "total_used_g": 2.1464765071868896
+            }
+          ],
+          "generate_support_material_time": 1,
+          "id": 1,
+          "infill_time": 6,
+          "layer_filament_change": 0,
+          "main_predication": 486.6224365234375,
+          "make_perimeters_time": 4,
+          "obj_cached_cnt": 0,
+          "objects": [
+            {
+              "bbox": {
+                "depth": 20.000001907348633,
+                "height": 10.0,
+                "width": 20.0,
+                "x": 118.0,
+                "y": 118.00000762939453,
+                "z": 0.0
+              },
+              "id": 5,
+              "name": "cube.stl",
+              "triangle_count": 12
+            }
+          ],
+          "sliced_time": 46,
+          "sliced_time_with_cache": 26,
+          "total_predication": 934.713134765625,
+          "triangle_count": 12,
+          "warning_message": ""
+        }
+      ],
+      "sparse_infill_density": 20.0,
+      "wall_loops": 3
+    }
+  }
+]

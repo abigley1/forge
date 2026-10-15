@@ -1,4 +1,6 @@
 import express from 'express'
+import { createPrintQueueRouter } from './routes/print-queue.js'
+import { createPrintQueueStudioRouter } from './routes/print-queue-studio.js'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import { createCorsMiddleware } from './middleware/cors.js'
@@ -104,6 +106,32 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   app.use('/api/projects/:projectId', createProjectAnalyticsRouter(db))
 
   // Inventory module routes
+  app.use('/api/print-queue', createPrintQueueRouter(db))
+  const studioManifest = process.env.FORGE_STUDIO_MANIFEST
+  // Trusted assets must be outside every browser-writable/static file root.
+  const outsideRoot = (root: string, file: string) =>
+    path
+      .relative(path.resolve(root), path.resolve(file))
+      .startsWith(`..${path.sep}`)
+  app.use(
+    '/api/print-queue-studio',
+    createPrintQueueStudioRouter(
+      db,
+      process.platform === 'darwin' &&
+        process.env.FORGE_HOST === '127.0.0.1' &&
+        studioManifest &&
+        outsideRoot(config.dataDir, studioManifest) &&
+        outsideRoot(config.staticDir, studioManifest)
+        ? {
+            manifestPath: studioManifest,
+            origins: [
+              `http://127.0.0.1:${config.port}`,
+              `http://localhost:${config.port}`,
+            ],
+          }
+        : undefined
+    )
+  )
   app.use('/api/inventory', createInventoryRouter(db))
   app.use('/api/inventory', urlExtractionRouter)
   app.use('/api/inventory', barcodeLookupRouter)
@@ -152,7 +180,7 @@ async function main() {
   process.on('SIGINT', shutdown)
   process.on('SIGTERM', shutdown)
 
-  app.listen(config.port, () => {
+  app.listen(config.port, process.env.FORGE_HOST || '0.0.0.0', () => {
     console.log(`Forge Server listening on http://localhost:${config.port}`)
     console.log(`  Health check: http://localhost:${config.port}/api/health`)
     console.log(`  Projects API: http://localhost:${config.port}/api/projects`)

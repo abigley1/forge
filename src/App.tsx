@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { PrintQueueView } from '@/components/print-queue/PrintQueueView'
 import { Trash2, Save } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { SaveIndicator, useSaveIndicator } from '@/components/ui'
@@ -59,7 +60,13 @@ function LoadingScreen() {
 /**
  * Welcome screen — full-page project selector with warm industrial aesthetic
  */
-function WelcomeScreen({ onOpenInventory }: { onOpenInventory: () => void }) {
+function WelcomeScreen({
+  onOpenInventory,
+  onOpenPrintQueue,
+}: {
+  onOpenInventory: () => void
+  onOpenPrintQueue: () => void
+}) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const reducedMotion = useReducedMotion()
 
@@ -181,6 +188,13 @@ function WelcomeScreen({ onOpenInventory }: { onOpenInventory: () => void }) {
             <h2 className="text-forge-muted dark:text-forge-muted-dark mb-4 font-mono text-xs font-medium tracking-[0.1em] uppercase">
               Tools
             </h2>
+            <button
+              type="button"
+              onClick={onOpenPrintQueue}
+              className="text-forge-text-secondary dark:text-forge-text-secondary-dark hover:text-forge-accent flex min-h-11 w-full items-center py-2 text-left font-mono text-sm font-medium"
+            >
+              Print queue
+            </button>
             <button
               type="button"
               onClick={onOpenInventory}
@@ -560,7 +574,13 @@ function App() {
   const activeProjectId = useWorkspaceStore((state) => state.activeProjectId)
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false)
   const [projectsSynced, setProjectsSynced] = useState(false)
-  const [standaloneTool, setStandaloneTool] = useState<'inventory' | null>(null)
+  const [standaloneTool, setStandaloneTool] = useState<
+    'inventory' | 'print-queue' | null
+  >(() =>
+    new URLSearchParams(window.location.search).get('tool') === 'print-queue'
+      ? 'print-queue'
+      : null
+  )
 
   // Initialize server persistence
   const serverPersistence = useServerPersistence()
@@ -652,6 +672,17 @@ function App() {
       return <LoadingScreen />
     }
 
+    if (standaloneTool === 'print-queue') {
+      return (
+        <PrintQueueView
+          onBack={() => {
+            setStandaloneTool(null)
+            window.history.replaceState(null, '', window.location.pathname)
+          }}
+        />
+      )
+    }
+
     // Standalone tool (e.g. inventory) — no project needed
     if (standaloneTool === 'inventory' && !activeProjectId) {
       return <StandaloneInventory onBack={() => setStandaloneTool(null)} />
@@ -660,7 +691,13 @@ function App() {
     // No project selected - show welcome screen to pick one
     if (!activeProjectId) {
       return (
-        <WelcomeScreen onOpenInventory={() => setStandaloneTool('inventory')} />
+        <WelcomeScreen
+          onOpenInventory={() => setStandaloneTool('inventory')}
+          onOpenPrintQueue={() => {
+            setStandaloneTool('print-queue')
+            window.history.replaceState(null, '', '?tool=print-queue')
+          }}
+        />
       )
     }
 
@@ -690,7 +727,13 @@ function App() {
 
     // Fallback - show welcome screen
     return (
-      <WelcomeScreen onOpenInventory={() => setStandaloneTool('inventory')} />
+      <WelcomeScreen
+        onOpenInventory={() => setStandaloneTool('inventory')}
+        onOpenPrintQueue={() => {
+          setStandaloneTool('print-queue')
+          window.history.replaceState(null, '', '?tool=print-queue')
+        }}
+      />
     )
   }
 

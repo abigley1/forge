@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Volumes/Bambu Studio/BambuStudio.app/Contents/MacOS/BambuStudio",
+    "--debug",
+    "3",
+    "--datadir",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/isolated-studio-data",
+    "--load-settings",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/machine-resolved.json;/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/fiberon-pet-gf15-blue/process-resolved.json",
+    "--load-filaments",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/fiberon-pet-gf15-blue/filament-resolved.json",
+    "--load-filament-ids",
+    "1",
+    "--export-settings",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/fiberon-pet-gf15-blue/effective-settings.json",
+    "--slice",
+    "0",
+    "--outputdir",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/fiberon-pet-gf15-blue",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/cube.stl"
+  ],
+  "returncode": 0
+}

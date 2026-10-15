@@ -242,3 +242,10 @@ Progress is tracked in `.ralph/progress.md`. The loop completes when `[RALPH_COM
 
 - `src/components/inventory/` has pre-existing TS type errors and lint violations (in-progress feature work). Don't fix unless specifically asked.
 - `server/dist/` has lint errors from generated `.d.ts` files. Ignore.
+
+## Owned filament reference
+
+For material selection and print-queue planning, read `docs/materials-p2s/MATERIALS.md`
+and `docs/materials-p2s/inventory.json`. Preserve original stock units, approximate
+mass flags and the 2026-10-15 snapshot date; update consumption only from evidence.
+Profile imports and sliced cubes do not establish physical calibration.

@@ -1,0 +1,80 @@
+{
+  "gui_import_result": "10 configs imported",
+  "version": "2.4.0.70",
+  "presets": [
+    {
+      "name": "CC3D TPU72D Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/CC3D TPU72D Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Generic TPU @BBL P2S",
+      "sha256": "d9a6ced689652431db7ccd0479d70e53f6f8a173aad08acd679e905b625d5665"
+    },
+    {
+      "name": "ELEGOO ABS Blue ORDER-MATCH - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/ELEGOO ABS Blue ORDER-MATCH - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Generic ABS @BBL P2S",
+      "sha256": "cd30f2de9ec23320b84238d7a4a704c8aef5bc6a01dd14eea6c7585c5df880d3"
+    },
+    {
+      "name": "ELEGOO PETG-CF Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/ELEGOO PETG-CF Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Generic PETG-CF @BBL P2S",
+      "sha256": "d15f7d6d5012cc3b5402f3423210a7b612183de98e72f51247959a84adf3269d"
+    },
+    {
+      "name": "ELEGOO Rapid TPU95A Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/ELEGOO Rapid TPU95A Black - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Generic TPU @BBL P2S",
+      "sha256": "b188c135a5acf864808d224eeb88e8398c984601a813cf7bc89f0b6b7b981457"
+    },
+    {
+      "name": "Fiberon ASA-CF08 Navy Blue - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/Fiberon ASA-CF08 Navy Blue - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": null,
+      "inherits": "Bambu ASA-CF @BBL P2S 0.4 nozzle",
+      "sha256": "d2a48dd001460f2395afb75d0b2270466668783b7d4ad2da10a5c4233ce0f196"
+    },
+    {
+      "name": "Fiberon PA6-GF25 Grey - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/Fiberon PA6-GF25 Grey - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Generic PA-CF @BBL P2S",
+      "sha256": "4f56ff95b8853c630488bc29243ca79eecd2a2f52fa87cbd88f36f9a4a540518"
+    },
+    {
+      "name": "Fiberon PET-GF15 Blue - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/filament/Fiberon PET-GF15 Blue - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": ["Bambu Lab P2S 0.4 nozzle"],
+      "inherits": "Bambu PET-CF @BBL P2S",
+      "sha256": "5de4ffdec55bfdf260d67a79a123b4f8c569661c501a1377794c287e280619e2"
+    },
+    {
+      "name": "0.20mm Flexible 95A - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/process/0.20mm Flexible 95A - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": null,
+      "inherits": "0.20mm Standard @BBL P2S",
+      "sha256": "466f3f79d08350fc7d5eaf5b287402516557d191cbb3ca2935a4b485d61f8a54"
+    },
+    {
+      "name": "0.20mm Rigid - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/process/0.20mm Rigid - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": null,
+      "inherits": "0.20mm Standard @BBL P2S",
+      "sha256": "1ba999cc50a4206a477bc4f70809987bea36414ada0f54c3a56c5b4b3d012a67"
+    },
+    {
+      "name": "0.20mm CC3D 72D - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle",
+      "path": "/Users/andrewbigley/Library/Application Support/BambuStudio/user/1252642507/process/0.20mm CC3D 72D - Forge START 2026-10-15 v2 Studio24 @ Bambu Lab P2S 0.4 nozzle.json",
+      "compatible_printers": null,
+      "inherits": "0.20mm Standard @BBL P2S",
+      "sha256": "467eb0a9154c5c57b2436b32dbde822fff2e453a127e8897eaabfe89b9d2a351"
+    }
+  ],
+  "selector_visual_verification": "blocked by native main-window coordinate control error; import dialog and saved files verified",
+  "project": "Gridfinity_Pegboard preserved; no restart/save/discard",
+  "physical_nozzle": "user confirmed stock 0.4 mm; not independently observed",
+  "calibration": "not performed"
+}
