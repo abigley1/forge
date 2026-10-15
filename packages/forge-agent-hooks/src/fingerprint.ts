@@ -26,7 +26,7 @@ function git(cwd: string, args: string[]): string | null {
       encoding: 'utf8',
       timeout: 1500,
       stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim()
+    }).trimEnd()
   } catch {
     return null
   }
@@ -65,11 +65,41 @@ function newestMtime(root: string): number {
   return newest
 }
 
+const MAX_STATUS_PATHS = 500
+
+/**
+ * Porcelain lines stay identical across repeated edits of a dirty file, so add
+ * each listed path's mtime/size (newest mtime for untracked folders).
+ */
+function statusSignals(cwd: string, porcelain: string): string {
+  return porcelain
+    .split('\n')
+    .filter(Boolean)
+    .slice(0, MAX_STATUS_PATHS)
+    .map((line) => {
+      const rel = line.slice(3).split(' -> ').pop()!.replace(/^"|"$/g, '')
+      const full = join(cwd, rel)
+      try {
+        const st = statSync(full)
+        return st.isDirectory()
+          ? `${rel}:${newestMtime(full)}`
+          : `${rel}:${st.mtimeMs}:${st.size}`
+      } catch {
+        return `${rel}:gone`
+      }
+    })
+    .join('|')
+}
+
 export function workspaceFingerprint(cwd: string): string {
   const head = git(cwd, ['rev-parse', 'HEAD'])
-  const raw =
-    head !== null
-      ? `git:${head}:${git(cwd, ['status', '--porcelain']) ?? ''}`
-      : `mtime:${newestMtime(cwd)}`
+  let raw: string
+  if (head !== null) {
+    const porcelain =
+      git(cwd, ['--no-optional-locks', 'status', '--porcelain']) ?? ''
+    raw = `git:${head}:${porcelain}:${statusSignals(cwd, porcelain)}`
+  } else {
+    raw = `mtime:${newestMtime(cwd)}`
+  }
   return createHash('sha1').update(raw).digest('hex')
 }
