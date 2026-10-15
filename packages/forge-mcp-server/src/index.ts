@@ -70,6 +70,7 @@ import {
   requireProjectId,
   withProjectIdParam,
 } from './project-scope.js'
+import { formatApiNodeForLLM } from './format.js'
 
 // ============================================================================
 // Configuration
@@ -161,42 +162,6 @@ function formatNodeForLLM(node: ForgeNode): Record<string, unknown> {
     }),
     ...(['subsystem', 'assembly', 'module'].includes(node.type) && {
       status: (node as { status: string }).status,
-    }),
-  }
-}
-
-/**
- * Format an API node for LLM output
- */
-function formatApiNodeForLLM(node: ApiNode): Record<string, unknown> {
-  return {
-    id: node.id,
-    type: node.type,
-    title: node.title,
-    tags: node.tags,
-    created: node.created_at,
-    modified: node.modified_at,
-    content:
-      (node.content ?? '').substring(0, 500) +
-      ((node.content?.length ?? 0) > 500 ? '...' : ''),
-    parent: node.parent_id,
-    ...(node.type === 'task' && {
-      status: node.status,
-      priority: node.priority,
-      dependsOn: node.depends_on,
-    }),
-    ...(node.type === 'decision' && {
-      status: node.status,
-      selected: node.selected_option,
-    }),
-    ...(node.type === 'component' && {
-      status: node.status,
-      cost: node.cost,
-      supplier: node.supplier,
-      partNumber: node.part_number,
-    }),
-    ...(['subsystem', 'assembly', 'module'].includes(node.type) && {
-      status: node.status,
     }),
   }
 }
