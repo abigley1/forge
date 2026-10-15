@@ -7,6 +7,7 @@ import { createCorsMiddleware } from './middleware/cors.js'
 import { createHealthRouter } from './routes/health.js'
 import { createBackupRouter } from './routes/backup.js'
 import { createWorkspacesRouter } from './routes/workspaces.js'
+import { createCloseoutsRouter } from './routes/closeouts.js'
 import { createFilesRouter } from './routes/files.js'
 import { createProjectsRouter } from './routes/projects.js'
 import {
@@ -107,6 +108,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   // New SQLite-backed API routes
   app.use('/api/projects', createProjectsRouter(db))
   app.use('/api/projects/:projectId/nodes', createNodesRouter(db))
+  app.use('/api/projects/:projectId/closeouts', createCloseoutsRouter(db))
   app.use('/api/projects/:projectId', createProjectAnalyticsRouter(db))
 
   // Inventory module routes
