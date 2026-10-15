@@ -6,6 +6,7 @@ import * as fs from 'node:fs/promises'
 import { createCorsMiddleware } from './middleware/cors.js'
 import { createHealthRouter } from './routes/health.js'
 import { createBackupRouter } from './routes/backup.js'
+import { createWorkspacesRouter } from './routes/workspaces.js'
 import { createFilesRouter } from './routes/files.js'
 import { createProjectsRouter } from './routes/projects.js'
 import {
@@ -100,6 +101,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   // API routes
   app.use('/api/health', createHealthRouter(config.dataDir))
   app.use('/api/backup', createBackupRouter(db))
+  app.use('/api/workspaces', createWorkspacesRouter(db))
   app.use('/api/files', createFilesRouter(adapter))
 
   // New SQLite-backed API routes
