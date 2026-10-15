@@ -63,6 +63,13 @@ import {
 } from './dependency-utils.js'
 import type { TaskNode, ComponentNode } from './types.js'
 import { createApiClient, type ApiClient, type ApiNode } from './api-client.js'
+import {
+  setDefaultProjectId,
+  getDefaultProjectId,
+  runWithProject,
+  requireProjectId,
+  withProjectIdParam,
+} from './project-scope.js'
 
 // ============================================================================
 // Configuration
@@ -80,9 +87,6 @@ interface ServerConfig {
 
 let apiClient: ApiClient | null = null
 
-// Track current project ID (can be changed via switch_project tool)
-let currentProjectId: string | null = null
-
 function loadConfig(): ServerConfig {
   const apiUrl = process.env.FORGE_API_URL
   const projectId = process.env.FORGE_PROJECT_ID
@@ -94,7 +98,7 @@ function loadConfig(): ServerConfig {
     apiClient = createApiClient({ baseUrl: apiUrl })
     // Set initial project if provided
     if (projectId) {
-      currentProjectId = projectId
+      setDefaultProjectId(projectId)
     }
     return {
       mode: 'api',
@@ -116,18 +120,6 @@ function loadConfig(): ServerConfig {
   console.error('API mode: Set FORGE_API_URL (FORGE_PROJECT_ID is optional)')
   console.error('Filesystem mode: Set FORGE_PROJECT_PATH')
   process.exit(1)
-}
-
-/**
- * Get the current project ID, throwing an error if none is selected
- */
-function requireProjectId(): string {
-  if (!currentProjectId) {
-    throw new Error(
-      'No project selected. Use list_projects to see available projects, then switch_project to select one.'
-    )
-  }
-  return currentProjectId
 }
 
 // ============================================================================
@@ -345,6 +337,10 @@ async function handleUpdateNode(
       supplier: input.supplier,
       part_number: input.partNumber,
       cost: input.cost,
+      expected_version:
+        typeof args.expected_version === 'number'
+          ? args.expected_version
+          : undefined,
     })
 
     if (!result.success) {
@@ -709,12 +705,12 @@ async function handleListProjects(): Promise<{
                 name: p.name,
                 description: p.description,
               })),
-              currentProject: currentProjectId
+              currentProject: getDefaultProjectId()
                 ? {
-                    id: currentProjectId,
+                    id: getDefaultProjectId(),
                     name:
-                      result.data.find((p) => p.id === currentProjectId)
-                        ?.name || currentProjectId,
+                      result.data.find((p) => p.id === getDefaultProjectId())
+                        ?.name || getDefaultProjectId(),
                   }
                 : null,
             },
@@ -793,7 +789,7 @@ async function handleSwitchProject(
     }
 
     // Switch to the project
-    currentProjectId = projectId
+    setDefaultProjectId(projectId)
     currentProject = null // Clear cached project
 
     return {
@@ -1973,6 +1969,11 @@ async function main() {
                 type: 'string',
                 description: 'ID of the node to update',
               },
+              expected_version: {
+                type: 'number',
+                description:
+                  'Version from get_node. If the node changed since, the update is rejected; re-read and retry.',
+              },
               title: {
                 type: 'string',
                 description: 'New title',
@@ -2368,7 +2369,7 @@ async function main() {
             properties: {},
           },
         },
-      ],
+      ].map(withProjectIdParam),
     }
   })
 
@@ -2377,49 +2378,53 @@ async function main() {
   // -------------------------------------------------------------------------
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params
+    const projectId =
+      args && typeof args.project_id === 'string' ? args.project_id : undefined
 
     try {
-      switch (name) {
-        case 'create_node':
-          return await handleCreateNode(args ?? {})
-        case 'update_node':
-          return await handleUpdateNode(args ?? {})
-        case 'delete_node':
-          return await handleDeleteNode(args ?? {})
-        case 'search_nodes':
-          return await handleSearchNodes(args ?? {})
-        case 'get_node':
-          return await handleGetNode(args ?? {})
-        case 'list_projects':
-          return await handleListProjects()
-        case 'switch_project':
-          return await handleSwitchProject(args ?? {})
-        case 'add_dependency':
-          return await handleAddDependency(args ?? {})
-        case 'remove_dependency':
-          return await handleRemoveDependency(args ?? {})
-        case 'get_blocked_tasks':
-          return await handleGetBlockedTasks()
-        case 'get_critical_path':
-          return await handleGetCriticalPath()
-        case 'bulk_update':
-          return await handleBulkUpdate(args ?? {})
-        case 'find_components':
-          return await handleFindComponents(args ?? {})
-        // Inventory tools
-        case 'search_inventory':
-          return await handleSearchInventory(args ?? {})
-        case 'get_inventory_item':
-          return await handleGetInventoryItem(args ?? {})
-        case 'add_inventory_item':
-          return await handleAddInventoryItem(args ?? {})
-        case 'update_inventory_quantity':
-          return await handleUpdateInventoryQuantity(args ?? {})
-        case 'list_inventory_categories':
-          return await handleListInventoryCategories()
-        default:
-          throw new Error(`Unknown tool: ${name}`)
-      }
+      return await runWithProject(projectId, async () => {
+        switch (name) {
+          case 'create_node':
+            return await handleCreateNode(args ?? {})
+          case 'update_node':
+            return await handleUpdateNode(args ?? {})
+          case 'delete_node':
+            return await handleDeleteNode(args ?? {})
+          case 'search_nodes':
+            return await handleSearchNodes(args ?? {})
+          case 'get_node':
+            return await handleGetNode(args ?? {})
+          case 'list_projects':
+            return await handleListProjects()
+          case 'switch_project':
+            return await handleSwitchProject(args ?? {})
+          case 'add_dependency':
+            return await handleAddDependency(args ?? {})
+          case 'remove_dependency':
+            return await handleRemoveDependency(args ?? {})
+          case 'get_blocked_tasks':
+            return await handleGetBlockedTasks()
+          case 'get_critical_path':
+            return await handleGetCriticalPath()
+          case 'bulk_update':
+            return await handleBulkUpdate(args ?? {})
+          case 'find_components':
+            return await handleFindComponents(args ?? {})
+          // Inventory tools
+          case 'search_inventory':
+            return await handleSearchInventory(args ?? {})
+          case 'get_inventory_item':
+            return await handleGetInventoryItem(args ?? {})
+          case 'add_inventory_item':
+            return await handleAddInventoryItem(args ?? {})
+          case 'update_inventory_quantity':
+            return await handleUpdateInventoryQuantity(args ?? {})
+          case 'list_inventory_categories':
+            return await handleListInventoryCategories()
+          default:
+            throw new Error(`Unknown tool: ${name}`)
+        }
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {

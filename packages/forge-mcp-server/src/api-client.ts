@@ -41,6 +41,7 @@ export interface ApiProject {
 export interface ApiNode {
   id: string
   project_id: string
+  version: number
   type: NodeType
   title: string
   content: string | null
@@ -97,6 +98,7 @@ export interface CreateNodeInput {
  * Update node input
  */
 export interface UpdateNodeInput {
+  expected_version?: number
   title?: string
   content?: string
   status?: string
