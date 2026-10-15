@@ -448,6 +448,32 @@ export class InventoryRepository {
   }
 
   /**
+   * Inventory rows that can be matched to project components by part number
+   */
+  listWithPartNumbers(): Array<{
+    id: string
+    name: string
+    part_number: string
+    quantity: number
+    location: string | null
+    status: 'owned' | 'wishlist' | 'on_order'
+  }> {
+    return this.db
+      .prepare(
+        `SELECT id, name, part_number, quantity, location, status
+           FROM inventory_items WHERE part_number IS NOT NULL AND part_number != ''`
+      )
+      .all() as Array<{
+      id: string
+      name: string
+      part_number: string
+      quantity: number
+      location: string | null
+      status: 'owned' | 'wishlist' | 'on_order'
+    }>
+  }
+
+  /**
    * Find all items that are at or below their low stock threshold
    */
   findLowStockItems(): InventoryItemWithTags[] {
