@@ -145,4 +145,13 @@ describe('forge hooks', () => {
       decision: 'block',
     })
   })
+
+  it('does not block when Forge goes down after session start', async () => {
+    await link()
+    await sessionStart({ session_id: 's10', cwd: workDir }, deps)
+    await new Promise((r) => setTimeout(r, 20))
+    await fs.writeFile(path.join(workDir, 'late.scad'), 'cube(1);')
+    const down = { ...deps, apiUrl: 'http://127.0.0.1:1/api', timeoutMs: 500 }
+    expect(await stop({ session_id: 's10', cwd: workDir }, down)).toEqual({})
+  })
 })

@@ -4,7 +4,7 @@
  * {"decision":"block","reason":...} from Stop to continue the turn.
  */
 
-import { forgeFetch, type ResolveResult } from './forge.js'
+import { forgeFetch, forgeReachable, type ResolveResult } from './forge.js'
 import { gitRemote, workspaceFingerprint } from './fingerprint.js'
 import { readState, writeState } from './state.js'
 
@@ -103,6 +103,15 @@ export async function stop(
 
     const current = workspaceFingerprint(input.cwd)
     if (current === state.baseline) return {}
+
+    // Don't ask for a closeout the agent cannot record (Forge down/unreachable).
+    if (
+      !(await forgeReachable(
+        deps.apiUrl,
+        Math.min(deps.timeoutMs ?? DEFAULT_TIMEOUT, 1000)
+      ))
+    )
+      return {}
 
     writeState(deps.stateDir, input.session_id, {
       projectId,

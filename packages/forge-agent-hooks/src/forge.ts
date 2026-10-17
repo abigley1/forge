@@ -30,3 +30,18 @@ export async function forgeFetch<T>(
     return null
   }
 }
+
+/** Bounded liveness probe; false on any error or non-2xx. */
+export async function forgeReachable(
+  apiUrl: string,
+  timeoutMs: number
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${apiUrl}/health`, {
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
