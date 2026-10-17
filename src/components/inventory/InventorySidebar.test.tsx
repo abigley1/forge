@@ -338,10 +338,14 @@ describe('InventorySidebar', () => {
         />
       )
 
-      const electronicsButton = screen
+      // aria-selected lives on the treeitem (WAI-ARIA tree pattern), not the button
+      const electronicsItem = screen
         .getByText('Electronics')
-        .closest('button')
-      expect(electronicsButton).toHaveAttribute('aria-selected', 'true')
+        .closest('[role="treeitem"]')
+      expect(electronicsItem).toHaveAttribute('aria-selected', 'true')
+      expect(
+        screen.getByText('Fasteners').closest('[role="treeitem"]')
+      ).toHaveAttribute('aria-selected', 'false')
     })
 
     it('should highlight selected subcategory', async () => {
@@ -360,8 +364,13 @@ describe('InventorySidebar', () => {
       })
       await user.click(expandButton)
 
-      const capacitorsButton = screen.getByText('Capacitors').closest('button')
-      expect(capacitorsButton).toHaveAttribute('aria-selected', 'true')
+      const capacitorsItem = screen
+        .getByText('Capacitors')
+        .closest('[role="treeitem"]')
+      expect(capacitorsItem).toHaveAttribute('aria-selected', 'true')
+      expect(
+        screen.getByText('Resistors').closest('[role="treeitem"]')
+      ).toHaveAttribute('aria-selected', 'false')
     })
   })
 
