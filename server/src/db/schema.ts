@@ -11,7 +11,7 @@
  * - attachments: File attachments for nodes
  */
 
-export const SCHEMA_VERSION = 6
+export const SCHEMA_VERSION = 7
 
 /**
  * Inventory item status values
@@ -291,7 +291,21 @@ INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order
   ('consumables-other', 'consumables', 'Other', 3);
 `
 
-export const CREATE_TABLES_SQL = BASE_TABLES_SQL + AGENT_LOOP_TABLES_SQL
+/** 3D design projects: declared stage per project (migration 7). */
+export const DESIGN_PROJECTS_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS design_projects (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  stage TEXT NOT NULL CHECK(stage IN ('designing','test-printing','production','done','on-hold')),
+  stage_note TEXT NOT NULL DEFAULT '',
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`
+
+export const CREATE_TABLES_SQL =
+  BASE_TABLES_SQL + AGENT_LOOP_TABLES_SQL + DESIGN_PROJECTS_TABLE_SQL
 
 /**
  * Node types as a union type for type safety

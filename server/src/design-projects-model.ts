@@ -55,6 +55,14 @@ export interface ProjectSummary {
   flags: ProjectFlag[]
 }
 
+export interface DesignOverview {
+  queueVersion: number
+  projects: Array<
+    DesignProject & { summary: ProjectSummary; plates: PrintPlate[] }
+  >
+  unassigned: { project: string; plates: number }[]
+}
+
 export const sameProject = (a: string, b: string) =>
   a.trim().toLowerCase() === b.trim().toLowerCase()
 

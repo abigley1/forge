@@ -82,3 +82,42 @@ describe('migration 5 -> 6', () => {
     rmSync(dir, { recursive: true, force: true })
   })
 })
+
+describe('migration 6 -> 7', () => {
+  afterEach(() => resetDatabase())
+
+  it('creates design_projects on upgraded databases', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'forge-migration-7-'))
+    const dbPath = join(dir, 'forge.sqlite')
+    const legacy = new Database(dbPath)
+    legacy.exec(`
+      CREATE TABLE schema_version (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')));
+      INSERT INTO schema_version (version) VALUES (6);
+    `)
+    legacy.close()
+    const db = initializeDatabase({ dbPath })
+    const cols = (
+      db.prepare('PRAGMA table_info(design_projects)').all() as Array<{
+        name: string
+      }>
+    ).map((c) => c.name)
+    expect(cols).toEqual([
+      'id',
+      'name',
+      'stage',
+      'stage_note',
+      'version',
+      'created_at',
+      'updated_at',
+    ])
+    expect(
+      (
+        db.prepare('SELECT MAX(version) v FROM schema_version').get() as {
+          v: number
+        }
+      ).v
+    ).toBe(7)
+    resetDatabase()
+    rmSync(dir, { recursive: true, force: true })
+  })
+})

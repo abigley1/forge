@@ -133,4 +133,24 @@ export class PrintQueueRepository {
       })
       .immediate()
   }
+  /** Rewrites `project` on plates matching `from` (case/space-insensitive).
+   * Used inside a design-project rename transaction. Returns plates changed. */
+  renameProject(from: string, to: string): number {
+    return this.db.transaction(() => {
+      const queue = this.read()
+      const key = from.trim().toLowerCase()
+      const now = new Date().toISOString()
+      let changed = 0
+      queue.plates = queue.plates.map((p) => {
+        if (p.project.trim().toLowerCase() !== key || p.project === to) return p
+        changed++
+        return { ...p, project: to, updatedAt: now }
+      })
+      if (changed)
+        this.db
+          .prepare('UPDATE print_queue SET version=?, plates=? WHERE id=1')
+          .run(queue.version + 1, JSON.stringify(queue.plates))
+      return changed
+    })()
+  }
 }

@@ -11,6 +11,7 @@ import * as fs from 'node:fs'
 import {
   AGENT_LOOP_TABLES_SQL,
   CREATE_TABLES_SQL,
+  DESIGN_PROJECTS_TABLE_SQL,
   SCHEMA_VERSION,
 } from './schema.js'
 import { LEGACY_STATUS_ALIASES } from '../domain/nodeRules.js'
@@ -383,6 +384,10 @@ function runIncrementalMigrations(
     // Migration 5 -> 6: workspace links + session closeouts
     (db: DatabaseInstance) => {
       db.exec(AGENT_LOOP_TABLES_SQL)
+    },
+    // Migration 6 -> 7: 3D design projects (declared stage per project)
+    (db: DatabaseInstance) => {
+      db.exec(DESIGN_PROJECTS_TABLE_SQL)
     },
   ]
 
