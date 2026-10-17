@@ -54,11 +54,9 @@ describe('Workspaces API', () => {
         path: '/Users/a/Documents/Codex/2026-10-15/task-3',
       })
       .expect(201)
-    const res = await request(app)
-      .post('/api/workspaces/resolve')
-      .send({
-        cwd: '/Users/a/Documents/Codex/2026-10-15/task-3/pegboard-mounts',
-      })
+    const res = await request(app).post('/api/workspaces/resolve').send({
+      cwd: '/Users/a/Documents/Codex/2026-10-15/task-3/pegboard-mounts',
+    })
     expect(res.body.data.project.id).toBe(projectId)
     expect(res.body.data.match).toEqual({
       kind: 'path',
@@ -76,5 +74,35 @@ describe('Workspaces API', () => {
       .send({ project_id: 'nope', path: '/x' })
       .expect(404)
     await request(app).post('/api/workspaces/resolve').send({}).expect(400)
+  })
+
+  it('rejects empty, relative, and over-broad paths', async () => {
+    for (const bad of [
+      '',
+      '   ',
+      '/',
+      '/Users',
+      '/Users/andrewbigley',
+      'a/b/c',
+    ]) {
+      const res = await request(app)
+        .post('/api/workspaces/links')
+        .send({ project_id: projectId, path: bad })
+      expect(res.status, `path ${JSON.stringify(bad)}`).toBe(400)
+    }
+  })
+
+  it('unlinks by id', async () => {
+    const created = await request(app)
+      .post('/api/workspaces/links')
+      .send({ project_id: projectId, path: '/Users/a/Projects/pegboard' })
+      .expect(201)
+    const id = created.body.data[0].id
+    await request(app).delete(`/api/workspaces/links/${id}`).expect(204)
+    const res = await request(app)
+      .post('/api/workspaces/resolve')
+      .send({ cwd: '/Users/a/Projects/pegboard' })
+    expect(res.body.data.project).toBeNull()
+    await request(app).delete(`/api/workspaces/links/${id}`).expect(404)
   })
 })

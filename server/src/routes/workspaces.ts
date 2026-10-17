@@ -4,13 +4,17 @@
  * - POST /api/workspaces/resolve - Resolve a working folder / git remote to a project
  * - POST /api/workspaces/links   - Link a folder and/or git remote to a project
  * - GET  /api/workspaces/links   - List links (optionally ?project_id=)
+ * - DELETE /api/workspaces/links/:id - Remove a link
  */
 
 import { Router, Request, Response } from 'express'
 import type { DatabaseInstance } from '../db/index.js'
 import type { WorkspaceLinkRow } from '../db/schema.js'
 import { ProjectRepository } from '../db/ProjectRepository.js'
-import { WorkspaceRepository } from '../db/WorkspaceRepository.js'
+import {
+  WorkspaceRepository,
+  linkPathError,
+} from '../db/WorkspaceRepository.js'
 
 const MAX_CANDIDATES = 8
 
@@ -56,12 +60,27 @@ export function createWorkspacesRouter(db: DatabaseInstance): Router {
       res.status(400).json({ error: 'Provide path and/or git_remote' })
       return
     }
+    if (typeof path === 'string') {
+      const pathError = linkPathError(path)
+      if (pathError) {
+        res.status(400).json({ error: pathError })
+        return
+      }
+    }
     const created: WorkspaceLinkRow[] = []
     if (typeof path === 'string')
       created.push(workspaces.link(project_id, 'path', path))
     if (typeof git_remote === 'string')
       created.push(workspaces.link(project_id, 'git_remote', git_remote))
     res.status(201).json({ data: created })
+  })
+
+  router.delete('/links/:id', (req: Request<{ id: string }>, res: Response) => {
+    if (!workspaces.unlink(req.params.id)) {
+      res.status(404).json({ error: 'Link not found' })
+      return
+    }
+    res.status(204).send()
   })
 
   router.get('/links', (req: Request, res: Response) => {

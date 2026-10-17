@@ -41,6 +41,21 @@ export function isPathWithin(child: string, parent: string): boolean {
   return c === p || c.startsWith(p === '/' ? '/' : `${p}/`)
 }
 
+/** Fewest path segments a linked folder may have (blocks "/", "/Users", "~"). */
+export const MIN_LINK_PATH_SEGMENTS = 3
+
+/**
+ * Null when the path is a safe link target, otherwise the reason it is not
+ */
+export function linkPathError(p: string): string | null {
+  const normalized = normalizePath(p)
+  if (!normalized.startsWith('/')) return 'path must be absolute'
+  const segments = normalized.split('/').filter(Boolean).length
+  if (segments < MIN_LINK_PATH_SEGMENTS)
+    return `path is too broad; link a project folder at least ${MIN_LINK_PATH_SEGMENTS} levels deep`
+  return null
+}
+
 export class WorkspaceRepository {
   constructor(private db: DatabaseInstance) {}
 
@@ -86,6 +101,13 @@ export class WorkspaceRepository {
       if (match) return match
     }
     return null
+  }
+
+  unlink(id: string): boolean {
+    return (
+      this.db.prepare('DELETE FROM workspace_links WHERE id = ?').run(id)
+        .changes > 0
+    )
   }
 
   list(projectId?: string): WorkspaceLinkRow[] {
