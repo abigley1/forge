@@ -51,3 +51,19 @@ it('clears testResult when purpose leaves test', () => {
   })
   expect(screen.queryByLabelText('Test result')).toBeNull()
 })
+
+it('keeps a set test result visible after printed drops to 0 so it can be cleared', () => {
+  render(
+    <PlateEditor
+      plate={{ ...base, purpose: 'test', testResult: 'fail' }}
+      onSave={vi.fn()}
+      onClose={() => {}}
+    />
+  )
+  fireEvent.change(screen.getByLabelText('Successful copies printed'), {
+    target: { value: '0' },
+  })
+  const result = screen.getByLabelText('Test result')
+  fireEvent.change(result, { target: { value: '' } })
+  expect(screen.queryByLabelText('Test result')).toBeNull()
+})

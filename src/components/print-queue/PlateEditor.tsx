@@ -150,25 +150,27 @@ export function PlateEditor({
                     <option value="production">Production</option>
                   </select>
                 </label>
-                {draft.purpose === 'test' && draft.printed > 0 && (
-                  <label>
-                    Test result
-                    <select
-                      aria-label="Test result"
-                      value={draft.testResult}
-                      onChange={(e) =>
-                        set(
-                          'testResult',
-                          e.target.value as PlateInput['testResult']
-                        )
-                      }
-                    >
-                      <option value="">Awaiting result</option>
-                      <option value="pass">Pass</option>
-                      <option value="fail">Fail</option>
-                    </select>
-                  </label>
-                )}
+                {/* Stays visible while a result is set, so it can be cleared. */}
+                {draft.purpose === 'test' &&
+                  (draft.printed > 0 || !!draft.testResult) && (
+                    <label>
+                      Test result
+                      <select
+                        aria-label="Test result"
+                        value={draft.testResult}
+                        onChange={(e) =>
+                          set(
+                            'testResult',
+                            e.target.value as PlateInput['testResult']
+                          )
+                        }
+                      >
+                        <option value="">Awaiting result</option>
+                        <option value="pass">Pass</option>
+                        <option value="fail">Fail</option>
+                      </select>
+                    </label>
+                  )}
               </div>
               <h3>Parts on this plate</h3>
               <p className="pq-help">

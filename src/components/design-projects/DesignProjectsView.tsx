@@ -24,12 +24,16 @@ export function DesignProjectsView({
   const [filter, setFilter] = useState<DesignStage | null>(null)
   const [addError, setAddError] = useState('')
   const editing = useRef(new Set<string>())
+  // Saves use the latest loaded version, so a refresh after a 409 lets the
+  // kept edits save against it without remounting the card.
+  const latest = useRef<DesignOverview | null>(null)
 
   // State is set in promise callbacks, never synchronously in the effect.
   const load = useCallback(
     () =>
       designRequest<DesignOverview>().then(
         (next) => {
+          latest.current = next
           setData(next)
           setError('')
         },
@@ -180,7 +184,7 @@ export function DesignProjectsView({
                   <div className="grid gap-4 md:grid-cols-2">
                     {projects.map((p) => (
                       <ProjectCard
-                        key={`${p.id}:${p.version}`}
+                        key={p.id}
                         project={p}
                         onOpenQueue={onOpenQueue}
                         onEditingChange={(on) => {
@@ -188,8 +192,11 @@ export function DesignProjectsView({
                           else editing.current.delete(p.id)
                         }}
                         onSave={async (input) => {
+                          const version =
+                            latest.current?.projects.find((x) => x.id === p.id)
+                              ?.version ?? p.version
                           await designRequest('PUT', `/${p.id}`, {
-                            version: p.version,
+                            version,
                             project: input,
                           })
                           editing.current.delete(p.id)

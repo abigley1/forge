@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -60,6 +60,11 @@ export function ProjectCard({
   })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // A card hidden by a filter while its form is open must not keep pausing
+  // the page's auto-refresh.
+  const editingChange = useRef(onEditingChange)
+  editingChange.current = onEditingChange
+  useEffect(() => () => editingChange.current(false), [])
   const toggleEditing = (next: boolean) => {
     setEditing(next)
     onEditingChange(next)

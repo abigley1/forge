@@ -181,3 +181,58 @@ it('lists a project’s plates with purpose and printed of needed', async () => 
   expect(row).toHaveTextContent('Test · pass')
   expect(row).toHaveTextContent('1 / 1')
 })
+
+it('keeps auto-refreshing after a card is hidden while its form is open', async () => {
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+  try {
+    const fetchMock = vi.fn().mockResolvedValue(ok(overview))
+    vi.stubGlobal('fetch', fetchMock)
+    view()
+    const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Change stage' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Done ·/ }))
+    expect(screen.queryByRole('article', { name: 'Basic 9U rack' })).toBeNull()
+    const before = fetchMock.mock.calls.length
+    vi.advanceTimersByTime(15_000)
+    expect(fetchMock.mock.calls.length).toBe(before + 1)
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+it('after a 409, Refresh keeps the edits and Save uses the new version', async () => {
+  const newer = {
+    ...overview,
+    projects: [{ ...overview.projects[0], version: 2 }],
+  }
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValueOnce(ok(overview))
+    .mockResolvedValueOnce({
+      ok: false,
+      status: 409,
+      json: async () => ({ success: false, error: 'changed elsewhere' }),
+    })
+    .mockResolvedValueOnce(ok(newer))
+    .mockResolvedValueOnce(ok({ id: 'r' }))
+    .mockResolvedValue(ok(newer))
+  vi.stubGlobal('fetch', fetchMock)
+  view()
+  const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
+  fireEvent.click(within(card).getByRole('button', { name: 'Change stage' }))
+  fireEvent.change(within(card).getByLabelText('Stage'), {
+    target: { value: 'done' },
+  })
+  fireEvent.click(within(card).getByRole('button', { name: 'Save stage' }))
+  await within(card).findByRole('alert')
+  fireEvent.click(screen.getByRole('button', { name: /refresh/i }))
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))
+  const fresh = screen.getByRole('article', { name: 'Basic 9U rack' })
+  expect(within(fresh).getByLabelText('Stage')).toHaveValue('done')
+  fireEvent.click(within(fresh).getByRole('button', { name: 'Save stage' }))
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(5))
+  expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toMatchObject({
+    version: 2,
+    project: { stage: 'done' },
+  })
+})

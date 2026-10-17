@@ -60,3 +60,20 @@ it('done shows production total; on-hold shows the most advanced fact', () => {
     )
   ).toBe('0 / 2 production plates printed')
 })
+it('never says "No prints yet" while printed copies exist', () => {
+  expect(headline('designing', s({ untaggedPrinted: 2 }))).toBe(
+    '2 printed copies (2 untagged)'
+  )
+  expect(headline('on-hold', s({ untaggedPrinted: 1, planned: 3 }))).toBe(
+    '1 printed copies (1 untagged)'
+  )
+  expect(
+    headline(
+      'designing',
+      s({ production: { printed: 1, planned: 2, planComplete: true } })
+    )
+  ).toBe('1 printed copies')
+  expect(headline('designing', s({ earlierRevisionsPrinted: 2 }))).toBe(
+    '2 printed on superseded or archived plates'
+  )
+})
