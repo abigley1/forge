@@ -72,7 +72,8 @@ Example new-plate JSON:
 {
   "name": "Hook plate", "project": "Entry shelf", "revision": "R5",
   "parts": [{"name": "double_hook", "required": 4, "onPlate": 1}],
-  "printed": 0, "status": "draft", "material": "PETG", "color": "",
+  "printed": 0, "status": "draft", "purpose": "production", "testResult": "",
+  "material": "PETG", "color": "",
   "profile": "", "grams": null, "minutes": null,
   "artifact": "/absolute/path/hook.3mf", "supersededBy": "", "notes": ""
 }
@@ -87,7 +88,9 @@ Example new-plate JSON:
 
 Responses use Forge's `{success, data}` / `{success:false, error}` convention.
 HTTP 400 is validation failure, 404 is missing plate, 409 is stale version.
-Allowed statuses: draft, ready, printing, done, failed, blocked. Ready/printing/done
+Allowed statuses: draft, ready, printing, done, failed, blocked. Optional `purpose`
+is `test`, `production` or empty; `testResult` (`pass`/`fail`) is only valid on a
+test plate with at least one printed copy. Ready/printing/done
 require named parts and an artifact; a draft or blocked review placeholder may
 have unknown quantities (empty parts). IDs and timestamps are assigned server-side.
 
@@ -150,6 +153,41 @@ its hashes and current row fields in the manifest atomically. The October 14 tas
 contains `prepare-studio-projects.py`, `validate-studio-projects.py` and
 `register-studio-assets.py` as evidence-specific examples, not a universal importer.
 Do not rerun their frozen-source preparation against newer revisions without review.
+
+## 3D Design homepage
+
+Open Forge → **3D Design**, or bookmark `/?tool=3d-design`. Each 3D design project
+has a **declared stage** (designing, test-printing, production, done, on-hold) and a
+short note. Nothing changes a stage automatically. Counts come only from queue facts:
+
+- Tag each plate's **Purpose** (Test print / Production) in the plate editor.
+  Printed plates without a tag are flagged, never guessed.
+- For a printed test plate, set **Test result** (pass/fail). Printed is not validated.
+- Production shows printed copies out of copies needed on current production plates.
+  "At least" means a production plate has no parts yet. Prints on superseded plates
+  show as earlier-revision history and never count toward the current plan.
+- Ready, printing, queued or an attached artifact never count as printed.
+- Plates link to a project by matching `project` text, ignoring case and outer
+  spaces. Renaming a project rewrites matching plates in the same transaction.
+  Queue projects with no design project appear under **Unassigned plates**.
+
+| Method | Path | JSON body |
+|---|---|---|
+| GET | `/api/design-projects` | none → `{queueVersion, projects: [{…, summary, plates}], unassigned}` |
+| POST | `/api/design-projects` | `{ "project": {name, stage, stageNote} }` |
+| PUT | `/api/design-projects/:id` | `{ "version": N, "project": {name, stage, stageNote} }` |
+| POST | `/api/print-queue/import` | `{ "version": 0, "plates": [complete plates with id/updatedAt] }` |
+
+The import is a one-time move of an existing queue (used to move the Mac queue onto
+Home Assistant). It only works on an empty queue, keeps IDs, order, printed counts
+and timestamps, and writes nothing if any plate is invalid.
+
+```sh
+node scripts/design-projects.mjs list
+node scripts/design-projects.mjs add "Pipe corral" test-printing "R4 fit test printed"
+node scripts/design-projects.mjs stage PROJECT_ID production "R6 plates released"
+node scripts/design-projects.mjs rename PROJECT_ID "Basic 9U rack"
+```
 
 ## Owned filament reference
 
