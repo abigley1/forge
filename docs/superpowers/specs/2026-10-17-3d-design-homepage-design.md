@@ -1,6 +1,6 @@
 # 3D Design homepage — design
 
-Date: 2026-10-17 · Branch: `forge-v2` · Status: awaiting Andrew's review
+Date: 2026-10-17 · Branch: `forge-v2` · Status: design approved; §7 data to be reconfirmed before rollout step 5
 
 ## Intent
 
@@ -172,7 +172,7 @@ a 409. `docs/PRINT_QUEUE.md` gets a short section on purpose/testResult and the 
 - Local end-to-end run against a **copy** of the Mac DB. The Mac original is never
   opened read-write.
 
-## 7. Initial data (Andrew to confirm or correct)
+## 7. Initial data (approved as a proposal; reconfirm with Andrew before rollout step 5)
 
 This is applied through the API after the import. Every row cites the queue record it
 comes from. Plates not listed keep `purpose` unset.
