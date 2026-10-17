@@ -26,4 +26,5 @@ export {
   apiNodesToForgeNodes,
   forgeNodeToCreateInput,
   forgeNodeToUpdateInput,
+  diffForgeNode,
 } from './converters.js'

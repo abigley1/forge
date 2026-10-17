@@ -18,6 +18,7 @@ import {
   apiNodesToForgeNodes,
   forgeNodeToCreateInput,
   forgeNodeToUpdateInput,
+  diffForgeNode,
 } from '@/lib/api'
 import type { ApiNode } from '@/lib/api'
 import { useNodesStore } from '@/store/useNodesStore'
@@ -417,7 +418,16 @@ export function useServerPersistence(): UseServerPersistenceReturn {
         return
       }
 
-      const updates = forgeNodeToUpdateInput(previousNode, node)
+      const updates = forgeNodeToUpdateInput(
+        node,
+        diffForgeNode(previousNode, node)
+      )
+      // Nothing the server stores changed (e.g. only local dates): skip the PUT
+      // so it does not bump the node version under an agent's expected_version.
+      if (Object.keys(updates).length === 0) {
+        markClean(node.id)
+        return
+      }
       const result = await api.updateNode(projectId, node.id, updates)
 
       // Check again after API call - project may have changed

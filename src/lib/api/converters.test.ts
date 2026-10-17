@@ -10,6 +10,7 @@ import {
   apiNodesToForgeNodes,
   forgeNodeToCreateInput,
   forgeNodeToUpdateInput,
+  diffForgeNode,
 } from './converters'
 import type { ApiNode } from './types'
 import type {
@@ -379,5 +380,64 @@ describe('forgeNodeToUpdateInput', () => {
 
     expect(input.cost).toBeNull()
     expect(input.supplier).toBeNull()
+  })
+})
+
+describe('diffForgeNode', () => {
+  const base: TaskNode = {
+    id: 'task-1',
+    type: 'task',
+    title: 'Original',
+    content: 'body',
+    tags: ['cnc'],
+    dates: {
+      created: new Date('2024-01-01'),
+      modified: new Date('2024-01-01'),
+    },
+    status: 'pending',
+    priority: 'medium',
+    dependsOn: ['a'],
+    blocks: [],
+    checklist: [],
+    parent: null,
+  }
+
+  it('returns only fields whose values changed', () => {
+    const edited: TaskNode = {
+      ...base,
+      title: 'Edited title',
+      tags: ['cnc'],
+      dependsOn: ['a'],
+      dates: { ...base.dates, modified: new Date('2024-02-01') },
+    }
+    expect(diffForgeNode(base, edited)).toEqual({ title: 'Edited title' })
+  })
+
+  it('so a title-only edit does not resend stale status or dependencies', () => {
+    const edited: TaskNode = { ...base, title: 'Edited title' }
+    const input = forgeNodeToUpdateInput(edited, diffForgeNode(base, edited))
+    expect(input).toEqual({ title: 'Edited title' })
+  })
+
+  it('yields an empty update when only local dates changed', () => {
+    const touched: TaskNode = {
+      ...base,
+      dates: { ...base.dates, modified: new Date('2024-03-01') },
+    }
+    expect(
+      forgeNodeToUpdateInput(touched, diffForgeNode(base, touched))
+    ).toEqual({})
+  })
+
+  it('detects array and nested changes', () => {
+    const edited: TaskNode = {
+      ...base,
+      dependsOn: ['a', 'b'],
+      checklist: [{ id: 'c1', text: 'Sand', completed: false }],
+    }
+    expect(diffForgeNode(base, edited)).toEqual({
+      dependsOn: ['a', 'b'],
+      checklist: [{ id: 'c1', text: 'Sand', completed: false }],
+    })
   })
 })
