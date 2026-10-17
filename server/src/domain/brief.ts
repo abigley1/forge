@@ -9,6 +9,9 @@ export const BRIEF_MARKDOWN_LIMIT = 6000
 const RECENT_DAYS = 14
 const TITLE_MAX = 120
 const SUMMARY_MAX = 600
+const NEXT_ACTION_MAX = 300
+const UNCERTAIN_ITEM_MAX = 200
+const UNCERTAIN_ITEMS = 5
 
 export interface BriefNode {
   id: string
@@ -188,9 +191,14 @@ export function buildBrief(
     }
   }
 
-  const last_sessions = input.closeouts
-    .slice(0, 2)
-    .map((c) => ({ ...c, summary: clip(c.summary, SUMMARY_MAX) }))
+  const last_sessions = input.closeouts.slice(0, 2).map((c) => ({
+    ...c,
+    summary: clip(c.summary, SUMMARY_MAX),
+    next_action: c.next_action ? clip(c.next_action, NEXT_ACTION_MAX) : null,
+    uncertain: c.uncertain
+      .slice(0, UNCERTAIN_ITEMS)
+      .map((u) => clip(u, UNCERTAIN_ITEM_MAX)),
+  }))
   const goal = input.project.description?.trim() || null
 
   const header = [
@@ -251,8 +259,9 @@ export function buildBrief(
   for (const s of sections) {
     const candidate = `${markdown}\n\n${s}`
     if (candidate.length + footer.length > limit) {
+      // Skip this section but keep trying smaller later ones.
       truncated = true
-      break
+      continue
     }
     markdown = candidate
   }

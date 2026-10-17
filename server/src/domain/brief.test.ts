@@ -153,3 +153,33 @@ describe('buildBrief', () => {
     expect(empty.next_actions).toEqual([])
   })
 })
+
+describe('buildBrief with verbose closeouts', () => {
+  it('clips long next_action/uncertain and keeps later sections', () => {
+    const long = 'x'.repeat(2500)
+    const brief = buildBrief({
+      ...input,
+      closeouts: [
+        {
+          session_id: 'a',
+          client: 'codex',
+          summary: 'Long one',
+          next_action: long,
+          uncertain: [long, long, long, long, long, long, long],
+          updated_at: '2026-10-19T10:00:00Z',
+        },
+        {
+          session_id: 'b',
+          client: 'codex',
+          summary: 'Another',
+          next_action: long,
+          uncertain: [long],
+          updated_at: '2026-10-18T10:00:00Z',
+        },
+      ],
+    })
+    expect(brief.markdown.length).toBeLessThanOrEqual(6000)
+    expect(brief.markdown).toContain('## Next actions')
+    expect(brief.markdown).toContain('## Open decisions')
+  })
+})
