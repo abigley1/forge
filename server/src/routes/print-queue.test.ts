@@ -8,6 +8,7 @@ import {
   copiesRemaining,
   queueTotals,
   emptyPlate,
+  validatePlate,
   type PrintPlate,
 } from '../print-queue-model.js'
 import { PrintQueueRepository } from '../db/PrintQueueRepository.js'
@@ -200,5 +201,56 @@ describe('shared print queue', () => {
       unknownGrams: 2,
       unknownTime: 2,
     })
+  })
+  it('validates purpose and testResult', () => {
+    expect(validatePlate({ ...plate, purpose: 'production' }).purpose).toBe(
+      'production'
+    )
+    expect(validatePlate(plate).purpose).toBe('')
+    expect(validatePlate(plate).testResult).toBe('')
+    expect(() => validatePlate({ ...plate, purpose: 'prototype' })).toThrow(
+      /purpose/
+    )
+    expect(() =>
+      validatePlate({
+        ...plate,
+        purpose: 'production',
+        printed: 1,
+        testResult: 'pass',
+      })
+    ).toThrow(/only test plates/)
+    expect(() =>
+      validatePlate({
+        ...plate,
+        purpose: 'test',
+        printed: 0,
+        testResult: 'pass',
+      })
+    ).toThrow(/printed copy/)
+    expect(
+      validatePlate({
+        ...plate,
+        purpose: 'test',
+        printed: 1,
+        testResult: 'fail',
+      }).testResult
+    ).toBe('fail')
+  })
+  it('legacy plates read back with empty purpose and testResult', () => {
+    const repo = new PrintQueueRepository(db)
+    const legacy: Record<string, unknown> = {
+      ...validatePlate(plate),
+      id: 'legacy-1',
+      updatedAt: '2026-10-13T00:00:00.000Z',
+    }
+    delete legacy.purpose
+    delete legacy.testResult
+    db.prepare('UPDATE print_queue SET version=1, plates=? WHERE id=1').run(
+      JSON.stringify([legacy])
+    )
+    const read = repo.read().plates[0]
+    expect(read.purpose).toBe('')
+    expect(read.testResult).toBe('')
+    expect(read.id).toBe('legacy-1')
   })
 })

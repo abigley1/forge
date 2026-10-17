@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import type { DatabaseInstance } from './index.js'
-import { validatePlate, type PrintQueue } from '../print-queue-model.js'
+import {
+  normalizePlate,
+  validatePlate,
+  type PrintPlate,
+  type PrintQueue,
+} from '../print-queue-model.js'
 
 export class QueueError extends Error {
   constructor(
@@ -22,7 +27,10 @@ export class PrintQueueRepository {
     const row = this.db
       .prepare('SELECT version, plates FROM print_queue WHERE id=1')
       .get() as { version: number; plates: string }
-    return { version: row.version, plates: JSON.parse(row.plates) }
+    return {
+      version: row.version,
+      plates: (JSON.parse(row.plates) as PrintPlate[]).map(normalizePlate),
+    }
   }
   private change(
     version: unknown,

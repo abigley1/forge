@@ -9,6 +9,10 @@ export const statuses = [
   'blocked',
 ] as const
 export type PrintStatus = (typeof statuses)[number]
+export const purposes = ['', 'test', 'production'] as const
+export type PlatePurpose = (typeof purposes)[number]
+export const testResults = ['', 'pass', 'fail'] as const
+export type TestResult = (typeof testResults)[number]
 export interface PlatePart {
   name: string
   required: number
@@ -22,6 +26,10 @@ export interface PrintPlate {
   parts: PlatePart[]
   printed: number
   status: PrintStatus
+  /** test = fit/test print; production = a plate of the finished design. */
+  purpose: PlatePurpose
+  /** Only for test plates with at least one printed copy. */
+  testResult: TestResult
   material: string
   color: string
   profile: string
@@ -45,6 +53,14 @@ export function copiesNeeded(plate: Pick<PrintPlate, 'parts'>): number {
 }
 export function copiesRemaining(plate: PrintPlate): number {
   return Math.max(0, copiesNeeded(plate) - plate.printed)
+}
+/** Records written before purpose/testResult existed read as untagged. */
+export function normalizePlate(plate: PrintPlate): PrintPlate {
+  return {
+    ...plate,
+    purpose: plate.purpose ?? '',
+    testResult: plate.testResult ?? '',
+  }
 }
 export function queueTotals(plates: PrintPlate[]) {
   const active = plates.filter((p) => !p.supersededBy && p.status !== 'done')
@@ -77,6 +93,8 @@ export const emptyPlate: PlateInput = {
   parts: [],
   printed: 0,
   status: 'draft',
+  purpose: '',
+  testResult: '',
   material: '',
   color: '',
   profile: '',
@@ -136,6 +154,12 @@ export function validatePlate(value: unknown): PlateInput {
   }
   if (!statuses.includes(p.status as PrintStatus))
     throw new Error('status: choose a supported status.')
+  const purpose = p.purpose ?? ''
+  if (!purposes.includes(purpose as PlatePurpose))
+    throw new Error('purpose: choose test, production, or leave unset.')
+  const testResult = p.testResult ?? ''
+  if (!testResults.includes(testResult as TestResult))
+    throw new Error('testResult: choose pass, fail, or leave unset.')
   const result: PlateInput = {
     name: text('name', true),
     project: text('project', true),
@@ -143,6 +167,8 @@ export function validatePlate(value: unknown): PlateInput {
     parts,
     printed: integer(p.printed, 0, 'printed'),
     status: p.status as PrintStatus,
+    purpose: purpose as PlatePurpose,
+    testResult: testResult as TestResult,
     material: text('material'),
     color: text('color'),
     profile: text('profile'),
@@ -173,6 +199,12 @@ export function validatePlate(value: unknown): PlateInput {
   )
     throw new Error(
       'All copies are already printed. Use done or increase required quantities.'
+    )
+  if (result.testResult && result.purpose !== 'test')
+    throw new Error('testResult: only test plates have a pass/fail result.')
+  if (result.testResult && result.printed < 1)
+    throw new Error(
+      'testResult: record a printed copy before a pass/fail result.'
     )
   return result
 }

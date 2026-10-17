@@ -134,6 +134,41 @@ export function PlateEditor({
                     onChange={(e) => set('printed', Number(e.target.value))}
                   />
                 </label>
+                <label>
+                  Purpose
+                  <select
+                    aria-label="Purpose"
+                    value={draft.purpose}
+                    onChange={(e) => {
+                      const purpose = e.target.value as PlateInput['purpose']
+                      set('purpose', purpose)
+                      if (purpose !== 'test') set('testResult', '')
+                    }}
+                  >
+                    <option value="">Unset</option>
+                    <option value="test">Test print</option>
+                    <option value="production">Production</option>
+                  </select>
+                </label>
+                {draft.purpose === 'test' && draft.printed > 0 && (
+                  <label>
+                    Test result
+                    <select
+                      aria-label="Test result"
+                      value={draft.testResult}
+                      onChange={(e) =>
+                        set(
+                          'testResult',
+                          e.target.value as PlateInput['testResult']
+                        )
+                      }
+                    >
+                      <option value="">Awaiting result</option>
+                      <option value="pass">Pass</option>
+                      <option value="fail">Fail</option>
+                    </select>
+                  </label>
+                )}
               </div>
               <h3>Parts on this plate</h3>
               <p className="pq-help">
