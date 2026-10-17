@@ -253,4 +253,66 @@ describe('shared print queue', () => {
     expect(read.testResult).toBe('')
     expect(read.id).toBe('legacy-1')
   })
+  const exported = (id: string, extra = {}) => ({
+    ...validatePlate(plate),
+    id,
+    updatedAt: '2026-10-13T20:13:56.000Z',
+    ...extra,
+  })
+  it('imports a full queue verbatim into an empty queue', async () => {
+    const plates = [
+      exported('b', { printed: 4, status: 'done' }),
+      exported('a', { name: 'Second' }),
+    ]
+    const res = await request(app)
+      .post('/api/print-queue/import')
+      .send({ version: 0, plates })
+    expect(res.status).toBe(200)
+    expect(res.body.data.version).toBe(1)
+    expect(res.body.data.plates.map((p: PrintPlate) => p.id)).toEqual([
+      'b',
+      'a',
+    ])
+    expect(res.body.data.plates[0]).toMatchObject({
+      printed: 4,
+      updatedAt: '2026-10-13T20:13:56.000Z',
+    })
+    expect(new PrintQueueRepository(db).read()).toEqual(res.body.data)
+  })
+  it('refuses import into a non-empty queue', async () => {
+    await request(app).post('/api/print-queue').send({ version: 0, plate })
+    const res = await request(app)
+      .post('/api/print-queue/import')
+      .send({ version: 0, plates: [exported('x')] })
+    expect(res.status).toBe(409)
+    expect(new PrintQueueRepository(db).read().plates).toHaveLength(1)
+  })
+  it('an invalid plate aborts the whole import', async () => {
+    const res = await request(app)
+      .post('/api/print-queue/import')
+      .send({
+        version: 0,
+        plates: [exported('ok'), exported('bad', { status: 'nope' })],
+      })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/plates\[1\]/)
+    expect(new PrintQueueRepository(db).read()).toEqual({
+      version: 0,
+      plates: [],
+    })
+  })
+  it('rejects duplicate or missing ids and bad timestamps', async () => {
+    for (const plates of [
+      [exported('d'), exported('d')],
+      [{ ...exported('e'), id: '' }],
+      [exported('f', { updatedAt: 'yesterday' })],
+      [],
+    ]) {
+      const res = await request(app)
+        .post('/api/print-queue/import')
+        .send({ version: 0, plates })
+      expect(res.status).toBe(400)
+    }
+    expect(new PrintQueueRepository(db).read().version).toBe(0)
+  })
 })

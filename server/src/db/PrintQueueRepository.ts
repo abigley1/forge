@@ -92,4 +92,45 @@ export class PrintQueueRepository {
       q.plates = ids.map((id) => byId.get(id)!)
     })
   }
+  /** One-time move of an existing queue (e.g. the Mac queue onto HA).
+   * Only into an empty queue; keeps IDs, order, printed counts and timestamps. */
+  importQueue(version: unknown, plates: unknown): PrintQueue {
+    return this.db
+      .transaction(() => {
+        const queue = this.read()
+        if (version !== 0 || queue.version !== 0 || queue.plates.length)
+          throw new QueueError(
+            'Import only works on an empty queue (version 0, no plates).',
+            409
+          )
+        if (!Array.isArray(plates) || !plates.length || plates.length > 2000)
+          throw new QueueError('plates: supply 1 to 2000 plates.')
+        const ids = new Set<string>()
+        const imported = plates.map((raw: unknown, i): PrintPlate => {
+          const r = (raw ?? {}) as Record<string, unknown>
+          if (typeof r.id !== 'string' || !r.id.trim() || ids.has(r.id))
+            throw new QueueError(`plates[${i}]: needs a unique, non-empty id.`)
+          ids.add(r.id)
+          if (
+            typeof r.updatedAt !== 'string' ||
+            Number.isNaN(Date.parse(r.updatedAt))
+          )
+            throw new QueueError(
+              `plates[${i}]: updatedAt must be an ISO timestamp.`
+            )
+          try {
+            return { ...validatePlate(r), id: r.id, updatedAt: r.updatedAt }
+          } catch (error) {
+            throw new QueueError(
+              `plates[${i}] (${String(r.name)}): ${error instanceof Error ? error.message : 'invalid'}`
+            )
+          }
+        })
+        this.db
+          .prepare('UPDATE print_queue SET version=1, plates=? WHERE id=1')
+          .run(JSON.stringify(imported))
+        return { version: 1, plates: imported }
+      })
+      .immediate()
+  }
 }
