@@ -46,4 +46,34 @@ describe('App', () => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
     })
   })
+
+  it('opens the 3D Design tool from ?tool=3d-design', async () => {
+    window.history.replaceState(null, '', '/?tool=3d-design')
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { queueVersion: 0, projects: [], unassigned: [] },
+        }),
+      })
+    )
+    try {
+      renderWithProviders(<App />)
+      expect(
+        await screen.findByRole('heading', { level: 1, name: '3D Design' })
+      ).toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+      window.history.replaceState(null, '', '/')
+    }
+  })
+
+  it('has a 3D Design button on the landing page', async () => {
+    renderWithProviders(<App />)
+    expect(
+      await screen.findByRole('button', { name: '3D Design' })
+    ).toBeInTheDocument()
+  })
 })

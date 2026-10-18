@@ -8,7 +8,13 @@
 import Database from 'better-sqlite3'
 import * as path from 'node:path'
 import * as fs from 'node:fs'
-import { CREATE_TABLES_SQL, SCHEMA_VERSION } from './schema.js'
+import {
+  AGENT_LOOP_TABLES_SQL,
+  CREATE_TABLES_SQL,
+  DESIGN_PROJECTS_TABLE_SQL,
+  SCHEMA_VERSION,
+} from './schema.js'
+import { LEGACY_STATUS_ALIASES } from '../domain/nodeRules.js'
 
 /**
  * Database instance type from better-sqlite3
@@ -360,6 +366,28 @@ function runIncrementalMigrations(
       db.prepare(
         `ALTER TABLE inventory_items ADD COLUMN low_stock_threshold INTEGER`
       ).run()
+    },
+    // Migration 4 -> 5: node versions + canonical statuses
+    (db: DatabaseInstance) => {
+      db.prepare(
+        'ALTER TABLE nodes ADD COLUMN version INTEGER NOT NULL DEFAULT 1'
+      ).run()
+      const rewrite = db.prepare(
+        'UPDATE nodes SET status = ? WHERE type = ? AND status = ?'
+      )
+      for (const [type, aliases] of Object.entries(LEGACY_STATUS_ALIASES)) {
+        for (const [legacy, canonical] of Object.entries(aliases ?? {})) {
+          rewrite.run(canonical, type, legacy)
+        }
+      }
+    },
+    // Migration 5 -> 6: workspace links + session closeouts
+    (db: DatabaseInstance) => {
+      db.exec(AGENT_LOOP_TABLES_SQL)
+    },
+    // Migration 6 -> 7: 3D design projects (declared stage per project)
+    (db: DatabaseInstance) => {
+      db.exec(DESIGN_PROJECTS_TABLE_SQL)
     },
   ]
 

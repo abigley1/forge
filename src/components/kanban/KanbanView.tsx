@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils'
 import { useNodesStore } from '@/store'
 import { useReducedMotion } from '@/hooks'
 import { isTaskNode, type TaskNode, type TaskStatus } from '@/types/nodes'
+import { getBlockedTaskIds } from '@/lib/blockedStatus'
 
 // ============================================================================
 // Types
@@ -112,6 +113,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 interface KanbanCardProps {
   task: TaskNode
+  isBlocked: boolean
   isSelected: boolean
   isDragging: boolean
   onSelect: () => void
@@ -124,6 +126,7 @@ interface KanbanCardProps {
 
 function KanbanCard({
   task,
+  isBlocked,
   isSelected,
   isDragging,
   onSelect,
@@ -135,8 +138,6 @@ function KanbanCard({
 }: KanbanCardProps) {
   const [showQuickActions, setShowQuickActions] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
-
-  const isBlocked = task.dependsOn.length > 0 && task.status !== 'complete'
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -288,6 +289,7 @@ function KanbanCard({
 interface KanbanColumnProps {
   column: KanbanColumn
   tasks: TaskNode[]
+  blockedTaskIds: Set<string>
   activeNodeId: string | null
   dragState: DragState
   isCollapsed: boolean
@@ -304,6 +306,7 @@ interface KanbanColumnProps {
 function KanbanColumnComponent({
   column,
   tasks,
+  blockedTaskIds,
   activeNodeId,
   dragState,
   isCollapsed,
@@ -399,6 +402,7 @@ function KanbanColumnComponent({
               <KanbanCard
                 key={task.id}
                 task={task}
+                isBlocked={blockedTaskIds.has(task.id)}
                 isSelected={activeNodeId === task.id}
                 isDragging={dragState.draggedId === task.id}
                 onSelect={() => onNodeSelect(task.id)}
@@ -456,6 +460,12 @@ export function KanbanView({
     })
     return tasks
   }, [nodes])
+
+  // Resolve prerequisites against the full store, not the filtered view
+  const blockedTaskIds = useMemo(
+    () => getBlockedTaskIds(taskNodes, storeNodes),
+    [taskNodes, storeNodes]
+  )
 
   // Group tasks by status
   const tasksByStatus = useMemo(() => {
@@ -554,6 +564,7 @@ export function KanbanView({
           key={column.id}
           column={column}
           tasks={tasksByStatus[column.id]}
+          blockedTaskIds={blockedTaskIds}
           activeNodeId={activeNodeId}
           dragState={dragState}
           isCollapsed={collapsedColumns.has(column.id)}

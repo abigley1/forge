@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Volumes/Bambu Studio/BambuStudio.app/Contents/MacOS/BambuStudio",
+    "--debug",
+    "3",
+    "--datadir",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/isolated-studio-data",
+    "--load-settings",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/machine-resolved.json;/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/elegoo-rapid-tpu95a-black/process-resolved.json",
+    "--load-filaments",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/elegoo-rapid-tpu95a-black/filament-resolved.json",
+    "--load-filament-ids",
+    "1",
+    "--export-settings",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/elegoo-rapid-tpu95a-black/effective-settings.json",
+    "--slice",
+    "0",
+    "--outputdir",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/elegoo-rapid-tpu95a-black",
+    "/Users/andrewbigley/Documents/Codex/2026-10-14/task-13/materials-p2s/validation/cube.stl"
+  ],
+  "returncode": 0
+}

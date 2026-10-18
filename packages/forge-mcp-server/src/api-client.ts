@@ -41,6 +41,7 @@ export interface ApiProject {
 export interface ApiNode {
   id: string
   project_id: string
+  version: number
   type: NodeType
   title: string
   content: string | null
@@ -97,6 +98,7 @@ export interface CreateNodeInput {
  * Update node input
  */
 export interface UpdateNodeInput {
+  expected_version?: number
   title?: string
   content?: string
   status?: string
@@ -468,6 +470,49 @@ export function createApiClient(config: ApiClientConfig) {
     return request<ApiInventoryCategory[]>('GET', '/inventory/categories')
   }
 
+  // ========== Agent loop API ==========
+
+  async function resolveWorkspace(cwd: string, gitRemote?: string) {
+    return request<{
+      project: ApiProject | null
+      match?: { kind: string; value: string }
+      candidates?: ApiProject[]
+    }>('POST', '/workspaces/resolve', { cwd, git_remote: gitRemote })
+  }
+
+  async function linkWorkspace(input: {
+    project_id: string
+    path?: string
+    git_remote?: string
+  }) {
+    return request<unknown[]>('POST', '/workspaces/links', input)
+  }
+
+  async function getBrief(projectId: string) {
+    return request<
+      { markdown: string; truncated: boolean } & Record<string, unknown>
+    >('GET', `/projects/${encodeURIComponent(projectId)}/brief`)
+  }
+
+  async function recordCloseout(
+    projectId: string,
+    sessionId: string,
+    body: {
+      client: 'claude-code' | 'codex' | 'other'
+      workspace_path?: string
+      summary: string
+      next_action?: string
+      evidence?: Array<{ kind: string; ref: string; note?: string }>
+      uncertain?: string[]
+    }
+  ) {
+    return request<unknown>(
+      'PUT',
+      `/projects/${encodeURIComponent(projectId)}/closeouts/${encodeURIComponent(sessionId)}`,
+      body
+    )
+  }
+
   return {
     // Projects
     listProjects,
@@ -494,6 +539,11 @@ export function createApiClient(config: ApiClientConfig) {
     createInventoryItem,
     updateInventoryQuantity,
     listInventoryCategories,
+    // Agent loop
+    resolveWorkspace,
+    linkWorkspace,
+    getBrief,
+    recordCloseout,
   }
 }
 

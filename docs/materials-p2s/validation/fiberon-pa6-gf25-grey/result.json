@@ -1,0 +1,63 @@
+{
+  "error_string": "Success.",
+  "export_time": 0,
+  "layer_height": 0.20000000298023224,
+  "plate_index": 0,
+  "prepare_time": 17,
+  "return_code": 0,
+  "sliced_plates": [
+    {
+      "feature_type_times": {
+        "Bottom surface": 20.841922760009766,
+        "Bridge": 27.64205551147461,
+        "Custom": 403.55670166015625,
+        "Flush": 26.0,
+        "Inner wall": 108.73582458496094,
+        "Internal solid infill": 83.97098541259766,
+        "Outer wall": 88.44232177734375,
+        "Sparse infill": 134.0733642578125,
+        "Top surface": 24.539487838745117,
+        "Travel": 33.097782135009766,
+        "Undefined": 25.63181495666504
+      },
+      "filament_change_times": 0,
+      "filaments": [
+        {
+          "filament_id": "GFN98",
+          "id": 1,
+          "main_used_g": 2.3416106700897217,
+          "total_used_g": 2.3416106700897217
+        }
+      ],
+      "generate_support_material_time": 2,
+      "id": 1,
+      "infill_time": 4,
+      "layer_filament_change": 0,
+      "main_predication": 495.34710693359375,
+      "make_perimeters_time": 3,
+      "obj_cached_cnt": 0,
+      "objects": [
+        {
+          "bbox": {
+            "depth": 20.000001907348633,
+            "height": 10.0,
+            "width": 20.0,
+            "x": 118.0,
+            "y": 118.00000762939453,
+            "z": 0.0
+          },
+          "id": 5,
+          "name": "cube.stl",
+          "triangle_count": 12
+        }
+      ],
+      "sliced_time": 49,
+      "sliced_time_with_cache": 32,
+      "total_predication": 943.4378051757813,
+      "triangle_count": 12,
+      "warning_message": ""
+    }
+  ],
+  "sparse_infill_density": 20.0,
+  "wall_loops": 3
+}

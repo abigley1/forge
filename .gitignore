@@ -31,3 +31,6 @@ test-results/
 
 # Project data (created by MCP)
 data/
+
+# Ad-hoc review screenshots at repo root
+/*.png

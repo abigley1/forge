@@ -1,0 +1,10 @@
+{
+  "seven_slices": "pass",
+  "effective_key_values": "pass",
+  "integer_vitrification_values": "pass",
+  "stock_filament_start_gcode": "unchanged",
+  "user_preset_files_byte_identical": true,
+  "generated_gcode_delivered": false,
+  "gui_import": "not_performed",
+  "physical_calibration": "not_performed"
+}

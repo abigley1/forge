@@ -11,7 +11,7 @@
  * - attachments: File attachments for nodes
  */
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 7
 
 /**
  * Inventory item status values
@@ -27,7 +27,38 @@ export const VALID_INVENTORY_STATUSES: InventoryItemStatus[] = [
 /**
  * SQL statements to create the database schema
  */
-export const CREATE_TABLES_SQL = `
+/**
+ * Agent-loop tables (schema v6): workspace links and session closeouts
+ */
+export const AGENT_LOOP_TABLES_SQL = `
+CREATE TABLE IF NOT EXISTS workspace_links (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK(kind IN ('path', 'git_remote')),
+  value TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(kind, value)
+);
+
+CREATE TABLE IF NOT EXISTS session_closeouts (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  session_id TEXT NOT NULL,
+  client TEXT NOT NULL,
+  workspace_path TEXT,
+  summary TEXT NOT NULL,
+  next_action TEXT,
+  evidence TEXT NOT NULL DEFAULT '[]',
+  uncertain TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(project_id, session_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_closeouts_project ON session_closeouts(project_id, updated_at);
+`
+
+const BASE_TABLES_SQL = `
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
@@ -48,6 +79,7 @@ CREATE TABLE IF NOT EXISTS nodes (
   priority TEXT,
   parent_id TEXT,
   milestone TEXT,
+  version INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   modified_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
@@ -259,6 +291,22 @@ INSERT OR IGNORE INTO inventory_subcategories (id, category_id, name, sort_order
   ('consumables-other', 'consumables', 'Other', 3);
 `
 
+/** 3D design projects: declared stage per project (migration 7). */
+export const DESIGN_PROJECTS_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS design_projects (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  stage TEXT NOT NULL CHECK(stage IN ('designing','test-printing','production','done','on-hold')),
+  stage_note TEXT NOT NULL DEFAULT '',
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`
+
+export const CREATE_TABLES_SQL =
+  BASE_TABLES_SQL + AGENT_LOOP_TABLES_SQL + DESIGN_PROJECTS_TABLE_SQL
+
 /**
  * Node types as a union type for type safety
  */
@@ -305,6 +353,7 @@ export interface NodeRow {
   priority: string | null
   parent_id: string | null
   milestone: string | null
+  version: number
   created_at: string
   modified_at: string
 }
@@ -349,4 +398,26 @@ export interface AttachmentRow {
   size: number
   data: Buffer | null
   created_at: string
+}
+
+export interface WorkspaceLinkRow {
+  id: string
+  project_id: string
+  kind: 'path' | 'git_remote'
+  value: string
+  created_at: string
+}
+
+export interface SessionCloseoutRow {
+  id: string
+  project_id: string
+  session_id: string
+  client: string
+  workspace_path: string | null
+  summary: string
+  next_action: string | null
+  evidence: string // JSON
+  uncertain: string // JSON
+  created_at: string
+  updated_at: string
 }

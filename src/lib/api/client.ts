@@ -25,7 +25,7 @@ import type {
  * - In development on localhost, uses localhost:3000
  * - Otherwise derives from current location (for Tailscale, LAN, etc.)
  */
-function getDefaultBaseUrl(): string {
+export function getDefaultBaseUrl(): string {
   // Environment variable takes precedence
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL

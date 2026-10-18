@@ -63,6 +63,14 @@ import {
 } from './dependency-utils.js'
 import type { TaskNode, ComponentNode } from './types.js'
 import { createApiClient, type ApiClient, type ApiNode } from './api-client.js'
+import {
+  setDefaultProjectId,
+  getDefaultProjectId,
+  runWithProject,
+  requireProjectId,
+  withProjectIdParam,
+} from './project-scope.js'
+import { formatApiNodeForLLM } from './format.js'
 
 // ============================================================================
 // Configuration
@@ -80,9 +88,6 @@ interface ServerConfig {
 
 let apiClient: ApiClient | null = null
 
-// Track current project ID (can be changed via switch_project tool)
-let currentProjectId: string | null = null
-
 function loadConfig(): ServerConfig {
   const apiUrl = process.env.FORGE_API_URL
   const projectId = process.env.FORGE_PROJECT_ID
@@ -94,7 +99,7 @@ function loadConfig(): ServerConfig {
     apiClient = createApiClient({ baseUrl: apiUrl })
     // Set initial project if provided
     if (projectId) {
-      currentProjectId = projectId
+      setDefaultProjectId(projectId)
     }
     return {
       mode: 'api',
@@ -116,18 +121,6 @@ function loadConfig(): ServerConfig {
   console.error('API mode: Set FORGE_API_URL (FORGE_PROJECT_ID is optional)')
   console.error('Filesystem mode: Set FORGE_PROJECT_PATH')
   process.exit(1)
-}
-
-/**
- * Get the current project ID, throwing an error if none is selected
- */
-function requireProjectId(): string {
-  if (!currentProjectId) {
-    throw new Error(
-      'No project selected. Use list_projects to see available projects, then switch_project to select one.'
-    )
-  }
-  return currentProjectId
 }
 
 // ============================================================================
@@ -169,42 +162,6 @@ function formatNodeForLLM(node: ForgeNode): Record<string, unknown> {
     }),
     ...(['subsystem', 'assembly', 'module'].includes(node.type) && {
       status: (node as { status: string }).status,
-    }),
-  }
-}
-
-/**
- * Format an API node for LLM output
- */
-function formatApiNodeForLLM(node: ApiNode): Record<string, unknown> {
-  return {
-    id: node.id,
-    type: node.type,
-    title: node.title,
-    tags: node.tags,
-    created: node.created_at,
-    modified: node.modified_at,
-    content:
-      (node.content ?? '').substring(0, 500) +
-      ((node.content?.length ?? 0) > 500 ? '...' : ''),
-    parent: node.parent_id,
-    ...(node.type === 'task' && {
-      status: node.status,
-      priority: node.priority,
-      dependsOn: node.depends_on,
-    }),
-    ...(node.type === 'decision' && {
-      status: node.status,
-      selected: node.selected_option,
-    }),
-    ...(node.type === 'component' && {
-      status: node.status,
-      cost: node.cost,
-      supplier: node.supplier,
-      partNumber: node.part_number,
-    }),
-    ...(['subsystem', 'assembly', 'module'].includes(node.type) && {
-      status: node.status,
     }),
   }
 }
@@ -345,6 +302,10 @@ async function handleUpdateNode(
       supplier: input.supplier,
       part_number: input.partNumber,
       cost: input.cost,
+      expected_version:
+        typeof args.expected_version === 'number'
+          ? args.expected_version
+          : undefined,
     })
 
     if (!result.success) {
@@ -709,12 +670,12 @@ async function handleListProjects(): Promise<{
                 name: p.name,
                 description: p.description,
               })),
-              currentProject: currentProjectId
+              currentProject: getDefaultProjectId()
                 ? {
-                    id: currentProjectId,
+                    id: getDefaultProjectId(),
                     name:
-                      result.data.find((p) => p.id === currentProjectId)
-                        ?.name || currentProjectId,
+                      result.data.find((p) => p.id === getDefaultProjectId())
+                        ?.name || getDefaultProjectId(),
                   }
                 : null,
             },
@@ -793,7 +754,7 @@ async function handleSwitchProject(
     }
 
     // Switch to the project
-    currentProjectId = projectId
+    setDefaultProjectId(projectId)
     currentProject = null // Clear cached project
 
     return {
@@ -1803,6 +1764,78 @@ async function handleUpdateInventoryQuantity(
   }
 }
 
+// ============================================================================
+// Agent Loop Handlers
+// ============================================================================
+
+function jsonResult(value: unknown) {
+  return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }] }
+}
+
+function requireApi(): ApiClient {
+  if (!isApiMode() || !apiClient)
+    throw new Error('This tool requires FORGE_API_URL (API mode).')
+  return apiClient
+}
+
+async function handleResolveWorkspace(args: Record<string, unknown>) {
+  if (typeof args.cwd !== 'string') throw new Error('cwd is required')
+  const result = await requireApi().resolveWorkspace(
+    args.cwd,
+    typeof args.git_remote === 'string' ? args.git_remote : undefined
+  )
+  return jsonResult(result)
+}
+
+async function handleLinkWorkspace(args: Record<string, unknown>) {
+  if (typeof args.project_id !== 'string')
+    throw new Error('project_id is required')
+  const result = await requireApi().linkWorkspace({
+    project_id: args.project_id,
+    path: typeof args.path === 'string' ? args.path : undefined,
+    git_remote:
+      typeof args.git_remote === 'string' ? args.git_remote : undefined,
+  })
+  return jsonResult(result)
+}
+
+async function handleGetBrief() {
+  const result = await requireApi().getBrief(requireProjectId())
+  if (!result.success) return jsonResult(result)
+  return { content: [{ type: 'text', text: result.data.markdown }] }
+}
+
+async function handleRecordCloseout(args: Record<string, unknown>) {
+  if (typeof args.session_id !== 'string' || typeof args.summary !== 'string') {
+    throw new Error('session_id and summary are required')
+  }
+  const client =
+    args.client === 'claude-code' || args.client === 'codex'
+      ? args.client
+      : 'other'
+  const result = await requireApi().recordCloseout(
+    requireProjectId(),
+    args.session_id,
+    {
+      client,
+      workspace_path:
+        typeof args.workspace_path === 'string'
+          ? args.workspace_path
+          : undefined,
+      summary: args.summary,
+      next_action:
+        typeof args.next_action === 'string' ? args.next_action : undefined,
+      evidence: Array.isArray(args.evidence)
+        ? (args.evidence as Array<{ kind: string; ref: string; note?: string }>)
+        : undefined,
+      uncertain: Array.isArray(args.uncertain)
+        ? (args.uncertain as string[])
+        : undefined,
+    }
+  )
+  return jsonResult(result)
+}
+
 async function handleListInventoryCategories(): Promise<{
   content: Array<{ type: string; text: string }>
 }> {
@@ -1972,6 +2005,11 @@ async function main() {
               id: {
                 type: 'string',
                 description: 'ID of the node to update',
+              },
+              expected_version: {
+                type: 'number',
+                description:
+                  'Version from get_node. If the node changed since, the update is rejected; re-read and retry.',
               },
               title: {
                 type: 'string',
@@ -2368,7 +2406,99 @@ async function main() {
             properties: {},
           },
         },
-      ],
+        {
+          name: 'resolve_workspace',
+          description:
+            'Find the Forge project for a working folder (and optional git remote). Returns the project, or candidate projects if the folder is not linked yet.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              cwd: {
+                type: 'string',
+                description: 'Absolute path of the working folder',
+              },
+              git_remote: {
+                type: 'string',
+                description: 'Output of `git remote get-url origin`, if any',
+              },
+            },
+            required: ['cwd'],
+          },
+        },
+        {
+          name: 'link_workspace',
+          description:
+            "Link a working folder and/or git remote to a Forge project so future sessions get its brief automatically. Only call when the user's task clearly belongs to that project.",
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string' },
+              path: {
+                type: 'string',
+                description: 'Absolute folder path to link',
+              },
+              git_remote: { type: 'string' },
+            },
+            required: ['project_id'],
+          },
+        },
+        {
+          name: 'get_brief',
+          description:
+            'Compact project brief: goal, last sessions, next actions, blockers, open decisions, parts owned/missing, recent changes. Read this before asking the user to re-explain a project.',
+          inputSchema: { type: 'object', properties: {} },
+        },
+        {
+          name: 'record_closeout',
+          description: [
+            'Record what this session changed for the Forge project. Safe to call again with the same session_id; it updates instead of duplicating.',
+            'summary: what changed, in 1-4 sentences. next_action: the single most useful next step.',
+            'evidence: [{kind: commit|file|test|url|user_report|observation, ref, note?}] for claims you can point to.',
+            'uncertain: anything not verified. A code change is not a passed physical test; a sliced plate is not a printed part; a suggested purchase is not owned stock.',
+          ].join(' '),
+          inputSchema: {
+            type: 'object',
+            properties: {
+              session_id: {
+                type: 'string',
+                description:
+                  'The session id given in the Forge session-start context',
+              },
+              client: {
+                type: 'string',
+                enum: ['claude-code', 'codex', 'other'],
+              },
+              workspace_path: { type: 'string' },
+              summary: { type: 'string' },
+              next_action: { type: 'string' },
+              evidence: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    kind: {
+                      type: 'string',
+                      enum: [
+                        'commit',
+                        'file',
+                        'test',
+                        'url',
+                        'user_report',
+                        'observation',
+                      ],
+                    },
+                    ref: { type: 'string' },
+                    note: { type: 'string' },
+                  },
+                  required: ['kind', 'ref'],
+                },
+              },
+              uncertain: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['session_id', 'client', 'summary'],
+          },
+        },
+      ].map(withProjectIdParam),
     }
   })
 
@@ -2377,49 +2507,61 @@ async function main() {
   // -------------------------------------------------------------------------
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params
+    const projectId =
+      args && typeof args.project_id === 'string' ? args.project_id : undefined
 
     try {
-      switch (name) {
-        case 'create_node':
-          return await handleCreateNode(args ?? {})
-        case 'update_node':
-          return await handleUpdateNode(args ?? {})
-        case 'delete_node':
-          return await handleDeleteNode(args ?? {})
-        case 'search_nodes':
-          return await handleSearchNodes(args ?? {})
-        case 'get_node':
-          return await handleGetNode(args ?? {})
-        case 'list_projects':
-          return await handleListProjects()
-        case 'switch_project':
-          return await handleSwitchProject(args ?? {})
-        case 'add_dependency':
-          return await handleAddDependency(args ?? {})
-        case 'remove_dependency':
-          return await handleRemoveDependency(args ?? {})
-        case 'get_blocked_tasks':
-          return await handleGetBlockedTasks()
-        case 'get_critical_path':
-          return await handleGetCriticalPath()
-        case 'bulk_update':
-          return await handleBulkUpdate(args ?? {})
-        case 'find_components':
-          return await handleFindComponents(args ?? {})
-        // Inventory tools
-        case 'search_inventory':
-          return await handleSearchInventory(args ?? {})
-        case 'get_inventory_item':
-          return await handleGetInventoryItem(args ?? {})
-        case 'add_inventory_item':
-          return await handleAddInventoryItem(args ?? {})
-        case 'update_inventory_quantity':
-          return await handleUpdateInventoryQuantity(args ?? {})
-        case 'list_inventory_categories':
-          return await handleListInventoryCategories()
-        default:
-          throw new Error(`Unknown tool: ${name}`)
-      }
+      return await runWithProject(projectId, async () => {
+        switch (name) {
+          case 'create_node':
+            return await handleCreateNode(args ?? {})
+          case 'update_node':
+            return await handleUpdateNode(args ?? {})
+          case 'delete_node':
+            return await handleDeleteNode(args ?? {})
+          case 'search_nodes':
+            return await handleSearchNodes(args ?? {})
+          case 'get_node':
+            return await handleGetNode(args ?? {})
+          case 'list_projects':
+            return await handleListProjects()
+          case 'switch_project':
+            return await handleSwitchProject(args ?? {})
+          case 'add_dependency':
+            return await handleAddDependency(args ?? {})
+          case 'remove_dependency':
+            return await handleRemoveDependency(args ?? {})
+          case 'get_blocked_tasks':
+            return await handleGetBlockedTasks()
+          case 'get_critical_path':
+            return await handleGetCriticalPath()
+          case 'bulk_update':
+            return await handleBulkUpdate(args ?? {})
+          case 'find_components':
+            return await handleFindComponents(args ?? {})
+          // Inventory tools
+          case 'search_inventory':
+            return await handleSearchInventory(args ?? {})
+          case 'get_inventory_item':
+            return await handleGetInventoryItem(args ?? {})
+          case 'add_inventory_item':
+            return await handleAddInventoryItem(args ?? {})
+          case 'update_inventory_quantity':
+            return await handleUpdateInventoryQuantity(args ?? {})
+          case 'list_inventory_categories':
+            return await handleListInventoryCategories()
+          case 'resolve_workspace':
+            return await handleResolveWorkspace(args ?? {})
+          case 'link_workspace':
+            return await handleLinkWorkspace(args ?? {})
+          case 'get_brief':
+            return await handleGetBrief()
+          case 'record_closeout':
+            return await handleRecordCloseout(args ?? {})
+          default:
+            throw new Error(`Unknown tool: ${name}`)
+        }
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {

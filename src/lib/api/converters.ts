@@ -283,6 +283,27 @@ export function forgeNodeToCreateInput(node: ForgeNode): CreateNodeInput {
 }
 
 /**
+ * Fields of `current` whose values differ from `previous` (deep, by value).
+ * `dates` and `id` are ignored: the server owns timestamps.
+ * Sending only these keeps a stale tab from reverting other writers' fields.
+ */
+export function diffForgeNode(
+  previous: ForgeNode,
+  current: ForgeNode
+): Partial<ForgeNode> {
+  const changed: Record<string, unknown> = {}
+  const prev = previous as unknown as Record<string, unknown>
+  const next = current as unknown as Record<string, unknown>
+  for (const key of Object.keys(next)) {
+    if (key === 'dates' || key === 'id') continue
+    if (JSON.stringify(prev[key]) !== JSON.stringify(next[key])) {
+      changed[key] = next[key]
+    }
+  }
+  return changed as Partial<ForgeNode>
+}
+
+/**
  * Convert ForgeNode partial updates to UpdateNodeInput for API
  */
 export function forgeNodeToUpdateInput(
