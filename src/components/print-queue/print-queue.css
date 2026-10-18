@@ -410,6 +410,17 @@
   margin: 12px 0;
   line-height: 1.5;
 }
+.pq-readonly {
+  border-left: 3px solid var(--pq-border);
+  padding: 12px 16px;
+  background: var(--pq-surface);
+  margin: 12px 0;
+  line-height: 1.5;
+}
+.pq-readonly a {
+  color: var(--pq-accent);
+  text-decoration: underline;
+}
 .pq-empty {
   text-align: center;
   padding: 60px 24px;

@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /** Agent-friendly client for 3D design projects. Uses Forge's HTTP API; reads
  * the current version before each write and never retries a 409. */
-const base = (process.env.FORGE_API_URL || 'http://localhost:3000/api').replace(
-  /\/$/,
-  ''
-)
+const base = (
+  process.env.FORGE_API_URL || 'http://192.168.1.130:8099/api'
+).replace(/\/$/, '')
 const [command = 'list', ...args] = process.argv.slice(2)
 async function request(method = 'GET', suffix = '', body) {
   const response = await fetch(`${base}/design-projects${suffix}`, {

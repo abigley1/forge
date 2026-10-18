@@ -55,8 +55,9 @@ node scripts/print-queue.mjs edit PLATE_ID /absolute/path/patch.json
 node scripts/print-queue.mjs move PLATE_ID 1
 ```
 
-`FORGE_API_URL` optionally selects an existing Forge API (default
-`http://localhost:3000/api`). `edit` merges the supplied top-level fields into the
+`FORGE_API_URL` optionally selects another Forge API. The default is the live
+queue on Home Assistant, `http://192.168.1.130:8099/api`. The Mac's
+`127.0.0.1:3000` server is a read-only mirror and refuses edits (HTTP 405). `edit` merges the supplied top-level fields into the
 freshly read plate; a `parts` array replaces that whole array. `move` takes a
 one-based global position. Do not automatically retry conflicts with a stale full
 plate. Re-read and reconcile the intended edit first.
@@ -113,12 +114,36 @@ Checks: `npm run build`, `npm run build --prefix server`,
 Queue API tests cover quantities, unknown estimates, persistence through a fresh
 repository, all status transitions, invalid inputs, stale edits and reorder integrity.
 
-The October 14 local demonstration uses a separate on-Mac database and does not
-alter the running Home Assistant deployment. Move this feature into that existing
-host only through the normal approved release process. No auth layer, credentials,
-persistent access, or public hosting was added.
+The live queue has been on the Home Assistant add-on since 0.0.7 (2026-10-17).
+The Mac's own copy of the queue (`~/Documents/Codex/2026-10-14/task-3/runtime/forge.sqlite`)
+is a retired, frozen backup. Nothing reads or writes it any more; see below.
+No auth layer, credentials, persistent access, or public hosting was added.
 
 ## Local previews and Studio handoff
+
+### The Mac mirrors the live queue
+
+Studio handoff has to run on the Mac, but the queue lives on Home Assistant. The
+Mac launcher sets `FORGE_PRINT_QUEUE_UPSTREAM=http://192.168.1.130:8099/api`.
+With that set, the Mac server:
+
+- serves `GET /api/print-queue` and `GET /api/design-projects` from the live
+  queue. The page shows a **View only** notice that links to the live queue, and
+  has no add, edit, reorder or "Record 1 printed" controls;
+- refuses every other method on those routes with HTTP 405 and a message that
+  names the live API. A script or agent pointed at the Mac fails loudly instead
+  of editing a copy nobody reads;
+- validates every Studio preview and open against the live row, fetched when the
+  request arrives. The manifest's expected fields are compared with that row;
+- never falls back to the retired local queue. If Home Assistant is unreachable or
+  returns anything that fails the queue's own validation, the queue page shows an
+  error, previews and Studio handoff pause, and nothing opens.
+
+Live rows only decide whether a prepared asset is still current. Every path, hash
+and file comes from the local manifest, so nothing from the network can choose
+what Studio opens. The upstream URL comes only from the launcher's environment;
+the browser cannot set it. Without `FORGE_PRINT_QUEUE_UPSTREAM`, a server keeps
+its own editable queue, as Home Assistant does.
 
 Prepared rows show a thumbnail from their saved geometry. Click it to enlarge and
 check the project, revision, material and part counts. Unsliced CAD is labeled;
@@ -146,7 +171,8 @@ single-instance=false is required, and the service changes no Studio preferences
 Review copies accumulate under `studio-assets/opened-copies`; preserve any copies
 Andrew edits. No background printer control, login or auto-start service is added.
 
-For dot: normal queue additions and reorder still use the API/CLI above. New rows
+For dot: normal queue additions and reorder still use the API/CLI above, against
+the live queue on Home Assistant. New rows
 do not acquire invented previews or automatic Studio eligibility. Prepare and
 inspect actual CAD renders and a single-job project, slice it locally, then register
 its hashes and current row fields in the manifest atomically. The October 14 task

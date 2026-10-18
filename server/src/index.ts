@@ -2,6 +2,10 @@ import express from 'express'
 import { createPrintQueueRouter } from './routes/print-queue.js'
 import { createDesignProjectsRouter } from './routes/design-projects.js'
 import { createPrintQueueStudioRouter } from './routes/print-queue-studio.js'
+import {
+  createReadOnlyUpstreamRouter,
+  createUpstreamQueue,
+} from './routes/print-queue-upstream.js'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
 import { createCorsMiddleware } from './middleware/cors.js'
@@ -115,8 +119,23 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   app.use('/api/projects/:projectId', createProjectAnalyticsRouter(db))
 
   // Inventory module routes
-  app.use('/api/print-queue', createPrintQueueRouter(db))
-  app.use('/api/design-projects', createDesignProjectsRouter(db))
+  // On the Mac the local queue is a retired backup: mirror the live HA queue
+  // read-only and refuse every local edit.
+  const upstreamUrl = process.env.FORGE_PRINT_QUEUE_UPSTREAM
+  const upstream = upstreamUrl ? createUpstreamQueue(upstreamUrl) : undefined
+  if (upstream) {
+    app.use(
+      '/api/print-queue',
+      createReadOnlyUpstreamRouter(upstream, 'print-queue')
+    )
+    app.use(
+      '/api/design-projects',
+      createReadOnlyUpstreamRouter(upstream, 'design-projects')
+    )
+  } else {
+    app.use('/api/print-queue', createPrintQueueRouter(db))
+    app.use('/api/design-projects', createDesignProjectsRouter(db))
+  }
   const studioManifest = process.env.FORGE_STUDIO_MANIFEST
   // Trusted assets must be outside every browser-writable/static file root.
   const outsideRoot = (root: string, file: string) =>
@@ -134,6 +153,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
         outsideRoot(config.staticDir, studioManifest)
         ? {
             manifestPath: studioManifest,
+            readQueue: upstream?.readQueue,
             origins: [
               `http://127.0.0.1:${config.port}`,
               `http://localhost:${config.port}`,

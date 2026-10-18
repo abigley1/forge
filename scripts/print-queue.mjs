@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /** Small agent-friendly client. Uses Forge's existing HTTP API, never a printer. */
 import { readFile } from 'node:fs/promises'
-const base = (process.env.FORGE_API_URL || 'http://localhost:3000/api').replace(
-  /\/$/,
-  ''
-)
+const base = (
+  process.env.FORGE_API_URL || 'http://192.168.1.130:8099/api'
+).replace(/\/$/, '')
 const [command = 'list', argument, target] = process.argv.slice(2)
 async function request(method = 'GET', suffix = '', body) {
   const response = await fetch(`${base}/print-queue${suffix}`, {
