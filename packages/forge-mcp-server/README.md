@@ -53,6 +53,36 @@ Or using npx (after publishing):
 }
 ```
 
+### Shared HTTP server
+
+By default each client spawns its own stdio copy of the server. With many
+Claude Code sessions open that means dozens of identical Node processes. Run
+one shared Streamable HTTP server instead:
+
+```bash
+FORGE_API_URL=http://<forge-host>:8099/api node dist/index.js --http --port 8765
+claude mcp add -s user --transport http forge http://127.0.0.1:8765/mcp
+```
+
+`FORGE_MCP_TRANSPORT=http` and `FORGE_MCP_PORT` are equivalent to the flags.
+The server listens on `127.0.0.1` only and rejects requests whose `Host` or
+`Origin` is not localhost; it has no authentication, so do not proxy it.
+
+Each client gets its own MCP session (`mcp-session-id`) and its own server
+instance, so a `switch_project` default in one session never leaks into
+another. Sessions idle for 24 hours are dropped; the client re-initializes on
+its next request. `GET /health` reports the open session count.
+
+On macOS, run it under a launchd user agent with `KeepAlive` (this machine
+uses `~/Library/LaunchAgents/local.forge-mcp.plist`, logging to
+`~/Library/Logs/forge-mcp.log`). Rebuild `dist/` and restart the agent after
+changing the server: `launchctl kickstart -k gui/$(id -u)/local.forge-mcp`.
+
+A process started by launchd does not inherit a terminal's macOS Local Network
+permission, so its requests to a LAN address fail with `fetch failed`. Point
+`FORGE_API_URL` at Home Assistant's Tailscale address instead, or grant `node`
+Local Network access in System Settings.
+
 ## Available Tools
 
 ### `create_node`
