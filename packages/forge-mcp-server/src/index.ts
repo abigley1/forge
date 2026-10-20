@@ -23,12 +23,22 @@
  *
  * Optional: Set FORGE_PROJECT_ID to auto-select a project on startup.
  *
+ * Shared HTTP mode (one process for every client on this machine):
+ *   FORGE_API_URL=... forge-mcp-server --http [--port 8765]
+ *   claude mcp add -s user --transport http forge http://127.0.0.1:8765/mcp
+ * FORGE_MCP_TRANSPORT=http and FORGE_MCP_PORT work too. stdio is the default.
+ *
  * Legacy mode (filesystem-based) still supported:
  *   FORGE_PROJECT_PATH=/path/to/project forge-mcp-server
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import {
+  HTTP_HOST,
+  parseTransportOptions,
+  startHttpServer,
+} from './http-server.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -173,24 +183,27 @@ function isApiMode(): boolean {
   return config.mode === 'api' && apiClient !== null
 }
 
-async function ensureProjectLoaded(): Promise<Project> {
+/**
+ * Request handlers outside tool calls (resources, prompts) pass their MCP
+ * session ID so the session's switch_project default applies.
+ */
+async function ensureProjectLoaded(sessionId?: string): Promise<Project> {
+  if (sessionId !== undefined) {
+    return runWithProject({ sessionId }, () => ensureProjectLoaded())
+  }
   if (config.mode === 'api') {
     // In API mode, we don't use the Project object for storage
-    // Return a minimal project for compatibility
-    if (!currentProject) {
-      currentProject = {
-        id: requireProjectId(),
-        name: requireProjectId(),
-        path: '',
-        nodes: new Map(),
-        metadata: {
-          name: requireProjectId(),
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-        },
-      }
+    // Return a minimal project for compatibility. Not cached: the project
+    // comes from the call's scope, which differs per call and per session.
+    const id = requireProjectId()
+    const now = new Date().toISOString()
+    return {
+      id,
+      name: id,
+      path: '',
+      nodes: new Map(),
+      metadata: { name: id, createdAt: now, modifiedAt: now },
     }
-    return currentProject
   }
 
   // Filesystem mode
@@ -1879,9 +1892,7 @@ async function handleListInventoryCategories(): Promise<{
 // Main Server Setup
 // ============================================================================
 
-async function main() {
-  config = loadConfig()
-
+function createForgeServer(): Server {
   const server = new Server(
     {
       name: 'forge-mcp-server',
@@ -2505,13 +2516,14 @@ async function main() {
   // -------------------------------------------------------------------------
   // Call Tool Handler
   // -------------------------------------------------------------------------
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, ctx) => {
     const { name, arguments: args } = request.params
     const projectId =
       args && typeof args.project_id === 'string' ? args.project_id : undefined
+    const scope = { projectId, sessionId: ctx.sessionId }
 
     try {
-      return await runWithProject(projectId, async () => {
+      return await runWithProject(scope, async () => {
         switch (name) {
           case 'create_node':
             return await handleCreateNode(args ?? {})
@@ -2581,8 +2593,8 @@ async function main() {
   // -------------------------------------------------------------------------
   // List Resources Handler
   // -------------------------------------------------------------------------
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const project = await ensureProjectLoaded()
+  server.setRequestHandler(ListResourcesRequestSchema, async (_, ctx) => {
+    const project = await ensureProjectLoaded(ctx.sessionId)
 
     return {
       resources: [
@@ -2623,9 +2635,9 @@ async function main() {
   // -------------------------------------------------------------------------
   // Read Resource Handler
   // -------------------------------------------------------------------------
-  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  server.setRequestHandler(ReadResourceRequestSchema, async (request, ctx) => {
     const { uri } = request.params
-    const project = await ensureProjectLoaded()
+    const project = await ensureProjectLoaded(ctx.sessionId)
 
     if (uri === `forge://project/${project.id}`) {
       return {
@@ -2755,9 +2767,9 @@ async function main() {
   // -------------------------------------------------------------------------
   // Get Prompt Handler
   // -------------------------------------------------------------------------
-  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  server.setRequestHandler(GetPromptRequestSchema, async (request, ctx) => {
     const { name, arguments: args } = request.params
-    const project = await ensureProjectLoaded()
+    const project = await ensureProjectLoaded(ctx.sessionId)
 
     switch (name) {
       case 'plan_subsystem': {
@@ -3035,11 +3047,30 @@ Use the tools if needed to gather more detail:
     }
   })
 
-  // -------------------------------------------------------------------------
-  // Start Server
-  // -------------------------------------------------------------------------
-  const transport = new StdioServerTransport()
-  await server.connect(transport)
+  return server
+}
+
+async function main() {
+  config = loadConfig()
+  const transport = parseTransportOptions(process.argv.slice(2), process.env)
+
+  if (transport.transport === 'http') {
+    const running = await startHttpServer({
+      createServer: createForgeServer,
+      port: transport.port,
+    })
+    const shutdown = () => {
+      void running.close().then(() => process.exit(0))
+    }
+    process.on('SIGTERM', shutdown)
+    process.on('SIGINT', shutdown)
+    console.error(
+      `Forge MCP Server listening on http://${HTTP_HOST}:${running.port}/mcp (${config.mode} mode)`
+    )
+    return
+  }
+
+  await createForgeServer().connect(new StdioServerTransport())
 
   console.error(`Forge MCP Server started`)
   console.error(`Project: ${config.projectPath}`)

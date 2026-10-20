@@ -1,13 +1,8 @@
 {
   "mcpServers": {
     "forge": {
-      "command": "node",
-      "args": [
-        "/Users/andrewbigley/Projects/ProjectAccelerator/packages/forge-mcp-server/dist/index.js"
-      ],
-      "env": {
-        "FORGE_API_URL": "http://192.168.1.130:8099/api"
-      }
+      "type": "http",
+      "url": "http://127.0.0.1:8765/mcp"
     }
   }
 }
