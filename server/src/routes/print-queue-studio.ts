@@ -7,7 +7,8 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import type { DatabaseInstance } from '../db/index.js'
 import { PrintQueueRepository } from '../db/PrintQueueRepository.js'
-import type { PrintPlate } from '../print-queue-model.js'
+import type { PrintPlate, PrintQueue } from '../print-queue-model.js'
+import { UpstreamError } from './print-queue-upstream.js'
 
 const exec = promisify(execFile)
 export const STUDIO_APP = '/Volumes/Bambu Studio/BambuStudio.app'
@@ -36,6 +37,12 @@ interface Manifest {
 export interface StudioOptions {
   manifestPath: string
   origins: string[]
+  /**
+   * Where queue rows come from. The Mac passes the live Home Assistant queue;
+   * omitted, the local database is used. Rows only gate eligibility: every path
+   * and hash still comes from the local manifest.
+   */
+  readQueue?: () => Promise<PrintQueue>
   /** Injection for tests; production always uses fixed app and argv below. */
   launch?: (file: string) => Promise<void>
 }
@@ -78,6 +85,8 @@ export function createPrintQueueStudioRouter(
 ): Router {
   const router = Router()
   const repo = new PrintQueueRepository(db)
+  const readPlates = async () =>
+    (await (options?.readQueue?.() ?? repo.read())).plates
   const token = randomBytes(32).toString('hex') // in-memory, rotates when server restarts
   const cooldown = new Map<string, number>()
   const sourceCache = new Map<string, { stamp: string; hash: string }>()
@@ -167,7 +176,7 @@ export function createPrintQueueStudioRouter(
   const binding = (a: Asset) => digest(JSON.stringify(a))
   const resolve = async (id: string) => {
     const { root, manifest } = await load()
-    const plate = repo.read().plates.find((p) => p.id === id)
+    const plate = (await readPlates()).find((p) => p.id === id)
     const asset = manifest.entries[id]
     if (
       !plate ||
@@ -186,8 +195,9 @@ export function createPrintQueueStudioRouter(
   router.get('/assets', async (_req, res) => {
     try {
       const { manifest } = await load()
+      const plates = await readPlates()
       const items: Record<string, unknown> = {}
-      for (const plate of repo.read().plates) {
+      for (const plate of plates) {
         const asset = manifest.entries[plate.id]
         if (!asset || !matches(plate, asset)) continue
         try {
@@ -207,10 +217,13 @@ export function createPrintQueueStudioRouter(
         }
       }
       res.json({ success: true, data: { items, appLabel: APP_LABEL } })
-    } catch {
+    } catch (error) {
       res.status(503).json({
         success: false,
-        error: 'Prepared previews are unavailable. Queue editing still works.',
+        error:
+          error instanceof UpstreamError
+            ? `${error.message} Previews and Studio handoff are paused.`
+            : 'Prepared previews are unavailable. The queue itself still works.',
       })
     }
   })

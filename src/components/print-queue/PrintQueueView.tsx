@@ -49,6 +49,7 @@ function PlateRow({
   edit,
   complete,
   studioAsset,
+  readOnly,
 }: {
   plate: PrintPlate
   index: number
@@ -59,6 +60,7 @@ function PlateRow({
   edit: () => void
   complete: () => void
   studioAsset?: StudioAsset
+  readOnly: boolean
 }) {
   const {
     attributes,
@@ -67,7 +69,7 @@ function PlateRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: plate.id, disabled: busy })
+  } = useSortable({ id: plate.id, disabled: busy || readOnly })
   const remaining = copiesRemaining(plate)
   return (
     <li
@@ -77,40 +79,48 @@ function PlateRow({
       data-plate-id={plate.id}
     >
       <div className="pq-order">
-        <button
-          {...attributes}
-          {...listeners}
-          aria-label={`Drag ${plate.name}`}
-          disabled={busy}
-          className="pq-grip"
-        >
-          <GripVertical size={18} />
-        </button>
+        {!readOnly && (
+          <button
+            {...attributes}
+            {...listeners}
+            aria-label={`Drag ${plate.name}`}
+            disabled={busy}
+            className="pq-grip"
+          >
+            <GripVertical size={18} />
+          </button>
+        )}
         <span>{String(index + 1).padStart(2, '0')}</span>
-        <div className="pq-arrows">
-          <button
-            aria-label={`Move ${plate.name} up`}
-            disabled={busy || !canUp}
-            onClick={() => move(-1)}
-          >
-            <ArrowUp size={15} />
-          </button>
-          <button
-            aria-label={`Move ${plate.name} down`}
-            disabled={busy || !canDown}
-            onClick={() => move(1)}
-          >
-            <ArrowDown size={15} />
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="pq-arrows">
+            <button
+              aria-label={`Move ${plate.name} up`}
+              disabled={busy || !canUp}
+              onClick={() => move(-1)}
+            >
+              <ArrowUp size={15} />
+            </button>
+            <button
+              aria-label={`Move ${plate.name} down`}
+              disabled={busy || !canDown}
+              onClick={() => move(1)}
+            >
+              <ArrowDown size={15} />
+            </button>
+          </div>
+        )}
       </div>
       <div className="pq-plate">
         <span className="pq-project">
           {plate.project} · {plate.revision}
         </span>
-        <button className="pq-name" onClick={edit} disabled={busy}>
-          {plate.name}
-        </button>
+        {readOnly ? (
+          <span className="pq-name">{plate.name}</span>
+        ) : (
+          <button className="pq-name" onClick={edit} disabled={busy}>
+            {plate.name}
+          </button>
+        )}
         <p>
           {plate.parts.length
             ? plate.parts
@@ -156,10 +166,13 @@ function PlateRow({
         <small>per copy</small>
       </div>
       <div className="pq-actions">
-        <button onClick={edit} disabled={busy}>
-          Edit
-        </button>
-        {!plate.supersededBy &&
+        {!readOnly && (
+          <button onClick={edit} disabled={busy}>
+            Edit
+          </button>
+        )}
+        {!readOnly &&
+          !plate.supersededBy &&
           remaining > 0 &&
           ['ready', 'printing'].includes(plate.status) && (
             <button disabled={busy} onClick={complete}>
@@ -173,6 +186,9 @@ function PlateRow({
 export function PrintQueueView({ onBack }: { onBack: () => void }) {
   const [queue, setQueue] = useState<PrintQueue | null>(null)
   const studioAssets = useStudioAssets(queue?.version)
+  // The Mac mirrors the live Home Assistant queue for previews and Studio only.
+  const liveSource = queue?.readOnlySource
+  const readOnly = !!liveSource
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -267,14 +283,23 @@ export function PrintQueueView({ onBack }: { onBack: () => void }) {
             </h1>
             <p>One shared order for what’s next on the printer.</p>
           </div>
-          <button
-            className="pq-primary"
-            disabled={!queue || busy}
-            onClick={() => setEditor({ version: queue!.version })}
-          >
-            <Plus size={18} /> Add plate
-          </button>
+          {!readOnly && (
+            <button
+              className="pq-primary"
+              disabled={!queue || busy}
+              onClick={() => setEditor({ version: queue!.version })}
+            >
+              <Plus size={18} /> Add plate
+            </button>
+          )}
         </div>
+        {liveSource && (
+          <p className="pq-readonly" role="note">
+            View only: this Mac shows the live Home Assistant queue for previews
+            and Studio review. Its old local queue is a retired backup. Make
+            changes on <a href={liveSource}>the live queue</a>.
+          </p>
+        )}
         <div className="pq-summary">
           <div>
             <strong>{totals.copies}</strong>
@@ -363,15 +388,17 @@ export function PrintQueueView({ onBack }: { onBack: () => void }) {
         )}
         <div className="pq-list-meta">
           <span>
-            {filtered.length} {filtered.length === 1 ? 'plate' : 'plates'} ·
-            Drag to reorder, or use the arrows
+            {filtered.length} {filtered.length === 1 ? 'plate' : 'plates'} ·{' '}
+            {readOnly
+              ? 'Order set on the live queue'
+              : 'Drag to reorder, or use the arrows'}
           </span>
           <span role="status">
             {busy
               ? 'Saving…'
               : notice ||
                 (queue
-                  ? `Saved on server · version ${queue.version}`
+                  ? `${readOnly ? 'Live from Home Assistant' : 'Saved on server'} · version ${queue.version}`
                   : 'Loading…')}
           </span>
         </div>
@@ -406,6 +433,7 @@ export function PrintQueueView({ onBack }: { onBack: () => void }) {
                     key={plate.id}
                     plate={plate}
                     studioAsset={studioAssets[plate.id]}
+                    readOnly={readOnly}
                     index={index}
                     busy={busy}
                     canUp={index > 0}
@@ -469,9 +497,9 @@ export function PrintQueueView({ onBack }: { onBack: () => void }) {
           </div>
         )}
         <footer className="pq-foot">
-          Changes sync every 15 seconds. Recording a print updates this queue
-          only; it never starts a printer. Open a plate to inspect its artifact
-          reference and edit quantities.
+          {readOnly
+            ? 'Refreshes from Home Assistant every 15 seconds. Opening Studio never starts a printer or changes counts.'
+            : 'Changes sync every 15 seconds. Recording a print updates this queue only; it never starts a printer. Open a plate to inspect its artifact reference and edit quantities.'}
         </footer>
       </main>
       {editor && (

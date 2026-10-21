@@ -44,6 +44,8 @@ export type PlateInput = Omit<PrintPlate, 'id' | 'updatedAt'>
 export interface PrintQueue {
   version: number
   plates: PrintPlate[]
+  /** Set by a read-only mirror (the Mac); the live queue page to edit instead. */
+  readOnlySource?: string
 }
 export function copiesNeeded(plate: Pick<PrintPlate, 'parts'>): number {
   return Math.max(
