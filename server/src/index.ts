@@ -192,6 +192,7 @@ async function main() {
 
   app.listen(config.port, process.env.FORGE_HOST || '0.0.0.0', () => {
     console.log(`Forge Server listening on http://localhost:${config.port}`)
+    console.log(`  Node runtime: ${process.version}`)
     console.log(`  Health check: http://localhost:${config.port}/api/health`)
     console.log(`  Projects API: http://localhost:${config.port}/api/projects`)
   })

@@ -4,7 +4,7 @@
 # =============================================================================
 # Stage 1: Build Frontend
 # =============================================================================
-FROM node:22-alpine AS frontend-builder
+FROM node:22.23.4-alpine AS frontend-builder
 
 WORKDIR /build
 
@@ -28,7 +28,7 @@ RUN npm run build:prod
 # =============================================================================
 # Stage 2: Build Server
 # =============================================================================
-FROM node:22-alpine AS server-builder
+FROM node:22.23.4-alpine AS server-builder
 
 WORKDIR /build/server
 
@@ -53,7 +53,7 @@ RUN npm prune --production
 # =============================================================================
 # Stage 3: Production Image
 # =============================================================================
-FROM node:22-alpine AS production
+FROM node:22.23.4-alpine AS production
 
 # Install runtime dependencies for better-sqlite3
 RUN apk add --no-cache libstdc++
