@@ -12,7 +12,6 @@ import {
 import { cn } from '@/lib/utils'
 import { copiesNeeded } from '../../../server/src/print-queue-model'
 import {
-  designStages,
   stageLabels,
   type DesignOverview,
   type DesignProjectInput,
@@ -53,11 +52,7 @@ export function ProjectCard({
   const Icon = stageIcon[project.stage]
   const [editing, setEditing] = useState(false)
   const [showPlates, setShowPlates] = useState(false)
-  const [draft, setDraft] = useState<DesignProjectInput>({
-    name: project.name,
-    stage: project.stage,
-    stageNote: project.stageNote,
-  })
+  const [draftName, setDraftName] = useState(project.name)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   // A card hidden by a filter while its form is open must not keep pausing
@@ -69,12 +64,7 @@ export function ProjectCard({
     setEditing(next)
     onEditingChange(next)
     setError('')
-    if (next)
-      setDraft({
-        name: project.name,
-        stage: project.stage,
-        stageNote: project.stageNote,
-      })
+    if (next) setDraftName(project.name)
   }
   const showProgress =
     project.stage === 'production' || summary.production.planned > 0
@@ -113,6 +103,9 @@ export function ProjectCard({
           {project.stageNote}
         </p>
       )}
+      <p className="text-forge-muted dark:text-forge-muted-dark mt-1 text-xs">
+        Stage and note: edited in the vault.
+      </p>
       <p className="text-forge-text dark:text-forge-text-dark mt-3 font-mono text-sm">
         {headline(project.stage, summary)}
       </p>
@@ -164,7 +157,7 @@ export function ProjectCard({
           aria-expanded={editing}
           onClick={() => toggleEditing(!editing)}
         >
-          Change stage
+          Rename
         </button>
         <button
           type="button"
@@ -190,7 +183,11 @@ export function ProjectCard({
             setBusy(true)
             setError('')
             try {
-              await onSave(draft)
+              await onSave({
+                name: draftName,
+                stage: project.stage,
+                stageNote: project.stageNote,
+              })
               toggleEditing(false)
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Save failed.')
@@ -210,46 +207,8 @@ export function ProjectCard({
               autoComplete="off"
               required
               maxLength={200}
-              value={draft.name}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              className={fieldClass}
-            />
-          </label>
-          <label
-            className={cn(
-              labelClass,
-              'text-forge-text-secondary dark:text-forge-text-secondary-dark grid gap-1'
-            )}
-          >
-            Stage
-            <select
-              value={draft.stage}
-              onChange={(e) =>
-                setDraft({ ...draft, stage: e.target.value as DesignStage })
-              }
-              className={fieldClass}
-            >
-              {designStages.map((s) => (
-                <option key={s} value={s}>
-                  {stageLabels[s]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label
-            className={cn(
-              labelClass,
-              'text-forge-text-secondary dark:text-forge-text-secondary-dark grid gap-1'
-            )}
-          >
-            Stage note
-            <input
-              autoComplete="off"
-              maxLength={500}
-              value={draft.stageNote}
-              onChange={(e) =>
-                setDraft({ ...draft, stageNote: e.target.value })
-              }
+              value={draftName}
+              onChange={(e) => setDraftName(e.target.value)}
               className={fieldClass}
             />
           </label>
@@ -275,7 +234,7 @@ export function ProjectCard({
               )}
               disabled={busy}
             >
-              {busy ? 'Saving…' : 'Save stage'}
+              {busy ? 'Saving…' : 'Save name'}
             </button>
           </div>
         </form>
