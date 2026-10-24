@@ -3,7 +3,10 @@ import type { DatabaseInstance } from '../db/index.js'
 import { DesignProjectsRepository } from '../db/DesignProjectsRepository.js'
 import { respond } from './print-queue.js'
 
-/** Stage and stage note belong to the vault; only its bot may write them. */
+/**
+ * Stage and stage note belong to the vault; only its bot may write them.
+ * Ownership guard, not authentication; Forge has no auth.
+ */
 export const VAULT_WRITER_HEADER = 'X-Forge-Writer'
 const canWriteStage = (req: Request) =>
   req.get(VAULT_WRITER_HEADER) === 'vault-bot'
