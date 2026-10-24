@@ -12,6 +12,7 @@ import {
   AGENT_LOOP_TABLES_SQL,
   CREATE_TABLES_SQL,
   DESIGN_PROJECTS_TABLE_SQL,
+  PROJECT_PARTS_TABLE_SQL,
   SCHEMA_VERSION,
 } from './schema.js'
 import { LEGACY_STATUS_ALIASES } from '../domain/nodeRules.js'
@@ -388,6 +389,10 @@ function runIncrementalMigrations(
     // Migration 6 -> 7: 3D design projects (declared stage per project)
     (db: DatabaseInstance) => {
       db.exec(DESIGN_PROJECTS_TABLE_SQL)
+    },
+    // Migration 7 -> 8: per-project parts lists (workshop data)
+    (db: DatabaseInstance) => {
+      db.exec(PROJECT_PARTS_TABLE_SQL)
     },
   ]
 

@@ -1,6 +1,7 @@
 import express from 'express'
 import { createPrintQueueRouter } from './routes/print-queue.js'
 import { createDesignProjectsRouter } from './routes/design-projects.js'
+import { createProjectPartsRouter } from './routes/project-parts.js'
 import { createPrintQueueStudioRouter } from './routes/print-queue-studio.js'
 import * as path from 'node:path'
 import * as fs from 'node:fs/promises'
@@ -117,6 +118,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
   // Inventory module routes
   app.use('/api/print-queue', createPrintQueueRouter(db))
   app.use('/api/design-projects', createDesignProjectsRouter(db))
+  app.use('/api/project-parts', createProjectPartsRouter(db))
   const studioManifest = process.env.FORGE_STUDIO_MANIFEST
   // Trusted assets must be outside every browser-writable/static file root.
   const outsideRoot = (root: string, file: string) =>
