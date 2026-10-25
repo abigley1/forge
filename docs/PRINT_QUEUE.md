@@ -158,7 +158,9 @@ Do not rerun their frozen-source preparation against newer revisions without rev
 
 Open Forge → **3D Design**, or bookmark `/?tool=3d-design`. Each 3D design project
 has a **declared stage** (designing, test-printing, production, done, on-hold) and a
-short note. Nothing changes a stage automatically. Counts come only from queue facts:
+short note. The vault project page owns both: they are shown read-only here ("edited in
+the vault") and the API accepts changes to them only from the vault writer (see below).
+Nothing changes a stage automatically. Counts come only from queue facts:
 
 - Tag each plate's **Purpose** (Test print / Production) in the plate editor.
   Printed plates without a tag are flagged, never guessed.
@@ -178,6 +180,13 @@ short note. Nothing changes a stage automatically. Counts come only from queue f
 | PUT | `/api/design-projects/:id` | `{ "version": N, "project": {name, stage, stageNote} }` |
 | POST | `/api/print-queue/import` | `{ "version": 0, "plates": [complete plates with id/updatedAt] }` |
 
+Stage ownership: `PUT`/`POST /api/design-projects` write `stage` and `stageNote` only
+when the request carries `X-Forge-Writer: vault-bot`; without it a changed stage or
+note returns 403 (a new project may start at `designing` with an empty note). Other
+fields (the name) stay writable by anyone. This is an ownership guard so stage is
+edited in one place, not authentication: Forge has no auth. `scripts/design-projects.mjs`
+sends the header when `FORGE_WRITER=vault-bot` is set.
+
 The import is a one-time move of an existing queue (used to move the Mac queue onto
 Home Assistant). It only works on an empty queue, keeps IDs, order, printed counts
 and timestamps, and writes nothing if any plate is invalid.
@@ -188,6 +197,29 @@ node scripts/design-projects.mjs add "Pipe corral" test-printing "R4 fit test pr
 node scripts/design-projects.mjs stage PROJECT_ID production "R6 plates released"
 node scripts/design-projects.mjs rename PROJECT_ID "Basic 9U rack"
 ```
+
+## Project parts lists
+
+Forge keeps each project's parts list as workshop data, keyed by the vault project
+slug and linked to inventory so "what do I lack" is a query.
+
+| Method | Path | JSON body |
+|---|---|---|
+| GET | `/api/project-parts?project=SLUG` | none → `[{id, project, itemId \| null, name, quantityNeeded}]` |
+| POST | `/api/project-parts` | `{project, itemId?, name, quantityNeeded}` (409 on a repeated name) |
+| PUT | `/api/project-parts/:id` | same body |
+| DELETE | `/api/project-parts/:id` | none |
+| GET | `/api/project-parts/shortfall?project=SLUG` | none → `[{name, itemId, needed, owned}]` where `owned < needed` |
+
+Only inventory items with status `owned` count as owned; a part with no `itemId`
+counts as owned 0. Deleting an inventory item unlinks its parts. The MCP server has
+`list_project_parts`, `project_parts_shortfall` and `upsert_project_part`.
+
+Filament is inventory category `consumables`, subcategory `consumables-filament`,
+keyed by `partNumber` = material id, quantity in grams.
+`node scripts/import-filament.mjs` imports `docs/materials-p2s/inventory.json`
+(idempotent on `partNumber`; `--dry-run` previews). `scripts/migrate-chronometer-parts.mjs`
+is the one-off that turned the chronometer's component nodes into its parts list.
 
 ## Owned filament reference
 

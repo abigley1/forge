@@ -31,8 +31,12 @@ describe('design projects API', () => {
   })
   afterEach(() => db.close())
 
+  const vault = 'vault-bot'
   const create = (project: object) =>
-    request(app).post('/api/design-projects').send({ project })
+    request(app)
+      .post('/api/design-projects')
+      .set('X-Forge-Writer', vault)
+      .send({ project })
   const addPlate = (version: number, p: object) =>
     request(app).post('/api/print-queue').send({ version, plate: p })
 
@@ -61,6 +65,18 @@ describe('design projects API', () => {
     expect(overview.unassigned).toEqual([{ project: 'Loose', plates: 1 }])
   })
 
+  it('without the vault header a new project only gets the default stage', async () => {
+    const post = (project: object) =>
+      request(app).post('/api/design-projects').send({ project })
+    expect(
+      (await post({ name: 'A', stage: 'designing', stageNote: '' })).status
+    ).toBe(201)
+    expect((await post({ name: 'B', stage: 'production' })).status).toBe(403)
+    expect(
+      (await post({ name: 'C', stage: 'designing', stageNote: 'x' })).status
+    ).toBe(403)
+  })
+
   it('lists projects in pipeline stage order', async () => {
     await create({ name: 'B', stage: 'on-hold' })
     await create({ name: 'A', stage: 'production' })
@@ -81,6 +97,7 @@ describe('design projects API', () => {
     const id = (await create({ name: 'Rack', stage: 'designing' })).body.data.id
     const ok = await request(app)
       .put(`/api/design-projects/${id}`)
+      .set('X-Forge-Writer', vault)
       .send({
         version: 1,
         project: { name: 'Rack', stage: 'test-printing', stageNote: 'R2 fit' },
@@ -92,6 +109,7 @@ describe('design projects API', () => {
     })
     const stale = await request(app)
       .put(`/api/design-projects/${id}`)
+      .set('X-Forge-Writer', vault)
       .send({ version: 1, project: { name: 'Rack', stage: 'done' } })
     expect(stale.status).toBe(409)
     const missing = await request(app)
@@ -126,6 +144,7 @@ describe('design projects API', () => {
       .id
     await request(app)
       .put(`/api/design-projects/${id}`)
+      .set('X-Forge-Writer', vault)
       .send({ version: 1, project: { name: 'Rack', stage: 'done' } })
     expect(new PrintQueueRepository(db).read().version).toBe(1)
   })

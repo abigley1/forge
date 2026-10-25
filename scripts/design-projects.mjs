@@ -5,11 +5,16 @@ const base = (process.env.FORGE_API_URL || 'http://localhost:3000/api').replace(
   /\/$/,
   ''
 )
+// Stage and stage note are written only by the vault (FORGE_WRITER=vault-bot).
+const writer = process.env.FORGE_WRITER
 const [command = 'list', ...args] = process.argv.slice(2)
 async function request(method = 'GET', suffix = '', body) {
   const response = await fetch(`${base}/design-projects${suffix}`, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(writer ? { 'X-Forge-Writer': writer } : {}),
+    },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
   const result = await response.json()

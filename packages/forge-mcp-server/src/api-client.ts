@@ -470,6 +470,44 @@ export function createApiClient(config: ApiClientConfig) {
     return request<ApiInventoryCategory[]>('GET', '/inventory/categories')
   }
 
+  // ========== Project parts API ==========
+
+  async function listProjectParts(
+    project?: string
+  ): Promise<ApiResult<ApiProjectPart[]>> {
+    const query =
+      project === undefined ? '' : `?project=${encodeURIComponent(project)}`
+    return request<ApiProjectPart[]>('GET', `/project-parts${query}`)
+  }
+
+  async function projectPartsShortfall(
+    project?: string
+  ): Promise<ApiResult<ApiPartShortfall[]>> {
+    const query =
+      project === undefined ? '' : `?project=${encodeURIComponent(project)}`
+    return request<ApiPartShortfall[]>(
+      'GET',
+      `/project-parts/shortfall${query}`
+    )
+  }
+
+  async function createProjectPart(
+    input: ProjectPartInput
+  ): Promise<ApiResult<ApiProjectPart>> {
+    return request<ApiProjectPart>('POST', '/project-parts', input)
+  }
+
+  async function updateProjectPart(
+    id: string,
+    input: ProjectPartInput
+  ): Promise<ApiResult<ApiProjectPart>> {
+    return request<ApiProjectPart>(
+      'PUT',
+      `/project-parts/${encodeURIComponent(id)}`,
+      input
+    )
+  }
+
   // ========== Agent loop API ==========
 
   async function resolveWorkspace(cwd: string, gitRemote?: string) {
@@ -539,6 +577,11 @@ export function createApiClient(config: ApiClientConfig) {
     createInventoryItem,
     updateInventoryQuantity,
     listInventoryCategories,
+    // Project parts
+    listProjectParts,
+    projectPartsShortfall,
+    createProjectPart,
+    updateProjectPart,
     // Agent loop
     resolveWorkspace,
     linkWorkspace,
@@ -612,6 +655,31 @@ export interface CreateInventoryItemInput {
 
 export interface UpdateInventoryQuantityInput {
   delta: number
+}
+
+// ========== Project parts types ==========
+
+/** `project` is the vault project slug. */
+export interface ApiProjectPart {
+  id: string
+  project: string
+  itemId: string | null
+  name: string
+  quantityNeeded: number
+}
+
+export interface ProjectPartInput {
+  project: string
+  itemId?: string | null
+  name: string
+  quantityNeeded: number
+}
+
+export interface ApiPartShortfall {
+  name: string
+  itemId: string | null
+  needed: number
+  owned: number
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>

@@ -64,6 +64,17 @@ it('renders projects grouped by stage with evidence headline, flags and unassign
   expect(screen.getByText('Completed prints')).toBeInTheDocument()
 })
 
+it('shows stage read-only with an edited-in-the-vault hint', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok(overview)))
+  view()
+  const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
+  expect(card).toHaveTextContent('Production')
+  expect(card).toHaveTextContent('edited in the vault')
+  expect(
+    within(card).queryByRole('button', { name: /change stage/i })
+  ).toBeNull()
+})
+
 it('shows an error with Retry instead of an empty page', async () => {
   const fetchMock = vi
     .fn()
@@ -110,7 +121,7 @@ it('shows an explicit empty state and lets you add a queue project', async () =>
   })
 })
 
-it('changes stage with the project version and shows 409 inline', async () => {
+it('renames with the project version, keeps the vault-owned stage, and shows 409 inline', async () => {
   const fetchMock = vi
     .fn()
     .mockResolvedValueOnce(ok(overview))
@@ -125,11 +136,11 @@ it('changes stage with the project version and shows 409 inline', async () => {
   vi.stubGlobal('fetch', fetchMock)
   view()
   const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
-  fireEvent.click(within(card).getByRole('button', { name: 'Change stage' }))
-  fireEvent.change(within(card).getByLabelText('Stage'), {
-    target: { value: 'done' },
+  fireEvent.click(within(card).getByRole('button', { name: 'Rename' }))
+  fireEvent.change(within(card).getByLabelText('Name'), {
+    target: { value: 'Rack v2' },
   })
-  fireEvent.click(within(card).getByRole('button', { name: 'Save stage' }))
+  fireEvent.click(within(card).getByRole('button', { name: 'Save name' }))
   expect(await within(card).findByRole('alert')).toHaveTextContent(
     'changed elsewhere'
   )
@@ -137,9 +148,14 @@ it('changes stage with the project version and shows 409 inline', async () => {
   expect(url).toMatch(/\/design-projects\/r$/)
   expect(JSON.parse(init.body)).toMatchObject({
     version: 1,
-    project: { stage: 'done' },
+    project: {
+      name: 'Rack v2',
+      stage: 'production',
+      stageNote: 'One leg left',
+    },
   })
-  expect(within(card).getByLabelText('Stage')).toHaveValue('done')
+  expect(within(card).getByLabelText('Name')).toHaveValue('Rack v2')
+  expect(within(card).queryByLabelText('Stage')).toBeNull()
 })
 
 it('lists a project’s plates with purpose and printed of needed', async () => {
@@ -189,7 +205,7 @@ it('keeps auto-refreshing after a card is hidden while its form is open', async 
     vi.stubGlobal('fetch', fetchMock)
     view()
     const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
-    fireEvent.click(within(card).getByRole('button', { name: 'Change stage' }))
+    fireEvent.click(within(card).getByRole('button', { name: 'Rename' }))
     fireEvent.click(screen.getByRole('button', { name: /^Done ·/ }))
     expect(screen.queryByRole('article', { name: 'Basic 9U rack' })).toBeNull()
     const before = fetchMock.mock.calls.length
@@ -219,20 +235,20 @@ it('after a 409, Refresh keeps the edits and Save uses the new version', async (
   vi.stubGlobal('fetch', fetchMock)
   view()
   const card = await screen.findByRole('article', { name: 'Basic 9U rack' })
-  fireEvent.click(within(card).getByRole('button', { name: 'Change stage' }))
-  fireEvent.change(within(card).getByLabelText('Stage'), {
-    target: { value: 'done' },
+  fireEvent.click(within(card).getByRole('button', { name: 'Rename' }))
+  fireEvent.change(within(card).getByLabelText('Name'), {
+    target: { value: 'Rack v2' },
   })
-  fireEvent.click(within(card).getByRole('button', { name: 'Save stage' }))
+  fireEvent.click(within(card).getByRole('button', { name: 'Save name' }))
   await within(card).findByRole('alert')
   fireEvent.click(screen.getByRole('button', { name: /refresh/i }))
   await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))
   const fresh = screen.getByRole('article', { name: 'Basic 9U rack' })
-  expect(within(fresh).getByLabelText('Stage')).toHaveValue('done')
-  fireEvent.click(within(fresh).getByRole('button', { name: 'Save stage' }))
+  expect(within(fresh).getByLabelText('Name')).toHaveValue('Rack v2')
+  fireEvent.click(within(fresh).getByRole('button', { name: 'Save name' }))
   await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(5))
   expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toMatchObject({
     version: 2,
-    project: { stage: 'done' },
+    project: { name: 'Rack v2' },
   })
 })

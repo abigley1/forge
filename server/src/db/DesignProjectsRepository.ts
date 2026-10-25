@@ -44,6 +44,12 @@ const duplicate = (error: unknown, name: string) =>
     ? new QueueError(`A design project named "${name}" already exists.`, 409)
     : error
 
+const stageDenied = () =>
+  new QueueError(
+    'Stage and stage note are edited in the vault; this request is not from the vault writer.',
+    403
+  )
+
 /** Declared-stage 3D design projects; counts come from the print queue. */
 export class DesignProjectsRepository {
   private queue: PrintQueueRepository
@@ -78,8 +84,11 @@ export class DesignProjectsRepository {
       unassigned: unassignedPlates(projects, plates),
     }
   }
-  create(input: unknown): DesignProject {
+  create(input: unknown, canWriteStage = false): DesignProject {
     const p = validate(input)
+    // Without the vault's header a project starts at the default stage.
+    if (!canWriteStage && (p.stage !== 'designing' || p.stageNote !== ''))
+      throw stageDenied()
     const id = randomUUID()
     const now = new Date().toISOString()
     try {
@@ -93,7 +102,12 @@ export class DesignProjectsRepository {
     }
     return this.get(id)!
   }
-  update(id: string, version: unknown, input: unknown): DesignProject {
+  update(
+    id: string,
+    version: unknown,
+    input: unknown,
+    canWriteStage = false
+  ): DesignProject {
     return this.db
       .transaction(() => {
         const current = this.get(id)
@@ -104,6 +118,11 @@ export class DesignProjectsRepository {
             409
           )
         const p = validate(input)
+        if (
+          !canWriteStage &&
+          (p.stage !== current.stage || p.stageNote !== current.stageNote)
+        )
+          throw stageDenied()
         try {
           this.db
             .prepare(

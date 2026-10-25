@@ -11,7 +11,7 @@
  * - attachments: File attachments for nodes
  */
 
-export const SCHEMA_VERSION = 7
+export const SCHEMA_VERSION = 8
 
 /**
  * Inventory item status values
@@ -304,8 +304,30 @@ CREATE TABLE IF NOT EXISTS design_projects (
 );
 `
 
+/**
+ * Per-project parts lists (migration 8). `project` is the vault project slug;
+ * `item_id` links to inventory so shortfall is a query. Deleting an inventory
+ * item unlinks the part rather than removing the need.
+ */
+export const PROJECT_PARTS_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS project_parts (
+  id TEXT PRIMARY KEY,
+  project TEXT NOT NULL,
+  item_id TEXT REFERENCES inventory_items(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  quantity_needed INTEGER NOT NULL CHECK(quantity_needed > 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_parts_project_name
+  ON project_parts(project COLLATE NOCASE, name COLLATE NOCASE);
+`
+
 export const CREATE_TABLES_SQL =
-  BASE_TABLES_SQL + AGENT_LOOP_TABLES_SQL + DESIGN_PROJECTS_TABLE_SQL
+  BASE_TABLES_SQL +
+  AGENT_LOOP_TABLES_SQL +
+  DESIGN_PROJECTS_TABLE_SQL +
+  PROJECT_PARTS_TABLE_SQL
 
 /**
  * Node types as a union type for type safety

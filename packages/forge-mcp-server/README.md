@@ -1,6 +1,6 @@
 # Forge MCP Server
 
-Model Context Protocol (MCP) server that exposes Forge project operations to AI agents like Claude Code.
+Model Context Protocol (MCP) server that exposes Forge's workshop data (inventory, filament, per-project parts lists) to AI agents like Claude Code. Project knowledge (tasks, decisions, briefs, session notes) lives in the vault, not here.
 
 ## Installation
 
@@ -16,8 +16,7 @@ npm run build
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `FORGE_PROJECT_PATH` | Yes | Path to your Forge project directory |
-| `FORGE_WORKSPACE_PATH` | No | Path to workspace containing multiple projects |
+| `FORGE_API_URL` | Yes | Forge API, for example `http://<forge-host>:8099/api` |
 
 ### Claude Code Integration
 
@@ -30,7 +29,7 @@ Add to your Claude Code MCP settings (`~/.claude/settings.json` or project `.cla
       "command": "node",
       "args": ["/path/to/forge-mcp-server/dist/index.js"],
       "env": {
-        "FORGE_PROJECT_PATH": "/path/to/your/project"
+        "FORGE_API_URL": "http://<forge-host>:8099/api"
       }
     }
   }
@@ -46,7 +45,7 @@ Or using npx (after publishing):
       "command": "npx",
       "args": ["forge-mcp-server"],
       "env": {
-        "FORGE_PROJECT_PATH": "/path/to/your/project"
+        "FORGE_API_URL": "http://<forge-host>:8099/api"
       }
     }
   }
@@ -69,8 +68,7 @@ The server listens on `127.0.0.1` only and rejects requests whose `Host` or
 `Origin` is not localhost; it has no authentication, so do not proxy it.
 
 Each client gets its own MCP session (`mcp-session-id`) and its own server
-instance, so a `switch_project` default in one session never leaks into
-another. Sessions idle for 24 hours are dropped; the client re-initializes on
+instance, so sessions never share state. Sessions idle for 24 hours are dropped; the client re-initializes on
 its next request. `GET /health` reports the open session count.
 
 On macOS, run it under a launchd user agent with `KeepAlive` (this machine
@@ -85,144 +83,17 @@ Local Network access in System Settings.
 
 ## Available Tools
 
-### `create_node`
+Inventory: `search_inventory`, `get_inventory_item`, `add_inventory_item`,
+`update_inventory_quantity`, `list_inventory_categories`. Filament is in
+category `consumables`, subcategory `consumables-filament`, keyed by
+`part_number` = material id, quantity in grams.
 
-Create a new node in the Forge project.
+Project parts (`project` is the vault project slug):
 
-**Parameters:**
-- `type` (required): Node type - `task`, `decision`, `component`, `note`, `subsystem`, `assembly`, `module`
-- `title` (required): Title of the node
-- `content`: Markdown content for the node body
-- `tags`: Array of tags
-- `parent`: ID of parent container node
-- `status`: Status (type-specific)
-- `priority`: `high`, `medium`, or `low` (for tasks)
-- `dependsOn`: Array of dependency node IDs (for tasks)
-- `cost`: Cost in dollars (for components)
-- `supplier`: Supplier name (for components)
-- `partNumber`: Part number (for components)
+- `list_project_parts` (`project?`): the parts a project needs.
+- `project_parts_shortfall` (`project`): `[{name, itemId, needed, owned}]` where owned stock is below the need. Only `owned` stock counts; a part with no inventory link counts as owned 0.
+- `upsert_project_part` (`project`, `name`, `quantity_needed`, `item_id?`): add the part, or update the one with that name.
 
-### `update_node`
-
-Update an existing node.
-
-**Parameters:**
-- `id` (required): ID of the node to update
-- All other parameters from `create_node` (optional)
-
-### `delete_node`
-
-Delete a node from the project.
-
-**Parameters:**
-- `id` (required): ID of the node to delete
-
-### `search_nodes`
-
-Search for nodes with various filters.
-
-**Parameters:**
-- `query`: Free-text search in title and content
-- `type`: Filter by node type
-- `status`: Filter by status
-- `tags`: Filter by tags (any match)
-- `parent`: Filter by parent container ID
-- `limit`: Maximum results (default 50)
-
-### `get_node`
-
-Get a single node by ID with full content.
-
-**Parameters:**
-- `id` (required): ID of the node to retrieve
-
-### `list_projects`
-
-List all Forge projects in the workspace.
-
-### `add_dependency`
-
-Add a dependency between two task nodes.
-
-**Parameters:**
-- `taskId` (required): ID of the task that will depend on another
-- `dependsOnId` (required): ID of the task to depend on
-
-### `remove_dependency`
-
-Remove a dependency between two task nodes.
-
-**Parameters:**
-- `taskId` (required): ID of the task to remove dependency from
-- `dependsOnId` (required): ID of the dependency to remove
-
-### `get_blocked_tasks`
-
-Get all tasks that are blocked by incomplete dependencies.
-
-### `get_critical_path`
-
-Get the critical path through incomplete tasks (longest chain of dependent tasks).
-
-### `bulk_update`
-
-Update multiple nodes at once.
-
-**Parameters:**
-- `updates` (required): Array of objects with:
-  - `id` (required): Node ID to update
-  - `status`: New status
-  - `priority`: New priority (`high`, `medium`, `low`)
-  - `tags`: New tags array
-
-### `find_components`
-
-Find components by supplier, price range, or part number pattern.
-
-**Parameters:**
-- `supplier`: Filter by supplier name (case-insensitive)
-- `minCost`: Minimum cost filter
-- `maxCost`: Maximum cost filter
-- `partNumberPattern`: Regex pattern to match part numbers
-
-## Available Resources
-
-- `forge://project/{id}` - Project metadata
-- `forge://nodes/all` - All nodes summary
-- `forge://nodes/tasks` - All task nodes
-- `forge://nodes/decisions` - All decision nodes
-- `forge://nodes/components` - All component nodes
-
-## Available Prompts
-
-### `plan_subsystem`
-
-Guide AI to create a complete subsystem with components and tasks.
-
-**Arguments:**
-- `name` (required): Name of the subsystem to plan
-- `description`: Brief description of the subsystem purpose
-
-### `source_components`
-
-Guide AI to find and import components for given requirements.
-
-**Arguments:**
-- `requirements` (required): Component requirements (specs, constraints, use case)
-- `budget`: Budget constraint for components
-
-### `review_dependencies`
-
-Analyze task dependencies and suggest improvements. Identifies bottlenecks, unnecessary dependencies, and potential parallelization opportunities.
-
-### `project_status`
-
-Summarize project state, blocked items, and critical path. Provides executive summary, key blockers, recommended next steps, and risks.
-
-## Example Usage with Claude Code
-
-```
-Human: Create a new task for assembling the power supply
-
-Claude: I'll create that task for you.
-[Uses create_node tool with type="task", title="Assemble Power Supply"]
+The project, node, brief, closeout and workspace tools were removed when
+project knowledge moved to the vault. Print-queue changes go through
+`scripts/print-queue.mjs` and `/api/print-queue` (see `docs/PRINT_QUEUE.md`).

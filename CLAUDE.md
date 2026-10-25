@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Forge is a personal project brainstorming, planning, and tracking tool for complex hardware and engineering projects. It combines graph-based linking (like Obsidian) with structured data (like Notion), stored as git-friendly files.
 
+**Current role (2026-10-24):** Forge is the workshop app. Project knowledge lives in the vault (abigley1/vault); Forge keeps inventory and filament, per-project parts lists (`/api/project-parts`), the print queue, and a read-only view of the vault-owned 3D design stage. The project, node, brief and closeout APIs remain for the migration but their UI and MCP tools are gone. See `docs/PRINT_QUEUE.md`.
+
+Project page: `~/vault/projects/forge/README.md` (clone
+`git@github.com:abigley1/vault.git` if missing). Write session notes there;
+follow `~/vault/AGENTS.md`.
+
 **Target user:** Solo maker/engineer working on complex hardware projects (3D design, PCB design, component selection, system architecture).
 
 ## Deployment
